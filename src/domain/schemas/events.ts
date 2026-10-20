@@ -99,6 +99,16 @@ const EVENT_DEFINITIONS = {
   },
   AlertAcknowledged: { entityType: 'Alert', payload: z.object({ acknowledgedBy: Id }) },
   AlertResolved: { entityType: 'Alert', payload: Empty },
+  DemoSeeded: {
+    entityType: 'SimulationState',
+    payload: z.object({
+      seed: z.int().nonnegative(),
+      profileId: z.string().min(1),
+      anchorAt: IsoDateTime,
+      /** Rows written per entity name. */
+      counts: z.record(z.string().min(1), z.int().nonnegative()),
+    }),
+  },
 } as const satisfies Record<string, { entityType: EntityType; payload: z.ZodObject }>
 
 type EventDefinitions = typeof EVENT_DEFINITIONS
