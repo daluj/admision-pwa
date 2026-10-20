@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { routes } from '@/app/routes'
+import { PwaUpdatePrompt } from '@/components/pwa/PwaUpdatePrompt'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
@@ -10,6 +11,7 @@ export function App() {
     <TooltipProvider delayDuration={300}>
       <RouterProvider router={router} />
       <Toaster position="bottom-right" />
+      <PwaUpdatePrompt />
     </TooltipProvider>
   )
 }
