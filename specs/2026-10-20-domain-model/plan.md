@@ -46,7 +46,7 @@ Every group follows the `data-model-change` skill and ends with `npm run typeche
 ## Group 6: DataProvider & Hooks
 
 25. `src/data/createBackend.ts`: reads `import.meta.env.VITE_DATA_BACKEND` (`dexie` default | `memory`), throws `UnknownBackendError` otherwise. Add `src/vite-env.d.ts` typing for the env var and `.env.example`.
-26. `src/data/DataProvider.tsx` + `src/data/dataContext.ts`: creates the backend once, provides it, closes it on unmount; accepts an injected `backend` prop for tests.
+26. `src/data/DataProvider.tsx` + `src/data/dataContext.ts`: provides an injected `backend` (required prop). `main.tsx` calls `createBackend()` once at startup and renders a Spanish `StartupError` page if it throws. *(Changed during implementation: a provider that created and closed the backend itself would close it under StrictMode's double mount; the backend lives for the whole page instead.)*
 27. `src/data/hooks/useSubscribable.ts` (`useSyncExternalStore`, returns `undefined` while loading, surfaces errors to an error boundary), then `useDataInfo`, `useTableCounts`, `useUnits`, `useBeds`, `useBedsByUnit`, `useRecentEvents`.
 28. Wire `DataProvider` into `main.tsx` and the test helper `renderApp` (memory backend).
 29. Hook tests with the memory backend: initial value, update after `append`, unsubscribe on unmount, `useBedsByUnit` changes when `unitId` changes.

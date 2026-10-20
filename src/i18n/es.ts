@@ -122,6 +122,12 @@ export const es = {
     close: 'Cerrar',
     notifications: 'Notificaciones',
   },
+  startupError: {
+    title: 'No se pudo iniciar Torre de Control',
+    description:
+      'La configuración del origen de datos no es válida. Revise la variable VITE_DATA_BACKEND (valores admitidos: dexie, memory).',
+    detail: 'Detalle técnico',
+  },
   loading: 'Cargando…',
   pwa: {
     updateAvailable: 'Actualización disponible',

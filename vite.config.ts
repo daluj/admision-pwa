@@ -52,9 +52,21 @@ export default defineConfig({
     }),
   ],
   build: {
-    // The vendor chunk (react-dom + react-router) is ~510 kB / ~160 kB gzip. Everything is precached
-    // for offline use anyway, so splitting it further brings no benefit.
-    chunkSizeWarningLimit: 700,
+    // Everything is precached for offline use; vendor chunks just keep each file a sensible size.
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'vendor-react',
+              test: /node_modules[\\/](react|react-dom|react-router|scheduler)[\\/]/,
+            },
+            { name: 'vendor-data', test: /node_modules[\\/](dexie|zod)[\\/]/ },
+            { name: 'vendor-ui', test: /node_modules[\\/]/ },
+          ],
+        },
+      },
+    },
   },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
