@@ -24,13 +24,13 @@ Implementation is complete and ready to merge when all of the following pass.
 - [ ] `ensureDemoSeeded`: seeds once, idempotent, concurrent calls ⇒ one seed (memory + Dexie)
 - [ ] `resetDemo`: replaces everything, `lastSeq` = 1, same seed ⇒ same data
 - [ ] `DemoDataCard`: current seed, validation, confirm/cancel, busy state, toasts
-- [ ] E2E: first load seeded; reset with seed 7 updates a second tab; reset to 42 restores the original counts
+- [ ] E2E: first load seeded; reset with seed 7 updates a second tab; reset to 42 restores the original seed
 
 ## Manual
 
 - [ ] Fresh browser profile: open the app → Ajustes shows ~600 camas, ~550 pacientes, 1 evento without any action
 - [ ] Reload: still 1 evento (no re-seed); DevTools → IndexedDB shows realistic rows (Spanish names, `SIM-` MRNs, bed labels like `512-A`)
-- [ ] "Restablecer demo" with seed 7 → confirmation dialog → toast → counts change; with 42 → original counts back
+- [ ] "Restablecer demo" with seed 7 → confirmation dialog → toast → "Semilla actual: 7" and different patients in IndexedDB (counts are profile-driven and stay equal); with 42 → identical data to the first run
 - [ ] Two tabs open: reset in one, the other updates within ~1 s
 - [ ] Reset completes in under 2 s on a laptop; no UI freeze longer than ~300 ms
 - [ ] Keyboard only: seed field, button, dialog (focus trapped, Escape cancels)

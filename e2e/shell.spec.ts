@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 const PAGES = [
   { label: 'Torre de control', path: '/', title: 'Visión general' },
@@ -79,21 +79,35 @@ test('registers a service worker and works offline', async ({ page, context }) =
   await context.setOffline(false)
 })
 
-test('Ajustes shows the local database status', async ({ page, context }) => {
-  await page.goto('/ajustes')
-  const card = page.locator('[data-slot="card"]', { hasText: 'Base de datos local' })
-  const value = (label: string) =>
-    card.locator('dt', { hasText: label }).locator('xpath=following-sibling::dd[1]')
+const cardValue = (page: Page, card: string, label: string) =>
+  page
+    .locator('[data-slot="card"]', { hasText: card })
+    .locator('dt', { hasText: new RegExp(`^${label}$`) })
+    .locator('xpath=following-sibling::dd[1]')
 
-  await expect(value('Origen de datos')).toHaveText('IndexedDB')
-  await expect(value('Versión del esquema')).toHaveText('1')
-  await expect(value('Eventos registrados')).toHaveText('0')
-  await expect(value('Camas')).toHaveText('0')
+const db = (page: Page, label: string) => cardValue(page, 'Base de datos local', label)
+
+test('first launch seeds the demo hospital; Ajustes shows the database status', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/ajustes')
+  await expect(db(page, 'Origen de datos')).toHaveText('IndexedDB')
+  await expect(db(page, 'Versión del esquema')).toHaveText('1')
+  await expect(db(page, 'Eventos registrados')).toHaveText('1')
+  await expect(db(page, 'Camas')).toHaveText('600')
+  await expect(db(page, 'Unidades')).toHaveText('20')
+  await expect(cardValue(page, 'Datos de demostración', 'Semilla actual')).toHaveText('42')
 
   const databases = await page.evaluate(async () =>
     (await indexedDB.databases()).map((database) => database.name),
   )
   expect(databases).toContain('torre-control')
+
+  // Reload does not seed again.
+  await page.reload()
+  await expect(db(page, 'Camas')).toHaveText('600')
+  await expect(db(page, 'Eventos registrados')).toHaveText('1')
 
   await expect
     .poll(() =>
@@ -102,7 +116,37 @@ test('Ajustes shows the local database status', async ({ page, context }) => {
     .toBe('activated')
   await context.setOffline(true)
   await page.reload()
-  await expect(value('Origen de datos')).toHaveText('IndexedDB')
-  await expect(value('Eventos registrados')).toHaveText('0')
+  await expect(db(page, 'Origen de datos')).toHaveText('IndexedDB')
+  await expect(db(page, 'Camas')).toHaveText('600')
   await context.setOffline(false)
+})
+
+test('"Restablecer demo" reseeds and updates every open tab', async ({ page, context }) => {
+  await page.goto('/ajustes')
+  await expect(db(page, 'Camas')).toHaveText('600')
+
+  const other = await context.newPage()
+  await other.goto('/ajustes')
+  await expect(cardValue(other, 'Datos de demostración', 'Semilla actual')).toHaveText('42')
+
+  const reset = async (seed: string) => {
+    await page.getByLabel('Semilla').fill(seed)
+    await page.getByRole('button', { name: 'Restablecer demo' }).click()
+    const dialog = page.getByRole('alertdialog', { name: '¿Restablecer la demo?' })
+    await expect(dialog).toContainText(`con la semilla ${seed}`)
+    await dialog.getByRole('button', { name: 'Restablecer', exact: true }).click()
+    await expect(page.getByText(`Demo restablecida con la semilla ${seed}`)).toBeVisible()
+  }
+
+  await reset('7')
+  await expect(cardValue(page, 'Datos de demostración', 'Semilla actual')).toHaveText('7')
+  // The second tab follows live (cross-tab live query).
+  await expect(cardValue(other, 'Datos de demostración', 'Semilla actual')).toHaveText('7')
+  await expect(db(other, 'Eventos registrados')).toHaveText('1')
+  // Counts are fixed by the profile (same for every seed); the content differs.
+  await expect(db(other, 'Camas')).toHaveText('600')
+
+  await reset('42')
+  await expect(db(other, 'Eventos registrados')).toHaveText('1')
+  await expect(cardValue(other, 'Datos de demostración', 'Semilla actual')).toHaveText('42')
 })

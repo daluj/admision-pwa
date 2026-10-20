@@ -88,4 +88,4 @@ New hook: `useSimulationState()`.
 - Follow the `data-model-change` skill (new event, port methods, contract tests, Postgres draft note) and `dashboard-widget` for the card.
 - Phase 2 patterns: ports & adapters, contract suite, `sampleEntities`, hooks on `useSubscribable`.
 - **Synthetic data only**: generated names from generic lists, MRNs `SIM-NNNNNN`, no real staff or patients.
-- Demo story: open the app → Ajustes already shows ~600 camas, ~550 pacientes, 1 evento. Change the seed to 7 and "Restablecer demo" → counts change in this tab **and in a second open tab**; back to 42 → identical to the first run.
+- Demo story: open the app → Ajustes already shows ~600 camas, ~550 pacientes, 1 evento. Change the seed to 7 and "Restablecer demo" → "Semilla actual: 7" in this tab **and in a second open tab** (row counts stay the same — they come from the profile; names, ids, statuses and times change); back to 42 → identical to the first run.
