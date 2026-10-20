@@ -28,7 +28,7 @@ Pin exact versions in `package.json` at scaffold time (latest stable releases). 
 
 ## Database / Persistence (MVP)
 
-- **IndexedDB via Dexie.js 4** and **dexie-react-hooks** (`useLiveQuery`).
+- **IndexedDB via Dexie.js 4.** Live queries use Dexie `liveQuery` *inside the Dexie adapter*, wrapped in our `Subscribable`; React hooks consume `Subscribable` via `useSyncExternalStore`. (`dexie-react-hooks` is deliberately not used: it would make hooks depend on Dexie — decided in Phase 2.)
   - Database name: `torre-control`.
   - Schema declared in `src/data/adapters/dexie/db.ts` with explicit `db.version(n).stores({...})`; every schema change bumps the version and adds an `upgrade()` when data must be transformed.
   - Live queries give real-time updates, including **across browser tabs** (so a wall-display tab updates when the simulator runs in another tab).
