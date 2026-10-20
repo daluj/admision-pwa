@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Torre de Control — Admisión</title>
+    <meta
+      name="description"
+      content="Cuadros de mando en tiempo real del Servicio de Admisión hospitalaria. Entorno de demostración con datos ficticios."
+    />
+    <meta name="theme-color" content="#1f4f99" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Torre Control" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <script>
+      // Apply the stored theme before first paint to avoid a flash (mirrors ThemeProvider).
+      try {
+        var t = localStorage.getItem('torre-control:theme')
+        var dark =
+          t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) {
+          document.documentElement.classList.add('dark')
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#141922')
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
