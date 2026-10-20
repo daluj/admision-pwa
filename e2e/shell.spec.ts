@@ -31,6 +31,17 @@ test('unknown routes show the 404 page', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Página no encontrada')
 })
 
+test('the chosen theme survives a reload', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Cambiar tema' }).click()
+  await page.getByRole('menuitemradio', { name: 'Oscuro' }).click()
+  await expect(page.locator('html')).toHaveClass(/dark/)
+
+  await page.reload()
+  await expect(page.locator('html')).toHaveClass(/dark/)
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#141922')
+})
+
 test('serves the web app manifest', async ({ page, request }) => {
   await page.goto('/')
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(

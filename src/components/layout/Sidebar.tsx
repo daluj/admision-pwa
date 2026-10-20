@@ -31,10 +31,9 @@ export function Sidebar() {
   const showLabels = isWide && !collapsed
 
   const toggle = () => {
-    setCollapsed((current) => {
-      writeCollapsed(!current)
-      return !current
-    })
+    const next = !collapsed
+    writeCollapsed(next)
+    setCollapsed(next)
   }
 
   return (
@@ -59,7 +58,6 @@ export function Sidebar() {
             variant="ghost"
             size={showLabels ? 'sm' : 'icon'}
             onClick={toggle}
-            aria-expanded={showLabels}
             aria-label={showLabels ? es.nav.collapse : es.nav.expand}
             className={cn(showLabels && 'w-full justify-start')}
           >

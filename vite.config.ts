@@ -4,8 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { es } from './src/i18n/es.ts'
 
-// Brand colours used by the manifest; keep in sync with --primary / --background in globals.css.
+// Manifest colours; THEME_COLOR matches THEME_COLORS.light in src/components/theme/theme.ts.
 const THEME_COLOR = '#1f4f99'
 const BACKGROUND_COLOR = '#f8fafc'
 
@@ -18,9 +19,9 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'Torre de Control — Admisión',
-        short_name: 'Torre Control',
-        description: 'Cuadros de mando en tiempo real del Servicio de Admisión (datos ficticios).',
+        name: es.app.fullName,
+        short_name: es.app.shortName,
+        description: es.app.description,
         lang: 'es',
         dir: 'ltr',
         start_url: '/',
@@ -43,6 +44,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
         navigateFallback: '/index.html',
+        // Take control of the page on first install, so "Actualizar" can reload it in that same session.
+        clientsClaim: true,
         cleanupOutdatedCaches: true,
       },
       devOptions: { enabled: false },

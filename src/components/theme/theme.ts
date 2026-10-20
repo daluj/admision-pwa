@@ -9,7 +9,14 @@ export type ThemeContextValue = {
   setTheme: (theme: Theme) => void
 }
 
+/** Also hard-coded in the pre-paint script in index.html; keep both in sync. */
 export const THEME_STORAGE_KEY = 'torre-control:theme'
+
+/** Browser UI colour (`<meta name="theme-color">`) per resolved theme. */
+export const THEME_COLORS: Record<ResolvedTheme, string> = {
+  light: '#1f4f99',
+  dark: '#141922',
+}
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null)
 

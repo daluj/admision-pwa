@@ -5,7 +5,10 @@ export const es = {
   app: {
     name: 'Torre de Control',
     fullName: 'Torre de Control — Admisión',
+    shortName: 'Torre Control',
+    description: 'Cuadros de mando en tiempo real del Servicio de Admisión (datos ficticios).',
     skipToContent: 'Saltar al contenido principal',
+    documentTitle: (page: string) => `${page} · Torre de Control`,
   },
   nav: {
     label: 'Navegación principal',
@@ -114,6 +117,10 @@ export const es = {
       code: '404',
       backHome: 'Volver a la torre de control',
     },
+  },
+  common: {
+    close: 'Cerrar',
+    notifications: 'Notificaciones',
   },
   loading: 'Cargando…',
   pwa: {

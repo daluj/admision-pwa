@@ -13,8 +13,8 @@ Pin exact versions in `package.json` at scaffold time (latest stable releases). 
 - **React** (latest stable) with function components and hooks.
 - **Vite** — dev server and build.
 - **React Router** (data/declarative router) — client-side routing, lazy-loaded feature routes.
-- **Tailwind CSS v4** — styling, with design tokens defined as CSS variables (see `specs/ux-guidelines.md`).
-- **shadcn/ui** (Radix primitives) — accessible base components, copied into `src/components/ui/`.
+- **Tailwind CSS v4** (via `@tailwindcss/vite`) — styling, with design tokens defined as CSS variables (see `specs/ux-guidelines.md`).
+- **shadcn/ui** (Radix primitives) — accessible base components, copied into `src/components/ui/`. Runtime packages it brings: `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` (dev), and **sonner** for toasts. (`next-themes` is not used: the toaster reads our own `ThemeProvider`.)
 - **lucide-react** — icons.
 - **Recharts** — charts (bar, line, area, small multiples).
 - **date-fns** with the `es` locale — all date formatting and arithmetic.
@@ -22,7 +22,7 @@ Pin exact versions in `package.json` at scaffold time (latest stable releases). 
 
 ## PWA
 
-- **vite-plugin-pwa** (Workbox) — web app manifest, service worker, precaching of the app shell, installable on desktop and tablets.
+- **vite-plugin-pwa** (Workbox, with its `workbox-window` peer) — web app manifest, service worker, precaching of the app shell, installable on desktop and tablets.
 - App must load and work fully **offline** in the MVP (all data is local).
 - `registerType: 'prompt'` — show an "update available" toast rather than reloading silently.
 
@@ -38,6 +38,7 @@ Pin exact versions in `package.json` at scaffold time (latest stable releases). 
 
 ```
 src/
+  app/               # Route table: maps nav items (components/layout/nav.ts) to lazy feature pages
   domain/            # Pure TypeScript: Zod schemas, types, state machines, KPI calculators, alert rules. No React, no Dexie.
   data/
     ports/           # Repository + EventStore + Clock interfaces (the contract)
@@ -49,7 +50,7 @@ src/
     hooks/           # useBeds(), useEdVisits()... wrap repository.observe*() for React
   simulator/         # Event generator: seeded PRNG, scenarios, simulated clock, runner
   features/          # One folder per area: overview/, beds/, emergency/, admissions/, transfers/, tracking/, settings/, auth/
-  components/        # Shared UI (layout, KPI tiles, status badges) + ui/ (shadcn)
+  components/        # Shared UI: layout/, theme/, common/, pwa/, KPI tiles, status badges + ui/ (shadcn)
   lib/               # Generic utilities (formatting, ids)
 ```
 
@@ -68,7 +69,7 @@ Rules:
 
 ## Testing
 
-- **Vitest** + **@testing-library/react** + **jsdom** — unit and component tests.
+- **Vitest** + **@testing-library/react** (with `@testing-library/dom`, `jest-dom`, `user-event`) + **jsdom** — unit and component tests.
 - **fake-indexeddb** — Dexie adapter tests.
 - **Playwright** — end-to-end smoke tests and the demo walkthrough (`e2e/`).
 - Test layout mirrors `src/` (`src/domain/kpis/occupancy.test.ts` next to its source).
@@ -82,7 +83,7 @@ Rules:
 | `npm run build` | Typecheck + production build (includes service worker) |
 | `npm run preview` | Serve the production build (used to test PWA/offline) |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint (typescript-eslint, react-hooks, jsx-a11y) |
+| `npm run lint` | ESLint 9 (typescript-eslint, react-hooks, jsx-a11y, eslint-config-prettier) — stay on 9 until eslint-plugin-jsx-a11y supports ESLint 10 |
 | `npm run format` | Prettier |
 | `npm test` | `vitest run` |
 | `npm run test:e2e` | Playwright |

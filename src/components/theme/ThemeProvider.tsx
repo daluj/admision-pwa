@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   readStoredTheme,
   systemPrefersDark,
+  THEME_COLORS,
   ThemeContext,
   writeStoredTheme,
   type ResolvedTheme,
@@ -30,6 +31,9 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', THEME_COLORS[resolvedTheme])
   }, [resolvedTheme])
 
   const value = useMemo<ThemeContextValue>(
