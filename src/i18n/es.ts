@@ -97,8 +97,31 @@ export const es = {
     settings: {
       title: 'Ajustes',
       description: 'Preferencias de la aplicación, simulador y datos de demostración.',
-      emptyTitle: 'Sin ajustes disponibles todavía',
-      emptyDescription: 'Las opciones del simulador y de la demo se añadirán en próximas fases.',
+      database: {
+        title: 'Base de datos local',
+        description: 'Los datos se guardan solo en este navegador.',
+        backend: 'Origen de datos',
+        backends: { dexie: 'IndexedDB', memory: 'Memoria (pruebas)' },
+        schemaVersion: 'Versión del esquema',
+        events: 'Eventos registrados',
+        tablesTitle: 'Registros por tabla',
+        tables: {
+          specialty: 'Servicios',
+          unit: 'Unidades',
+          bed: 'Camas',
+          patient: 'Pacientes',
+          edVisit: 'Episodios de Urgencias',
+          admission: 'Ingresos',
+          bedRequest: 'Solicitudes de cama',
+          transferRequest: 'Traslados',
+          porter: 'Celadores',
+          user: 'Usuarios',
+          alert: 'Alertas',
+          simulationState: 'Simulación',
+        },
+        emptyHint: 'Sin datos todavía: el hospital simulado se cargará en la siguiente fase.',
+        loading: 'Cargando datos locales…',
+      },
       tokensTitle: 'Colores de estado',
       tokensDescription: 'Muestra de los colores semánticos de la interfaz.',
       statusTokens: {
@@ -121,6 +144,12 @@ export const es = {
   common: {
     close: 'Cerrar',
     notifications: 'Notificaciones',
+  },
+  startupError: {
+    title: 'No se pudo iniciar Torre de Control',
+    description:
+      'La configuración del origen de datos no es válida. Revise la variable VITE_DATA_BACKEND (valores admitidos: dexie, memory).',
+    detail: 'Detalle técnico',
   },
   loading: 'Cargando…',
   pwa: {

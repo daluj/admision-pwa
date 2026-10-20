@@ -1,0 +1,41 @@
+import { useMemo } from 'react'
+import { useDataBackend } from '@/data/dataContext'
+import type { DataBackendInfo, TableCounts } from '@/data/ports'
+import type { Bed, HospitalEvent, Id, Unit } from '@/domain/schemas'
+import { useSubscribable } from './useSubscribable'
+
+export { useSubscribable } from './useSubscribable'
+
+/** Which adapter is in use and its schema version. */
+export function useDataInfo(): DataBackendInfo {
+  return useDataBackend().info
+}
+
+/** Live row count per table plus the event log; `undefined` while loading. */
+export function useTableCounts(): TableCounts | undefined {
+  const backend = useDataBackend()
+  return useSubscribable(useMemo(() => backend.observeTableCounts(), [backend]))
+}
+
+export function useUnits(): Unit[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.unit.observeList(), [repositories]))
+}
+
+export function useBeds(): Bed[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.bed.observeList(), [repositories]))
+}
+
+export function useBedsByUnit(unitId: Id): Bed[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(
+    useMemo(() => repositories.bed.observeBedsByUnit(unitId), [repositories, unitId]),
+  )
+}
+
+/** The latest `limit` events, newest first. */
+export function useRecentEvents(limit: number): HospitalEvent[] | undefined {
+  const { events } = useDataBackend()
+  return useSubscribable(useMemo(() => events.observeRecent(limit), [events, limit]))
+}

@@ -20,16 +20,16 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] PWA manifest, icons and service worker (installable, works offline, update prompt)
 - [x] Smoke tests (component + Playwright)
 
-## Phase 2: Domain Model & Local Database
+## Phase 2: Domain Model & Local Database (Complete)
 
 **Goal:** The domain and persistence foundation behind ports & adapters.
 
-- [ ] Zod schemas + inferred types for all entities and events in `specs/domain.md`
-- [ ] State machines for Bed, EdVisit, Admission, TransferRequest with unit tests
-- [ ] Ports: repositories, `EventStore`, `Clock`, `Subscribable`
-- [ ] Dexie adapter (schema v1) and in-memory adapter
-- [ ] `DataProvider` (adapter chosen by `VITE_DATA_BACKEND`) and first hooks
-- [ ] Adapter contract tests run against both adapters (fake-indexeddb)
+- [x] Zod schemas + inferred types for all entities and events in `specs/domain.md`
+- [x] State machines for Bed, EdVisit, Admission, TransferRequest with unit tests
+- [x] Ports: repositories, `EventStore`, `Clock`, `Subscribable`
+- [x] Dexie adapter (schema v1) and in-memory adapter
+- [x] `DataProvider` (adapter chosen by `VITE_DATA_BACKEND`) and first hooks
+- [x] Adapter contract tests run against both adapters (fake-indexeddb)
 
 ## Phase 3: Synthetic Hospital Seed
 

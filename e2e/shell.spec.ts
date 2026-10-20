@@ -78,3 +78,31 @@ test('registers a service worker and works offline', async ({ page, context }) =
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Gestión de camas')
   await context.setOffline(false)
 })
+
+test('Ajustes shows the local database status', async ({ page, context }) => {
+  await page.goto('/ajustes')
+  const card = page.locator('[data-slot="card"]', { hasText: 'Base de datos local' })
+  const value = (label: string) =>
+    card.locator('dt', { hasText: label }).locator('xpath=following-sibling::dd[1]')
+
+  await expect(value('Origen de datos')).toHaveText('IndexedDB')
+  await expect(value('Versión del esquema')).toHaveText('1')
+  await expect(value('Eventos registrados')).toHaveText('0')
+  await expect(value('Camas')).toHaveText('0')
+
+  const databases = await page.evaluate(async () =>
+    (await indexedDB.databases()).map((database) => database.name),
+  )
+  expect(databases).toContain('torre-control')
+
+  await expect
+    .poll(() =>
+      page.evaluate(async () => (await navigator.serviceWorker.ready).active?.state ?? null),
+    )
+    .toBe('activated')
+  await context.setOffline(true)
+  await page.reload()
+  await expect(value('Origen de datos')).toHaveText('IndexedDB')
+  await expect(value('Eventos registrados')).toHaveText('0')
+  await context.setOffline(false)
+})

@@ -44,9 +44,11 @@ All entities have `id: string`, `createdAt`, `updatedAt` (ISO UTC). Patient data
 | **TransferRequest** | `patientId`, `fromLocation`, `toLocation`, `reason` (`ADMISSION` \| `INTER_UNIT` \| `TEST` \| `SURGERY` \| `RETURN`), `priority` (`URGENT` \| `NORMAL`), `requestedAt`, `status` (see state machine), `porterId?`, `assignedAt?`, `pickedUpAt?`, `deliveredAt?`, `slaDueAt` |
 | **Porter** | `name`, `shift` (`MORNING` \| `AFTERNOON` \| `NIGHT`), `status` (`AVAILABLE` \| `BUSY` \| `OFF_SHIFT`) |
 | **User** (simulated) | `username`, `displayName`, `role`, `unitId?` (for nurse supervisors) |
-| **HospitalEvent** | `seq` (monotonic), `type`, `occurredAt`, `actor` (`userId` \| `"simulator"`), `entityType`, `entityId`, `payload` (typed per event) |
+| **HospitalEvent** | `id` (UUID), `seq` (monotonic, gap-free, assigned by the event store), `type`, `occurredAt`, `actor` (`userId` \| `"simulator"`), `entityType`, `entityId`, `payload` (typed per event, see Event payloads) |
 | **Alert** | `ruleId`, `severity` (`INFO` \| `WARNING` \| `CRITICAL`), `entityType`, `entityId`, `message`, `raisedAt`, `acknowledgedAt?`, `acknowledgedBy?`, `resolvedAt?` |
-| **SimulationState** | `seed`, `scenarioId`, `speed`, `running`, `simNow` (simulated clock), `startedAt` |
+| **SimulationState** | singleton (`id: "current"`): `seed`, `scenarioId`, `speed`, `running`, `simNow` (simulated clock), `startedAt` |
+
+**Unique fields** (enforced by every adapter): `Specialty.code`, `Unit.code`, `Patient.mrn`, `User.username`. `Alert.entityType` and `HospitalEvent.entityType` use the same entity-type enum (`Specialty`, `Unit`, `Bed`, …, `SimulationState`).
 
 Locations (`fromLocation`, `toLocation`) are `{ kind: 'BED' | 'ED' | 'RADIOLOGY' | 'OR' | 'OTHER', refId?, label }`.
 
@@ -113,6 +115,38 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 | `TransferRequested` / `TransferAssigned` / `TransferPickedUp` / `TransferDelivered` / `TransferCancelled` | Transfer coordination / porters | — |
 | `AdmissionCancelled` | Admissions | A11 |
 | `AlertRaised` / `AlertAcknowledged` / `AlertResolved` | Alert engine / users | — |
+
+### Event payloads
+
+`entityType` / `entityId` identify the aggregate the event belongs to; the payload carries only what the event adds. Timestamps not in the payload are the event's `occurredAt` (e.g. `EdPatientTriaged.occurredAt` becomes `EdVisit.triagedAt`).
+
+| Event | `entityType` | Payload |
+|---|---|---|
+| `EdPatientArrived` | EdVisit | `patientId`, `area`, `chiefComplaint` |
+| `EdPatientTriaged` | EdVisit | `triageLevel`, `area?` |
+| `EdAssessmentStarted` | EdVisit | — |
+| `AdmissionDecided` | EdVisit | `admissionId`, `targetSpecialtyCode` |
+| `EdPatientLeft` | EdVisit | `outcome` |
+| `ScheduledAdmissionCreated` | Admission | `patientId`, `specialtyCode`, `scheduledFor` |
+| `BedRequested` | BedRequest | `admissionId`, `priority`, `requiredUnitType`, `preferredSpecialtyCode`, `isolationRequired` |
+| `BedReserved` | Bed | `bedRequestId`, `admissionId`, `etaAt?` |
+| `BedReservationReleased` | Bed | `bedRequestId?`, `reason?` |
+| `PatientAdmitted` | Admission | `patientId`, `bedId` |
+| `ExpectedDischargeSet` | Admission | `expectedDischargeAt` |
+| `DischargeOrdered` | Admission | — |
+| `PatientDischarged` | Admission | `bedId` |
+| `PatientTransferredBetweenBeds` | Admission | `fromBedId`, `toBedId` |
+| `BedCleaningStarted` / `BedCleaningFinished` | Bed | — |
+| `BedBlocked` | Bed | `reason` |
+| `BedUnblocked` | Bed | — |
+| `TransferRequested` | TransferRequest | `patientId`, `fromLocation`, `toLocation`, `reason`, `priority`, `slaDueAt` |
+| `TransferAssigned` | TransferRequest | `porterId` |
+| `TransferPickedUp` / `TransferDelivered` | TransferRequest | — |
+| `TransferCancelled` | TransferRequest | `reason?` |
+| `AdmissionCancelled` | Admission | `reason` (`NO_BED` \| `PATIENT` \| `CLINICAL` \| `OTHER`) |
+| `AlertRaised` | Alert | `ruleId`, `severity`, `entityType`, `entityId`, `message` |
+| `AlertAcknowledged` | Alert | `acknowledgedBy` |
+| `AlertResolved` | Alert | — |
 
 ## KPIs
 
