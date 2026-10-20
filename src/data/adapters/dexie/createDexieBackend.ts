@@ -4,6 +4,8 @@ import { VALIDATE_SCHEMAS_DEFAULT, validateAppend } from '@/data/adapters/valida
 import {
   AppendError,
   type BedRepository,
+  type Change,
+  ConcurrencyError,
   type Clock,
   type DataBackend,
   type EventStore,
@@ -12,7 +14,13 @@ import {
   type Subscribable,
   type TableCounts,
 } from '@/data/ports'
-import { ENTITY_NAMES, type EntityName, type EntityOf, type HospitalEvent } from '@/domain/schemas'
+import {
+  ENTITY_NAMES,
+  type EntityName,
+  type EntityOf,
+  type HospitalEvent,
+  type NewHospitalEvent,
+} from '@/domain/schemas'
 import { DATABASE_NAME, SCHEMA_VERSION, TorreControlDb } from './db'
 
 export type DexieBackendOptions = {
@@ -72,32 +80,67 @@ export function createDexieBackend(options: DexieBackendOptions = {}): DataBacke
 
   const lastSeq = async () => (await db.events.orderBy('seq').last())?.seq ?? 0
 
-  const eventStore: EventStore = {
-    append: async (newEvents, changes = []) => {
-      validateAppend(newEvents, changes, { validateSchemas })
-      const tables = [...ENTITY_NAMES.map((entity) => db.entityTable(entity)), db.events]
-      try {
-        return await db.transaction('rw', tables, async () => {
-          let seq = await lastSeq()
-          // Clone so stored/returned events never share objects with the caller (like the memory adapter).
-          const appended: HospitalEvent[] = newEvents.map((event) => ({
-            ...structuredClone(event),
-            seq: ++seq,
-          }))
-          if (appended.length > 0) await db.events.bulkAdd(appended)
-          for (const change of changes) {
-            const table = db.entityTable(change.entity)
-            if (change.op === 'put') await table.put(change.record as never)
-            else await table.delete(change.id)
-          }
-          return appended
-        })
-      } catch (error) {
-        if (error instanceof AppendError) throw error
-        const message = error instanceof Error ? error.message : String(error)
-        throw new AppendError(`Append failed: ${message}`, { cause: error })
+  /** Writes consecutive same-table/same-op changes with bulk calls (order preserved). */
+  async function applyChanges(changes: readonly Change[]) {
+    let i = 0
+    while (i < changes.length) {
+      const first = changes[i]!
+      let j = i
+      while (
+        j < changes.length &&
+        changes[j]!.entity === first.entity &&
+        changes[j]!.op === first.op
+      )
+        j++
+      const run = changes.slice(i, j)
+      const table = db.entityTable(first.entity)
+      if (first.op === 'put') {
+        await table.bulkPut(
+          run.flatMap((change) => (change.op === 'put' ? [change.record as never] : [])),
+        )
+      } else {
+        await table.bulkDelete(run.flatMap((change) => (change.op === 'delete' ? [change.id] : [])))
       }
-    },
+      i = j
+    }
+  }
+
+  /** Shared write path for append and reset: one rw transaction over every table. */
+  async function write(
+    newEvents: readonly NewHospitalEvent[],
+    changes: readonly Change[],
+    mode: { reset: boolean; expectedLastSeq?: number },
+  ): Promise<HospitalEvent[]> {
+    validateAppend(newEvents, changes, { validateSchemas })
+    const tables = [...ENTITY_NAMES.map((entity) => db.entityTable(entity)), db.events]
+    try {
+      return await db.transaction('rw', tables, async () => {
+        const currentSeq = await lastSeq()
+        if (mode.expectedLastSeq !== undefined && mode.expectedLastSeq !== currentSeq) {
+          throw new ConcurrencyError(mode.expectedLastSeq, currentSeq)
+        }
+        if (mode.reset) await Promise.all(tables.map((table) => table.clear()))
+        let seq = mode.reset ? 0 : currentSeq
+        // Clone so stored/returned events never share objects with the caller (like the memory adapter).
+        const appended: HospitalEvent[] = newEvents.map((event) => ({
+          ...structuredClone(event),
+          seq: ++seq,
+        }))
+        if (appended.length > 0) await db.events.bulkAdd(appended)
+        await applyChanges(changes)
+        return appended
+      })
+    } catch (error) {
+      if (error instanceof AppendError) throw error
+      const message = error instanceof Error ? error.message : String(error)
+      throw new AppendError(`Append failed: ${message}`, { cause: error })
+    }
+  }
+
+  const eventStore: EventStore = {
+    append: (newEvents, changes = [], options = {}) =>
+      write(newEvents, changes, { reset: false, expectedLastSeq: options.expectedLastSeq }),
+    reset: (newEvents, changes = []) => write(newEvents, changes, { reset: true }),
     list: async ({ afterSeq = 0, limit } = {}) => {
       const query = db.events.where('seq').above(afterSeq)
       return limit === undefined ? query.toArray() : query.limit(limit).toArray()

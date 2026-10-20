@@ -3,7 +3,13 @@
  * Imported only by `*.contract.test.ts` files.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { AppendError, type Change, type DataBackend, type Subscribable } from '@/data/ports'
+import {
+  AppendError,
+  ConcurrencyError,
+  type Change,
+  type DataBackend,
+  type Subscribable,
+} from '@/data/ports'
 import { sampleEntities } from '@/domain/schemas/fixtures'
 import { ENTITY_NAMES, type Bed, type EventType, type NewHospitalEvent } from '@/domain/schemas'
 
@@ -222,6 +228,99 @@ export function runBackendContract(name: string, factory: BackendFactory) {
           backend.events.append([bedEvent('b1'), duplicate], [putBed(bed('b1'))]),
         ).rejects.toBeInstanceOf(AppendError)
         await expectUnchanged()
+      })
+    })
+
+    describe('optimistic concurrency (expectedLastSeq)', () => {
+      it('writes when the last seq matches, including 0 for an empty store', async () => {
+        await backend.events.append([bedEvent('b1')], [], { expectedLastSeq: 0 })
+        await backend.events.append([bedEvent('b1')], [], { expectedLastSeq: 1 })
+        expect(await backend.events.lastSeq()).toBe(2)
+      })
+
+      it('rejects a mismatch with ConcurrencyError and writes nothing', async () => {
+        await backend.events.append([bedEvent('b1')])
+        const attempt = backend.events.append([bedEvent('b2')], [putBed(bed('b2'))], {
+          expectedLastSeq: 0,
+        })
+        await expect(attempt).rejects.toBeInstanceOf(ConcurrencyError)
+        await expect(attempt).rejects.toBeInstanceOf(AppendError)
+        await expect(attempt).rejects.toMatchObject({ expected: 0, actual: 1 })
+        expect(await backend.events.lastSeq()).toBe(1)
+        expect(await backend.repositories.bed.count()).toBe(0)
+      })
+
+      it('lets exactly one of two concurrent "only if empty" appends win', async () => {
+        const results = await Promise.allSettled([
+          backend.events.append([bedEvent('b1')], [putBed(bed('b1'))], { expectedLastSeq: 0 }),
+          backend.events.append([bedEvent('b2')], [putBed(bed('b2'))], { expectedLastSeq: 0 }),
+        ])
+        expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1)
+        const rejected = results.find((r) => r.status === 'rejected')
+        expect((rejected as PromiseRejectedResult).reason).toBeInstanceOf(ConcurrencyError)
+        expect(await backend.events.lastSeq()).toBe(1)
+        expect(await backend.repositories.bed.count()).toBe(1)
+      })
+    })
+
+    describe('reset', () => {
+      beforeEach(async () => {
+        await backend.events.append(
+          [bedEvent('b0'), bedEvent('b0')],
+          ENTITY_NAMES.map(
+            (entity) => ({ entity, op: 'put', record: sampleEntities[entity] }) as Change,
+          ),
+        )
+      })
+
+      it('wipes every table and the event log, restarts seq at 1 and writes the new data', async () => {
+        const written = await backend.events.reset([bedEvent('n1')], [putBed(bed('n1'))])
+        expect(written.map((event) => event.seq)).toEqual([1])
+        expect(await backend.events.lastSeq()).toBe(1)
+        expect((await backend.events.list()).map((event) => event.entityId)).toEqual(['n1'])
+        for (const entity of ENTITY_NAMES) {
+          expect(await backend.repositories[entity].count()).toBe(entity === 'bed' ? 1 : 0)
+        }
+        expect(await backend.repositories.bed.get('n1')).toBeDefined()
+      })
+
+      it('allows reusing ids and unique values that existed before the reset', async () => {
+        const [old] = await backend.events.list()
+        const unit = sampleEntities.unit
+        await backend.events.reset(
+          [{ ...bedEvent('n1'), id: old!.id }],
+          [{ entity: 'unit', op: 'put', record: { ...unit, id: 'unit-new' } }],
+        )
+        expect((await backend.repositories.unit.list()).map((u) => u.id)).toEqual(['unit-new'])
+      })
+
+      it('is atomic: a failed reset keeps the previous data', async () => {
+        const invalid = { ...bed('n1'), status: 'DIRTY' } as unknown as Bed
+        await expect(
+          backend.events.reset([bedEvent('n1')], [putBed(bed('n2')), putBed(invalid)]),
+        ).rejects.toBeInstanceOf(AppendError)
+        const unit = sampleEntities.unit
+        await expect(
+          backend.events.reset(
+            [bedEvent('n1')],
+            [
+              { entity: 'unit', op: 'put', record: unit },
+              { entity: 'unit', op: 'put', record: { ...unit, id: 'unit-dup' } },
+            ],
+          ),
+        ).rejects.toBeInstanceOf(AppendError)
+        expect(await backend.events.lastSeq()).toBe(2)
+        for (const entity of ENTITY_NAMES) {
+          expect(await backend.repositories[entity].count()).toBe(1)
+        }
+      })
+
+      it('notifies observers', async () => {
+        const counts = record(backend.observeTableCounts())
+        await counts.until((value) => value.events === 2 && value.bed === 1)
+        await backend.events.reset([bedEvent('n1')], [])
+        await counts.until((value) => value.events === 1 && value.bed === 0 && value.unit === 0)
+        counts.stop()
       })
     })
 
