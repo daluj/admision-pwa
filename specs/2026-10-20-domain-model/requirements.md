@@ -2,6 +2,7 @@
 
 **Roadmap phase:** 2 — Domain Model & Local Database
 **Branch:** `phase-2-domain-model`
+**Status:** Complete — 2026-10-20
 
 ## Scope
 
