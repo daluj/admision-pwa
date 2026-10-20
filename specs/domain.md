@@ -115,6 +115,7 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 | `TransferRequested` / `TransferAssigned` / `TransferPickedUp` / `TransferDelivered` / `TransferCancelled` | Transfer coordination / porters | — |
 | `AdmissionCancelled` | Admissions | A11 |
 | `AlertRaised` / `AlertAcknowledged` / `AlertResolved` | Alert engine / users | — |
+| `DemoSeeded` | Demo seed / "Restablecer demo" (always seq 1 after a reset) | — |
 
 ### Event payloads
 
@@ -147,6 +148,7 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 | `AlertRaised` | Alert | `ruleId`, `severity`, `entityType`, `entityId`, `message` |
 | `AlertAcknowledged` | Alert | `acknowledgedBy` |
 | `AlertResolved` | Alert | — |
+| `DemoSeeded` | SimulationState (`current`) | `seed`, `profileId`, `anchorAt`, `counts` (rows per entity) |
 
 ## KPIs
 
@@ -206,3 +208,5 @@ Alerts are raised and resolved automatically by an evaluator that runs on every 
 ## Synthetic Hospital (seed)
 
 Configurable in `src/simulator/seed/hospital.ts`. Default: a tertiary hospital of **~600 inpatient beds in ~20 units** across 2 buildings, plus ED with ~40 treatment spaces, ICU (~20 beds), Coronary Unit (~10). Specialties: Medicina Interna, Cardiología, Neumología, Digestivo, Neurología, Nefrología, Oncología, Hematología, Geriatría, Cirugía General, Traumatología, Urología, Neurocirugía, Ginecología y Obstetricia, Pediatría, Psiquiatría. Starting occupancy ~85%; ~20 porters across shifts. Names are fictitious and generated from common Spanish first names/surnames by the seeded PRNG. Real figures for the hospital's structure will be provided later and must only change seed data, not code.
+
+The seed is a **snapshot of the hospital at 08:00 Europe/Madrid of the current day** (anchor from the `Clock`), generated as a pure function of `(seed, anchor, profile)` and written by the `resetDemo` command as one `DemoSeeded` event plus all rows. "Restablecer demo" wipes the database (events included) first, so `DemoSeeded` is always `seq 1`. Default seed `42`; ids are PRNG-derived UUIDs, so the same seed yields the same hospital and only absolute dates move with the day. Live-state targets: occupancy 85 % ± 2 pp; ~2 % blocked, ~2 % pending cleaning, ~1 % cleaning; ~30 % of inpatients with expected discharge today; ~4 % outliers; ~40 ED patients (~8 boarding with bed requests); ~15 scheduled admissions today; 2–4 open transfers. See `specs/2026-10-20-synthetic-seed/requirements.md` for the full table.
