@@ -23,8 +23,9 @@ export function generateHospital({
 }: GenerateHospitalInput): HospitalSnapshot {
   const rng = createRng(seed)
   const structure = generateStructure(profile, rng, anchorAt)
-  const census = generateCensus(profile, structure, rng, anchorAt)
-  const flows = generateEd(profile, structure, census, rng, anchorAt)
+  const usedMrns = new Set<string>()
+  const census = generateCensus(profile, structure, rng, anchorAt, usedMrns)
+  const flows = generateEd(profile, structure, census, rng, anchorAt, usedMrns)
 
   return {
     specialty: structure.specialties,

@@ -81,6 +81,8 @@ describe('DemoDataCard', () => {
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
     expect(onReset).not.toHaveBeenCalled()
+    // Focus goes back to the button that opened the dialog.
+    await waitFor(() => expect(resetButton()).toHaveFocus())
   })
 
   it('busy state disables the button and changes its label', () => {

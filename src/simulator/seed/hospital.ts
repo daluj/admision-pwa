@@ -47,6 +47,8 @@ export type HospitalProfile = {
     expectedDischargeTomorrowShare: number
     dischargeOrdered: number
     outlierShare: number
+    /** Specialties never used for outliers, and whose wards receive none (age/sex-specific care). */
+    outlierExcludedSpecialties: Code[]
     maxLosDays: number
     ed: {
       visits: number
@@ -54,6 +56,10 @@ export type HospitalProfile = {
       phases: { ARRIVED: number; TRIAGED: number; IN_ASSESSMENT: number; ADMIT_DECISION: number }
       /** Manchester level → share. */
       triage: Record<1 | 2 | 3 | 4 | 5, number>
+      /** Manchester target, triage → physician (minutes), per level (see specs/domain.md → KPIs). */
+      physicianTargetMinutes: Record<1 | 2 | 3 | 4 | 5, number>
+      /** Share of L3–L5 patients seen within target (the rest wait up to 1.5× the target). */
+      withinTargetShare: number
       maxHoursInEd: number
       /** Boarding patients that already have a RESERVED bed. */
       boardingWithReservedBed: number
@@ -163,11 +169,14 @@ export const DEFAULT_PROFILE: HospitalProfile = {
     expectedDischargeTomorrowShare: 0.25,
     dischargeOrdered: 5,
     outlierShare: 0.04,
+    outlierExcludedSpecialties: ['PED', 'GOB', 'PSQ'],
     maxLosDays: 20,
     ed: {
       visits: 40,
       phases: { ARRIVED: 6, TRIAGED: 10, IN_ASSESSMENT: 16, ADMIT_DECISION: 8 },
       triage: { 1: 0.01, 2: 0.1, 3: 0.35, 4: 0.4, 5: 0.14 },
+      physicianTargetMinutes: { 1: 0, 2: 10, 3: 60, 4: 120, 5: 240 },
+      withinTargetShare: 0.85,
       maxHoursInEd: 14,
       boardingWithReservedBed: 2,
     },

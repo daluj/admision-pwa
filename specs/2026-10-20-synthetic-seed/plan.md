@@ -34,6 +34,7 @@ Every group ends with `npm run typecheck && npm run lint && npm test` green and 
 16. `src/simulator/seed/generateEd.ts`: ED visits by phase and triage, boarding admissions + bed requests (+ `RESERVED` beds for `BED_ASSIGNED`), scheduled admissions, open transfers.
 17. `src/simulator/seed/generateHospital.ts`: `generateHospital({ seed, anchorAt, profile }) → HospitalSnapshot` (records per entity + `SimulationState`).
 18. Invariant tests on seeds 1, 42, 7: occupancy 83–87 %; every `OCCUPIED` bed ↔ exactly one admitted admission with matching `bedId` and `patientId`; no patient in two places; every `RESERVED` bed ↔ a `BED_ASSIGNED` admission + `ASSIGNED` bed request; boarding visits all have an admission + request; timestamps ≤ anchor except expected discharges / scheduled admissions; all records pass schemas; ED phase/field consistency (`triageLevel` set from `TRIAGED` on, `admitDecisionAt` only for `ADMIT_DECISION`); generation < 300 ms.
+18b. *(Added in validation)* `snapshotInvariants.ts` holds every rule above; a sweep over seeds 0–999 must report no violation (unique NHCs across generators, reserved-bed unit type, Manchester waits, outlier compatibility, transfers of admitted patients).
 19. Determinism tests: same `(seed, anchor)` ⇒ deep-equal snapshot; anchor shifted by 1 day ⇒ identical except every timestamp + 24 h.
 
 ## Group 6: Command & Seed Service

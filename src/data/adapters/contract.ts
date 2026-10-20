@@ -315,6 +315,28 @@ export function runBackendContract(name: string, factory: BackendFactory) {
         }
       })
 
+      it('rejects duplicates inside the new data (unique fields and event ids)', async () => {
+        const patient = sampleEntities.patient
+        await expect(
+          backend.events.reset(
+            [bedEvent('n1')],
+            [
+              { entity: 'patient', op: 'put', record: patient },
+              { entity: 'patient', op: 'put', record: { ...patient, id: 'pat-dup' } },
+            ],
+          ),
+        ).rejects.toBeInstanceOf(AppendError)
+        const event = bedEvent('n1')
+        await expect(backend.events.reset([event, { ...event }], [])).rejects.toBeInstanceOf(
+          AppendError,
+        )
+        await expect(backend.events.append([event, { ...event }], [])).rejects.toBeInstanceOf(
+          AppendError,
+        )
+        expect(await backend.events.lastSeq()).toBe(2)
+        expect(await backend.repositories.patient.count()).toBe(1)
+      })
+
       it('notifies observers', async () => {
         const counts = record(backend.observeTableCounts())
         await counts.until((value) => value.events === 2 && value.bed === 1)

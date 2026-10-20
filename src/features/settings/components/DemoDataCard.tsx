@@ -1,5 +1,5 @@
 import { RotateCcw } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +44,7 @@ export function DemoDataCard({
   const [draft, setDraft] = useState<string | null>(null)
   const [showError, setShowError] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const resetButtonRef = useRef<HTMLButtonElement>(null)
 
   const value = draft ?? String(currentSeed ?? fallbackSeed)
   const valid = SEED_PATTERN.test(value)
@@ -109,7 +110,7 @@ export function DemoDataCard({
                 setShowError(false)
               }}
             />
-            <Button type="submit" disabled={busy}>
+            <Button ref={resetButtonRef} type="submit" disabled={busy}>
               <RotateCcw aria-hidden="true" className={busy ? 'animate-spin' : undefined} />
               {busy ? copy.resetting : copy.reset}
             </Button>
@@ -127,7 +128,13 @@ export function DemoDataCard({
       </CardContent>
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
-        <AlertDialogContent>
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            // The dialog has no Radix trigger: return focus to the button that opened it.
+            event.preventDefault()
+            resetButtonRef.current?.focus()
+          }}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>{copy.confirmTitle}</AlertDialogTitle>
             <AlertDialogDescription>{copy.confirmDescription(seed)}</AlertDialogDescription>

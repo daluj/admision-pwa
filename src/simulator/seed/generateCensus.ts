@@ -44,9 +44,16 @@ function sexFor(rng: Rng, specialtyCode: Code): Sex {
   return rng.chance(0.5) ? 'F' : 'M'
 }
 
-/** Creates fictitious patients with unique synthetic NHCs (`SIM-NNNNNN`). */
-export function createPatientFactory(rng: Rng, ids: Rng, anchorAt: IsoDateTime) {
-  const usedMrns = new Set<string>()
+/**
+ * Creates fictitious patients with synthetic NHCs (`SIM-NNNNNN`). `usedMrns` is shared by every
+ * factory of one snapshot so NHCs are unique hospital-wide.
+ */
+export function createPatientFactory(
+  rng: Rng,
+  ids: Rng,
+  anchorAt: IsoDateTime,
+  usedMrns: Set<string>,
+) {
   const anchorYear = Number(anchorAt.slice(0, 4))
   return (specialtyCode: Code): Patient => {
     const sex = sexFor(rng, specialtyCode)
@@ -110,10 +117,11 @@ export function generateCensus(
   structure: HospitalStructure,
   rng: Rng,
   anchorAt: IsoDateTime,
+  usedMrns: Set<string>,
 ): Census {
   const r = rng.fork('census')
   const ids = rng.fork('census-ids')
-  const newPatient = createPatientFactory(rng.fork('census-people'), ids, anchorAt)
+  const newPatient = createPatientFactory(rng.fork('census-people'), ids, anchorAt, usedMrns)
   const { targets } = profile
 
   const inpatientUnits = structure.units.filter((u) => u.type !== 'ED')
@@ -141,16 +149,20 @@ export function generateCensus(
 
   const patients: Patient[] = []
   const admissions: Admission[] = []
-  const allSpecialties = profile.specialties.map((s) => s.code)
+  const excluded = new Set(targets.outlierExcludedSpecialties)
+  const outlierPool = profile.specialties.map((s) => s.code).filter((code) => !excluded.has(code))
   const anchorMs = Date.parse(anchorAt)
 
   for (const unit of inpatientUnits) {
     const free = r.shuffle(operational.get(unit.id)!)
     for (const bed of free.slice(0, occupied.get(unit.id)!)) {
-      const isOutlier = unit.type === 'WARD' && r.chance(targets.outlierShare)
-      const specialtyCode = isOutlier
-        ? r.pick(allSpecialties.filter((code) => !unit.specialtyCodes.includes(code)))
-        : r.pick(unit.specialtyCodes)
+      // Outliers: adult general wards only, from compatible specialties.
+      const candidates = unit.specialtyCodes.some((code) => excluded.has(code))
+        ? []
+        : outlierPool.filter((code) => !unit.specialtyCodes.includes(code))
+      const isOutlier =
+        unit.type === 'WARD' && candidates.length > 0 && r.chance(targets.outlierShare)
+      const specialtyCode = isOutlier ? r.pick(candidates) : r.pick(unit.specialtyCodes)
       const patient = newPatient(specialtyCode)
       patients.push(patient)
 

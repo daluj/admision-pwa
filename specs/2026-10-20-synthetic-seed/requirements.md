@@ -28,14 +28,14 @@ Generate a realistic, deterministic synthetic hospital as it looks at **08:00 on
 | Item | Target |
 |---|---|
 | Occupancy (occupied ÷ operational beds) | 85 % ± 2 pp hospital-wide; ICU/UCO 90 %+ |
-| Bed status mix | ~2 % `BLOCKED` (with reason), ~2 % `PENDING_CLEANING`, ~1 % `CLEANING`, 2–3 `RESERVED` (for boarding patients), rest `AVAILABLE` |
+| Bed status mix | ~2 % `BLOCKED` (with reason), ~2 % `PENDING_CLEANING`, ~1 % `CLEANING`, up to 2 `RESERVED` (for boarding patients, only a bed of the requested unit type and — for wards — specialty), rest `AVAILABLE` |
 | Inpatients | one `Patient` + one `ADMITTED` `Admission` (`URGENT` ~70 %, `SCHEDULED` ~30 %) per occupied bed; `admittedAt` 0–20 days ago (LOS skewed to short stays) |
 | Expected discharges | ~30 % of inpatients `expectedDischargeAt` today (10:00–20:00), ~25 % tomorrow, rest unset; ~5 already `DISCHARGE_ORDERED` |
-| Outliers | ~4 % of inpatients in a unit of another specialty |
-| ED patients | ~40 visits: `ARRIVED` ~6, `TRIAGED` ~10, `IN_ASSESSMENT` ~16, `ADMIT_DECISION` ~8; triage L1 1 %, L2 10 %, L3 35 %, L4 40 %, L5 14 %; arrivals spread over the last 0–14 h |
+| Outliers | ~4 % of inpatients on adult general wards, from compatible specialties (never Pediatría, Ginecología y Obstetricia or Psiquiatría, in either direction) |
+| ED patients | ~40 visits: `ARRIVED` ~6, `TRIAGED` ~10, `IN_ASSESSMENT` ~16, `ADMIT_DECISION` ~8; triage L1 1 %, L2 10 %, L3 35 %, L4 40 %, L5 14 %; arrivals spread over the last 0–14 h; waits follow Manchester targets (L1 seen immediately, L2 ≤ 10 min, L3–L5 ~85 % within target, the rest ≤ 1.5× target); L1/L2 never in the waiting room |
 | Boarding | each `ADMIT_DECISION` visit has an `URGENT` admission (`AWAITING_BED`, or `BED_ASSIGNED` with a `RESERVED` bed) and a `BedRequest` (`OPEN` / `ASSIGNED`) |
 | Scheduled admissions | ~15 `SCHEDULED` admissions for today 08:00–14:00 |
-| Transfers | 2–4 `REQUESTED` transfers (to radiology / theatre) |
+| Transfers | 2–4 `REQUESTED` transfers (to radiology / theatre) of `ADMITTED` inpatients |
 | SimulationState | `id: 'current'`, `seed`, `scenarioId: 'normal-day'`, `speed: 60`, `running: false`, `simNow` = `startedAt` = anchor |
 
 **Recording the seed (events first)**

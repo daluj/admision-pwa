@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ENTITY_NAMES, entitySchemas } from '@/domain/schemas'
 import { generateHospital, type HospitalSnapshot } from './generateHospital'
 import { DEFAULT_PROFILE } from './hospital'
+import { snapshotViolations } from './snapshotInvariants'
 
 const ANCHOR = '2026-10-20T06:00:00.000Z' // 08:00 Madrid
 
@@ -31,7 +32,9 @@ describe.each([...snapshots])('generateHospital (seed %i) invariants', (_seed, s
     expect(count('BLOCKED')).toBe(Math.round(s.bed.length * 0.02))
     expect(count('PENDING_CLEANING')).toBe(Math.round(s.bed.length * 0.02))
     expect(count('CLEANING')).toBe(Math.round(s.bed.length * 0.01))
-    expect(count('RESERVED')).toBe(DEFAULT_PROFILE.targets.ed.boardingWithReservedBed)
+    expect(count('RESERVED')).toBeLessThanOrEqual(
+      DEFAULT_PROFILE.targets.ed.boardingWithReservedBed,
+    )
     for (const bed of s.bed.filter((b) => b.status === 'BLOCKED'))
       expect(bed.blockedReason).toBeTruthy()
   })
@@ -158,6 +161,36 @@ describe.each([...snapshots])('generateHospital (seed %i) invariants', (_seed, s
     expect(s.simulationState).toEqual([
       expect.objectContaining({ id: 'current', simNow: ANCHOR, startedAt: ANCHOR, running: false }),
     ])
+  })
+})
+
+describe.each([...snapshots])('snapshotViolations (seed %i)', (_seed, s) => {
+  it('has no violations, including schemas', () => {
+    expect(snapshotViolations(s, ANCHOR, DEFAULT_PROFILE, { schemas: true })).toEqual([])
+  })
+})
+
+describe('generateHospital across many seeds', () => {
+  it('seeds 0–999 all satisfy every invariant (unique MRNs, unit types, Manchester, outliers…)', () => {
+    const failures: string[] = []
+    for (let seed = 0; seed < 1000; seed++) {
+      const violations = snapshotViolations(
+        generateHospital({ seed, anchorAt: ANCHOR }),
+        ANCHOR,
+        DEFAULT_PROFILE,
+      )
+      if (violations.length > 0) failures.push(`seed ${seed}: ${violations.slice(0, 3).join('; ')}`)
+    }
+    expect(failures.slice(0, 10)).toEqual([])
+  }, 60_000)
+
+  it('reserves at least one bed on most seeds', () => {
+    let withReserved = 0
+    for (let seed = 0; seed < 200; seed++) {
+      const s = generateHospital({ seed, anchorAt: ANCHOR })
+      if (s.bed.some((b) => b.status === 'RESERVED')) withReserved++
+    }
+    expect(withReserved / 200).toBeGreaterThan(0.9)
   })
 })
 
