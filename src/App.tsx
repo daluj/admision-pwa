@@ -1,3 +1,15 @@
+import { createBrowserRouter, RouterProvider } from 'react-router'
+import { routes } from '@/app/routes'
+import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
+
+const router = createBrowserRouter(routes)
+
 export function App() {
-  return <main>Torre de Control</main>
+  return (
+    <TooltipProvider delayDuration={300}>
+      <RouterProvider router={router} />
+      <Toaster position="bottom-right" />
+    </TooltipProvider>
+  )
 }
