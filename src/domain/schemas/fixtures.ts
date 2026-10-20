@@ -1,0 +1,97 @@
+import type { EntityName, EntityOf } from './index'
+
+/** Valid synthetic sample of every entity, shared by schema and adapter tests. */
+const T0 = '2026-10-20T08:00:00.000Z'
+const base = (id: string) => ({ id, createdAt: T0, updatedAt: T0 })
+
+export const sampleEntities: { [N in EntityName]: EntityOf<N> } = {
+  specialty: { ...base('spec-car'), code: 'CAR', name: 'Cardiología' },
+  unit: {
+    ...base('unit-5n'),
+    code: 'MI-5N',
+    name: 'Medicina Interna 5ª Norte',
+    building: 'Edificio Norte',
+    floor: 5,
+    type: 'WARD',
+    specialtyCodes: ['MIN'],
+    capacity: 30,
+  },
+  bed: {
+    ...base('bed-512a'),
+    unitId: 'unit-5n',
+    label: '512-A',
+    status: 'AVAILABLE',
+    statusChangedAt: T0,
+  },
+  patient: {
+    ...base('pat-1'),
+    mrn: 'SIM-000001',
+    firstName: 'Lucía',
+    lastName: 'Prueba Ficticia',
+    sex: 'F',
+    birthYear: 1950,
+  },
+  edVisit: {
+    ...base('edv-1'),
+    patientId: 'pat-1',
+    arrivedAt: T0,
+    phase: 'ARRIVED',
+    area: 'WAITING_ROOM',
+    chiefComplaint: 'Dolor torácico',
+  },
+  admission: {
+    ...base('adm-1'),
+    patientId: 'pat-1',
+    type: 'URGENT',
+    specialtyCode: 'CAR',
+    status: 'AWAITING_BED',
+    edVisitId: 'edv-1',
+  },
+  bedRequest: {
+    ...base('breq-1'),
+    admissionId: 'adm-1',
+    requestedAt: T0,
+    priority: 'P1',
+    requiredUnitType: 'WARD',
+    preferredSpecialtyCode: 'CAR',
+    isolationRequired: false,
+    status: 'OPEN',
+  },
+  transferRequest: {
+    ...base('trf-1'),
+    patientId: 'pat-1',
+    fromLocation: { kind: 'ED', label: 'Urgencias' },
+    toLocation: { kind: 'BED', refId: 'bed-512a', label: '512-A' },
+    reason: 'ADMISSION',
+    priority: 'NORMAL',
+    requestedAt: T0,
+    status: 'REQUESTED',
+    slaDueAt: '2026-10-20T08:30:00.000Z',
+  },
+  porter: { ...base('por-1'), name: 'Celador Ficticio 1', shift: 'MORNING', status: 'AVAILABLE' },
+  user: {
+    ...base('usr-1'),
+    username: 'jefa.admision',
+    displayName: 'Jefa de Admisión (ficticia)',
+    role: 'ADMISSIONS_HEAD',
+  },
+  alert: {
+    ...base('alr-1'),
+    ruleId: 'BOARDING_LONG',
+    severity: 'WARNING',
+    entityType: 'EdVisit',
+    entityId: 'edv-1',
+    message: 'Boarding > 4 h',
+    raisedAt: T0,
+  },
+  simulationState: {
+    ...base('current'),
+    id: 'current',
+    seed: 42,
+    scenarioId: 'normal-day',
+    speed: 60,
+    running: false,
+    simNow: T0,
+    startedAt: T0,
+  },
+}
