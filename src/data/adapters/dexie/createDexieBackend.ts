@@ -79,7 +79,11 @@ export function createDexieBackend(options: DexieBackendOptions = {}): DataBacke
       try {
         return await db.transaction('rw', tables, async () => {
           let seq = await lastSeq()
-          const appended: HospitalEvent[] = newEvents.map((event) => ({ ...event, seq: ++seq }))
+          // Clone so stored/returned events never share objects with the caller (like the memory adapter).
+          const appended: HospitalEvent[] = newEvents.map((event) => ({
+            ...structuredClone(event),
+            seq: ++seq,
+          }))
           if (appended.length > 0) await db.events.bulkAdd(appended)
           for (const change of changes) {
             const table = db.entityTable(change.entity)

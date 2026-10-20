@@ -11,6 +11,7 @@ import {
   type Repository,
   type Subscribable,
   type TableCounts,
+  UNIQUE_FIELDS,
 } from '@/data/ports'
 import {
   ENTITY_NAMES,
@@ -51,7 +52,7 @@ export function createMemoryBackend(options: MemoryBackendOptions = {}): DataBac
       subscribe: (onValue, onError) => {
         let active = true
         const emit = () => {
-          if (!active) return
+          if (!active || closed) return
           try {
             onValue(read())
           } catch (error) {
@@ -65,6 +66,20 @@ export function createMemoryBackend(options: MemoryBackendOptions = {}): DataBac
           listeners.delete(emit)
         }
       },
+    }
+  }
+
+  /** Mirrors the Dexie `&` unique indexes (see UNIQUE_FIELDS). */
+  function assertUnique(entity: EntityName, table: Map<string, unknown>) {
+    const fields: readonly string[] =
+      (UNIQUE_FIELDS as Partial<Record<EntityName, readonly string[]>>)[entity] ?? []
+    for (const field of fields) {
+      const seen = new Set<unknown>()
+      for (const row of table.values()) {
+        const value = (row as Record<string, unknown>)[field]
+        if (seen.has(value)) throw new AppendError(`Duplicate ${entity}.${field}: ${String(value)}`)
+        seen.add(value)
+      }
     }
   }
 
@@ -124,6 +139,8 @@ export function createMemoryBackend(options: MemoryBackendOptions = {}): DataBac
       let seq = events.length === 0 ? 0 : events[events.length - 1]!.seq
       const appended = newEvents.map((event) => ({ ...structuredClone(event), seq: ++seq }))
 
+      for (const entity of touched) assertUnique(entity, nextTables[entity])
+
       tables = nextTables
       events = [...events, ...appended]
       if (appended.length > 0 || changes.length > 0) notify()
@@ -133,7 +150,8 @@ export function createMemoryBackend(options: MemoryBackendOptions = {}): DataBac
       const result = events.filter((event) => event.seq > afterSeq)
       return structuredClone(limit === undefined ? result : result.slice(0, limit))
     },
-    observeRecent: (limit) => live(() => structuredClone(events.slice(-limit).reverse())),
+    observeRecent: (limit) =>
+      live(() => (limit <= 0 ? [] : structuredClone(events.slice(-limit).reverse()))),
     lastSeq: async () => events[events.length - 1]?.seq ?? 0,
   }
 

@@ -2,28 +2,10 @@ import { z } from 'zod'
 import { AdmissionCancelReason } from './admission'
 import { AlertSeverity } from './alert'
 import { BedRequestPriority } from './bedRequest'
-import { Actor, Code, Id, IsoDateTime, Location, TriageLevel } from './common'
+import { Actor, Code, EntityType, EventId, Id, IsoDateTime, Location, TriageLevel } from './common'
 import { EdArea, EdOutcome } from './edVisit'
 import { TransferPriority, TransferReason } from './transferRequest'
 import { UnitType } from './unit'
-
-/** Aggregate types an event can belong to (`HospitalEvent.entityType`). */
-export const ENTITY_TYPES = [
-  'Specialty',
-  'Unit',
-  'Bed',
-  'Patient',
-  'EdVisit',
-  'Admission',
-  'BedRequest',
-  'TransferRequest',
-  'Porter',
-  'User',
-  'Alert',
-  'SimulationState',
-] as const
-export const EntityType = z.enum(ENTITY_TYPES)
-export type EntityType = z.infer<typeof EntityType>
 
 const Empty = z.object({}).strict()
 
@@ -125,7 +107,7 @@ export type EventType = keyof EventDefinitions
 export const EVENT_TYPES = Object.keys(EVENT_DEFINITIONS) as EventType[]
 
 const NewEventBase = z.object({
-  id: Id,
+  id: EventId,
   occurredAt: IsoDateTime,
   actor: Actor,
   entityId: Id,

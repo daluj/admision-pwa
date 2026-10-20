@@ -48,6 +48,8 @@ All entities have `id: string`, `createdAt`, `updatedAt` (ISO UTC). Patient data
 | **Alert** | `ruleId`, `severity` (`INFO` \| `WARNING` \| `CRITICAL`), `entityType`, `entityId`, `message`, `raisedAt`, `acknowledgedAt?`, `acknowledgedBy?`, `resolvedAt?` |
 | **SimulationState** | singleton (`id: "current"`): `seed`, `scenarioId`, `speed`, `running`, `simNow` (simulated clock), `startedAt` |
 
+**Unique fields** (enforced by every adapter): `Specialty.code`, `Unit.code`, `Patient.mrn`, `User.username`. `Alert.entityType` and `HospitalEvent.entityType` use the same entity-type enum (`Specialty`, `Unit`, `Bed`, …, `SimulationState`).
+
 Locations (`fromLocation`, `toLocation`) are `{ kind: 'BED' | 'ED' | 'RADIOLOGY' | 'OR' | 'OTHER', refId?, label }`.
 
 ## State Machines

@@ -38,3 +38,25 @@ export type Actor = z.infer<typeof Actor>
 /** Short uppercase code, e.g. `CAR` for Cardiología. */
 export const Code = z.string().regex(/^[A-Z0-9_-]{2,16}$/)
 export type Code = z.infer<typeof Code>
+
+/** Aggregate types an event can belong to (`HospitalEvent.entityType`, `Alert.entityType`). */
+export const ENTITY_TYPES = [
+  'Specialty',
+  'Unit',
+  'Bed',
+  'Patient',
+  'EdVisit',
+  'Admission',
+  'BedRequest',
+  'TransferRequest',
+  'Porter',
+  'User',
+  'Alert',
+  'SimulationState',
+] as const
+export const EntityType = z.enum(ENTITY_TYPES)
+export type EntityType = z.infer<typeof EntityType>
+
+/** Event ids are UUIDs (maps to a Postgres `uuid` column). */
+export const EventId = z.uuid()
+export type EventId = z.infer<typeof EventId>

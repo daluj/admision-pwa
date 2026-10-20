@@ -81,18 +81,25 @@ describe('data hooks', () => {
     const { result } = renderHook(() => useRecentEvents(5), { wrapper })
     await act(() =>
       backend.events.append(
-        ['e1', 'e2'].map((id) => ({
-          id,
-          type: 'BedUnblocked' as const,
-          occurredAt: '2026-10-20T08:00:00.000Z',
-          actor: 'simulator',
-          entityType: 'Bed' as const,
-          entityId: 'b1',
-          payload: {},
-        })),
+        ['00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002'].map(
+          (id) => ({
+            id,
+            type: 'BedUnblocked' as const,
+            occurredAt: '2026-10-20T08:00:00.000Z',
+            actor: 'simulator',
+            entityType: 'Bed' as const,
+            entityId: 'b1',
+            payload: {},
+          }),
+        ),
       ),
     )
-    await waitFor(() => expect(result.current?.map((event) => event.id)).toEqual(['e2', 'e1']))
+    await waitFor(() =>
+      expect(result.current?.map((event) => event.id)).toEqual([
+        '00000000-0000-4000-8000-000000000002',
+        '00000000-0000-4000-8000-000000000001',
+      ]),
+    )
   })
 
   it('unsubscribes from the source on unmount', async () => {

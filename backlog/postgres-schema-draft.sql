@@ -2,6 +2,10 @@
 -- Mirrors the Dexie v1 schema (src/data/adapters/dexie/db.ts) and Zod schemas (src/domain/schemas/).
 -- Keep in sync via the data-model-change skill. Timestamps are timestamptz (UTC); ids are text (UUIDs).
 -- Not executed anywhere yet.
+--
+-- Note on foreign keys: the MVP adapters (Dexie, memory) do not enforce references, and the adapter
+-- contract suite writes rows without their parents (e.g. a bed whose unit does not exist). A future
+-- Postgres adapter must either make those fixtures referentially valid or use DEFERRABLE constraints.
 
 create table specialties (
   id          text primary key,
@@ -13,7 +17,7 @@ create table specialties (
 
 create table units (
   id               text primary key,
-  code             text not null unique,
+  code             text not null unique check (code ~ '^[A-Z0-9_-]{2,16}$'),
   name             text not null,
   building         text not null,
   floor            integer not null,
@@ -166,7 +170,7 @@ create table alerts (
   id               text primary key,
   rule_id          text not null,
   severity         text not null check (severity in ('INFO', 'WARNING', 'CRITICAL')),
-  entity_type      text not null,
+  entity_type      text not null check (entity_type in ('Specialty', 'Unit', 'Bed', 'Patient', 'EdVisit', 'Admission', 'BedRequest', 'TransferRequest', 'Porter', 'User', 'Alert', 'SimulationState')),
   entity_id        text not null,
   message          text not null,
   raised_at        timestamptz not null,
@@ -193,14 +197,23 @@ create table simulation_state (
   updated_at   timestamptz not null
 );
 
--- Append-only event log. seq is gap-free per database (assigned inside the append transaction).
+-- Append-only event log. seq must be gap-free, so it is NOT a sequence (sequences leave gaps on
+-- rollback): the append function assigns max(seq) + 1 inside the same transaction while holding
+-- `lock table events in share row exclusive mode` (or a single-row counter updated FOR UPDATE).
 create table events (
-  seq          bigserial primary key,
+  seq          bigint primary key check (seq > 0),
   id           uuid not null unique,
-  type         text not null,
+  type         text not null check (type in (
+    'EdPatientArrived', 'EdPatientTriaged', 'EdAssessmentStarted', 'AdmissionDecided', 'EdPatientLeft',
+    'ScheduledAdmissionCreated', 'BedRequested', 'BedReserved', 'BedReservationReleased', 'PatientAdmitted',
+    'ExpectedDischargeSet', 'DischargeOrdered', 'PatientDischarged', 'PatientTransferredBetweenBeds',
+    'BedCleaningStarted', 'BedCleaningFinished', 'BedBlocked', 'BedUnblocked', 'TransferRequested',
+    'TransferAssigned', 'TransferPickedUp', 'TransferDelivered', 'TransferCancelled', 'AdmissionCancelled',
+    'AlertRaised', 'AlertAcknowledged', 'AlertResolved'
+  )),
   occurred_at  timestamptz not null,
   actor        text not null,            -- user id or 'simulator'
-  entity_type  text not null,
+  entity_type  text not null check (entity_type in ('Specialty', 'Unit', 'Bed', 'Patient', 'EdVisit', 'Admission', 'BedRequest', 'TransferRequest', 'Porter', 'User', 'Alert', 'SimulationState')),
   entity_id    text not null,
   payload      jsonb not null
 );

@@ -9,16 +9,13 @@ import { ENTITY_NAMES, type Bed, type EventType, type NewHospitalEvent } from '@
 
 export type BackendFactory = () => DataBackend | Promise<DataBackend>
 
-let eventCounter = 0
-
 /** A valid `BedBlocked` / `BedUnblocked` event for `bedId` (unique id per call). */
 function bedEvent(
   bedId: string,
   type: Extract<EventType, 'BedBlocked' | 'BedUnblocked'> = 'BedUnblocked',
 ): NewHospitalEvent {
-  eventCounter++
   const common = {
-    id: `evt-${eventCounter}-${Math.random().toString(36).slice(2)}`,
+    id: crypto.randomUUID(),
     occurredAt: '2026-10-20T08:00:00.000Z',
     actor: 'simulator',
     entityType: 'Bed',
@@ -110,6 +107,14 @@ export function runBackendContract(name: string, factory: BackendFactory) {
       expect(appended[0]).toMatchObject({ type: 'BedBlocked', payload: { reason: 'Avería' } })
     })
 
+    it('never shares objects with the caller', async () => {
+      const event = bedEvent('b1', 'BedBlocked')
+      const [stored] = await backend.events.append([event])
+      ;(event.payload as { reason: string }).reason = 'mutated'
+      expect(stored!.payload).toEqual({ reason: 'Avería' })
+      expect((await backend.events.list())[0]!.payload).toEqual({ reason: 'Avería' })
+    })
+
     it('commits events and changes together', async () => {
       await backend.events.append(
         [bedEvent('b1', 'BedBlocked')],
@@ -171,6 +176,45 @@ export function runBackendContract(name: string, factory: BackendFactory) {
         await expectUnchanged()
       })
 
+      it('rejects a duplicate unique field and rolls back events already written', async () => {
+        // Passes schema validation; fails only in storage, after the events are staged/written.
+        const unit = sampleEntities.unit
+        await backend.events.append([], [{ entity: 'unit', op: 'put', record: unit }])
+        const sameCode = { ...unit, id: 'unit-other' }
+        await expect(
+          backend.events.append(
+            [bedEvent('b1'), bedEvent('b1')],
+            [putBed(bed('b1')), { entity: 'unit', op: 'put', record: sameCode }],
+          ),
+        ).rejects.toBeInstanceOf(AppendError)
+        await expectUnchanged()
+        expect((await backend.repositories.unit.list()).map((u) => u.id)).toEqual([unit.id])
+      })
+
+      it.each([
+        ['specialty', { code: sampleEntities.specialty.code }],
+        ['patient', { mrn: sampleEntities.patient.mrn }],
+        ['user', { username: sampleEntities.user.username }],
+      ] as const)('enforces unique fields on %s', async (entity, duplicate) => {
+        const first = sampleEntities[entity]
+        await backend.events.append([], [{ entity, op: 'put', record: first } as Change])
+        const second = { ...first, id: `${first.id}-2`, ...duplicate }
+        await expect(
+          backend.events.append([], [{ entity, op: 'put', record: second } as Change]),
+        ).rejects.toBeInstanceOf(AppendError)
+        expect(await backend.repositories[entity].count()).toBe(1)
+      })
+
+      it('allows re-putting a row with its own unique value', async () => {
+        const unit = sampleEntities.unit
+        await backend.events.append([], [{ entity: 'unit', op: 'put', record: unit }])
+        await backend.events.append(
+          [],
+          [{ entity: 'unit', op: 'put', record: { ...unit, name: 'X' } }],
+        )
+        expect(await backend.repositories.unit.get(unit.id)).toMatchObject({ name: 'X' })
+      })
+
       it('rejects a duplicate event id', async () => {
         const [stored] = await backend.events.list()
         const duplicate = { ...bedEvent('b1'), id: stored!.id }
@@ -220,6 +264,24 @@ export function runBackendContract(name: string, factory: BackendFactory) {
         recent.stop()
       })
 
+      it('observeRecent(0) returns no events', async () => {
+        await backend.events.append([bedEvent('b1')])
+        const recent = record(backend.events.observeRecent(0))
+        await recent.until((events) => events.length === 0)
+        recent.stop()
+      })
+
+      it('does not emit after close', async () => {
+        const count = record(backend.repositories.bed.observeCount())
+        backend.close()
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        const late = record(backend.repositories.bed.observeCount())
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        expect(count.values.length + late.values.length).toBeLessThanOrEqual(1)
+        count.stop()
+        late.stop()
+      })
+
       it('stops emitting after unsubscribe', async () => {
         const count = record(backend.repositories.bed.observeCount())
         await count.until((n) => n === 0)
@@ -249,9 +311,14 @@ export function runBackendContract(name: string, factory: BackendFactory) {
         expect(await backend.repositories.bed.listBedsByUnit('unit-z')).toEqual([])
       })
 
-      it('observeBedsByUnit only reacts to its unit', async () => {
+      it('observeBedsByUnit reflects only its own unit', async () => {
         const unitB = record(backend.repositories.bed.observeBedsByUnit('unit-b'))
         await unitB.until((beds) => beds.length === 1)
+
+        await backend.events.append([], [putBed(bed('a3', 'unit-a'))])
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        expect(unitB.last()!.map((b) => b.id)).toEqual(['b1'])
+
         await backend.events.append([], [putBed(bed('b2', 'unit-b'))])
         await unitB.until((beds) => beds.map((b) => b.id).join() === 'b1,b2')
         unitB.stop()

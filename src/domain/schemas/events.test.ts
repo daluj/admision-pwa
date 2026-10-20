@@ -65,7 +65,7 @@ const validPayloads: Record<EventType, Record<string, unknown>> = {
 
 function makeEvent(type: EventType, payload: Record<string, unknown> = validPayloads[type]) {
   return {
-    id: `evt-${type}`,
+    id: crypto.randomUUID(),
     type,
     occurredAt: '2026-10-20T08:00:00.000Z',
     actor: 'simulator',
@@ -106,6 +106,12 @@ describe('event schemas', () => {
   it('requires a positive integer seq on stored events', () => {
     expect(HospitalEvent.safeParse(makeEvent('BedUnblocked')).success).toBe(false)
     expect(HospitalEvent.safeParse({ ...makeEvent('BedUnblocked'), seq: 0 }).success).toBe(false)
+  })
+
+  it('requires a UUID event id', () => {
+    expect(NewHospitalEvent.safeParse({ ...makeEvent('BedUnblocked'), id: 'evt-1' }).success).toBe(
+      false,
+    )
   })
 
   it('rejects a non-UTC occurredAt', () => {

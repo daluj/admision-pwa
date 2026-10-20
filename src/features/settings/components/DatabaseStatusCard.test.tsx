@@ -64,7 +64,7 @@ describe('DatabaseStatusSection', () => {
       backend.events.append(
         [
           {
-            id: 'evt-1',
+            id: '00000000-0000-4000-8000-000000000001',
             type: 'BedUnblocked',
             occurredAt: '2026-10-20T08:00:00.000Z',
             actor: 'simulator',

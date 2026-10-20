@@ -4,6 +4,7 @@ import { createFixedClock } from '@/data/adapters/clock/fixedClock'
 import { runBackendContract } from '@/data/adapters/contract'
 import { sampleEntities } from '@/domain/schemas/fixtures'
 import { createDexieBackend } from './createDexieBackend'
+import { UNIQUE_FIELDS } from '@/data/ports'
 import { SCHEMA_VERSION, STORES_V1, TABLE_NAMES, TorreControlDb } from './db'
 
 let counter = 0
@@ -17,6 +18,13 @@ describe('Dexie adapter specifics', () => {
   it('declares a table for every entity plus events, at schema version 1', () => {
     expect(SCHEMA_VERSION).toBe(1)
     expect(Object.keys(STORES_V1).sort()).toEqual([...Object.values(TABLE_NAMES), 'events'].sort())
+  })
+
+  it('declares a unique index for every UNIQUE_FIELDS entry', () => {
+    for (const [entity, fields] of Object.entries(UNIQUE_FIELDS)) {
+      const store: string = STORES_V1[TABLE_NAMES[entity as keyof typeof TABLE_NAMES]]
+      for (const field of fields) expect(store.split(', ')).toContain(`&${field}`)
+    }
   })
 
   it('creates every table with the indexes from the plan', async () => {
@@ -37,7 +45,7 @@ describe('Dexie adapter specifics', () => {
     await writer.events.append(
       [
         {
-          id: 'evt-1',
+          id: '00000000-0000-4000-8000-000000000001',
           type: 'BedUnblocked',
           occurredAt: '2026-10-20T08:00:00.000Z',
           actor: 'simulator',
