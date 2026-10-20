@@ -8,17 +8,17 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 
 # Part A — MVP (PWA + IndexedDB + simulator)
 
-## Phase 1: Project Scaffold & App Shell
+## Phase 1: Project Scaffold & App Shell (Complete)
 
 **Goal:** An installable, offline-capable React PWA with the app shell and empty area pages.
 
-- [ ] Vite + React + TypeScript (strict) project with ESLint, Prettier, Vitest, Playwright and npm scripts from `specs/tech-stack.md`
-- [ ] Tailwind CSS v4 + shadcn/ui + design tokens (status colours, light/dark themes)
-- [ ] App shell: sidebar, top bar, main area, demo-data banner
-- [ ] Routes and placeholder pages for Overview, Camas, Urgencias, Ingresos y altas, Traslados, Seguimiento, Ajustes
-- [ ] `src/i18n/es.ts` with all shell strings
-- [ ] PWA manifest, icons and service worker (installable, works offline, update prompt)
-- [ ] Smoke tests (component + Playwright)
+- [x] Vite + React + TypeScript (strict) project with ESLint, Prettier, Vitest, Playwright and npm scripts from `specs/tech-stack.md`
+- [x] Tailwind CSS v4 + shadcn/ui + design tokens (status colours, light/dark themes)
+- [x] App shell: sidebar, top bar, main area, demo-data banner
+- [x] Routes and placeholder pages for Overview, Camas, Urgencias, Ingresos y altas, Traslados, Seguimiento, Ajustes
+- [x] `src/i18n/es.ts` with all shell strings
+- [x] PWA manifest, icons and service worker (installable, works offline, update prompt)
+- [x] Smoke tests (component + Playwright)
 
 ## Phase 2: Domain Model & Local Database
 

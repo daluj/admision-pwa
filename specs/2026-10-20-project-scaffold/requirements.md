@@ -2,6 +2,7 @@
 
 **Roadmap phase:** 1 — Project Scaffold & App Shell
 **Branch:** `phase-1-project-scaffold`
+**Status:** Complete — 2026-10-20
 
 ## Scope
 
