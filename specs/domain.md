@@ -183,6 +183,13 @@ Calculators are pure functions in `src/domain/kpis/`, taking entities + `now` an
 - **Cancelled scheduled admissions due to no bed** (today): `AdmissionCancelled` events with reason `NO_BED` (the reason lives in the event, not on the admission).
 - **Expected-discharge rules**: only `ADMITTED` patients can have their expected discharge set or edited (future time, at most 7 days ahead); `ordering` the discharge moves them to `DISCHARGE_ORDERED`.
 
+### Patient journey (Track & Trace)
+- **Episode**: one `Admission` together with the `EdVisit` it came from (`edVisitId`), or an `EdVisit` that never led to an admission. A patient can have several; the active one comes first, then the newest.
+- **Timeline** = the episode's steps in time order, built from the entities' timestamps (the projection of the events): ED arrived → triaged → assessed → admit decision → *bed requested* → *bed reserved* (time from the `BedReserved` event, latest 5,000) → transfer requested → picked up → ED left → transfer delivered → admitted → expected discharge → discharge ordered → discharged, or *cancelled* (reason from `AdmissionCancelled`). Scheduled admissions start with the planned arrival. Each done step carries the time since the previous done step.
+- **Current step** = the first step that has not happened yet, with the time elapsed since the last done step; **next expected step / ETA** only where the data has one: bed `etaAt` (arrival in the ward), transfer `slaDueAt` (pickup), `expectedDischargeAt`, `scheduledFor`. Nothing is invented otherwise.
+- **Current location / status**: ED area while the visit is open (also while boarding or with a bed reserved), "en traslado" for an `IN_TRANSFER` admission, the unit and bed while `ADMITTED` / `DISCHARGE_ORDERED`, none afterwards.
+- **Search**: NHC or name, every word a prefix of the NHC or of a first-name / surname word (case- and accent-insensitive), ≥ 2 characters, 20 results, most recent activity first. A nurse supervisor only finds patients with an admission in a bed of their unit (fails closed without one).
+
 ### Transfers
 - **Open requests** by status (`REQUESTED`, `ASSIGNED`, `PICKED_UP`); **median time to pickup** (requested → picked up) of the transfers picked up today (local day); **% within SLA** = share of those picked up on or before `slaDueAt` (default SLA: URGENT 10 min, NORMAL 30 min to pickup; objective ≥ 90 %); **porters available / busy / off shift**; delivered today.
 - Transfers are created automatically when a bed is reserved (`reserveBed` emits `BedReserved` + `TransferRequested`) or by hand from the dispatch board. Dispatch assigns an available porter; the porter picks up and delivers. Dashboard exception = `TRANSFER_SLA_BREACH`.
