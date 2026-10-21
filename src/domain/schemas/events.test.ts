@@ -61,6 +61,12 @@ const validPayloads: Record<EventType, Record<string, unknown>> = {
   },
   AlertAcknowledged: { acknowledgedBy: 'usr-1' },
   AlertResolved: {},
+  DemoSeeded: {
+    seed: 42,
+    profileId: 'tertiary-600',
+    anchorAt: '2026-10-20T06:00:00.000Z',
+    counts: { bed: 600, patient: 550 },
+  },
 }
 
 function makeEvent(type: EventType, payload: Record<string, unknown> = validPayloads[type]) {
@@ -76,8 +82,8 @@ function makeEvent(type: EventType, payload: Record<string, unknown> = validPayl
 }
 
 describe('event schemas', () => {
-  it('cover the 27 events of specs/domain.md', () => {
-    expect(EVENT_TYPES).toHaveLength(27)
+  it('cover the 28 events of specs/domain.md', () => {
+    expect(EVENT_TYPES).toHaveLength(28)
   })
 
   it.each(EVENT_TYPES)('%s parses with a valid payload', (type) => {
@@ -106,6 +112,16 @@ describe('event schemas', () => {
   it('requires a positive integer seq on stored events', () => {
     expect(HospitalEvent.safeParse(makeEvent('BedUnblocked')).success).toBe(false)
     expect(HospitalEvent.safeParse({ ...makeEvent('BedUnblocked'), seq: 0 }).success).toBe(false)
+  })
+
+  it('rejects an invalid DemoSeeded payload', () => {
+    for (const payload of [
+      { ...validPayloads.DemoSeeded, seed: -1 },
+      { ...validPayloads.DemoSeeded, counts: { bed: 1.5 } },
+      { ...validPayloads.DemoSeeded, anchorAt: '2026-10-20 08:00' },
+    ]) {
+      expect(NewHospitalEvent.safeParse(makeEvent('DemoSeeded', payload)).success).toBe(false)
+    }
   })
 
   it('requires a UUID event id', () => {

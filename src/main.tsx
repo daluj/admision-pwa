@@ -5,6 +5,7 @@ import { StartupError } from '@/components/common/StartupError'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { createBackend } from '@/data/createBackend'
 import { DataProvider } from '@/data/DataProvider'
+import { ensureDemoSeeded } from '@/simulator'
 import '@/styles/globals.css'
 
 const root = document.getElementById('root')
@@ -13,6 +14,8 @@ if (!root) throw new Error('Root element #root not found')
 function boot(): ReactNode {
   try {
     const backend = createBackend()
+    // First launch: load the synthetic hospital in the background; the UI updates live.
+    ensureDemoSeeded(backend).catch((error: unknown) => console.error('Demo seed failed', error))
     return (
       <DataProvider backend={backend}>
         <App />

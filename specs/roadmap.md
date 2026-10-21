@@ -31,14 +31,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] `DataProvider` (adapter chosen by `VITE_DATA_BACKEND`) and first hooks
 - [x] Adapter contract tests run against both adapters (fake-indexeddb)
 
-## Phase 3: Synthetic Hospital Seed
+## Phase 3: Synthetic Hospital Seed (Complete)
 
 **Goal:** A realistic, deterministic synthetic hospital to look at.
 
-- [ ] Seeded PRNG and synthetic name generator
-- [ ] Seed: specialties, units, beds, porters, users, initial census (~85% occupancy), ED patients
-- [ ] "Restablecer demo" action in Ajustes (wipe + reseed with chosen seed)
-- [ ] Seed is idempotent and runs on first launch
+- [x] Seeded PRNG and synthetic name generator
+- [x] Seed: specialties, units, beds, porters, users, initial census (~85% occupancy), ED patients
+- [x] "Restablecer demo" action in Ajustes (wipe + reseed with chosen seed)
+- [x] Seed is idempotent and runs on first launch
 
 ## Phase 4: Simulated Login & Roles
 

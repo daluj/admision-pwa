@@ -5,6 +5,7 @@ import {
   type BedRepository,
   type Change,
   type Clock,
+  ConcurrencyError,
   type DataBackend,
   type EventStore,
   type Repositories,
@@ -19,6 +20,7 @@ import {
   type EntityName,
   type EntityOf,
   type HospitalEvent,
+  type NewHospitalEvent,
 } from '@/domain/schemas'
 
 /** Rows are validated on append; typed per entity at the read boundary. */
@@ -35,7 +37,7 @@ const byId = (a: { id: string }, b: { id: string }) => (a.id < b.id ? -1 : a.id 
 export function createMemoryBackend(options: MemoryBackendOptions = {}): DataBackend {
   const { clock = systemClock, validateSchemas = VALIDATE_SCHEMAS_DEFAULT } = options
 
-  let tables = Object.fromEntries(ENTITY_NAMES.map((name) => [name, new Map()])) as Tables
+  let tables: Tables = Object.fromEntries(ENTITY_NAMES.map((name) => [name, new Map()])) as Tables
   let events: HospitalEvent[] = []
   const listeners = new Set<() => void>()
   let closed = false
@@ -114,38 +116,55 @@ export function createMemoryBackend(options: MemoryBackendOptions = {}): DataBac
     bed,
   } satisfies Repositories
 
+  const emptyTables = () =>
+    Object.fromEntries(ENTITY_NAMES.map((name) => [name, new Map()])) as Tables
+
+  /** Shared write path for append and reset. Builds the next state completely, then swaps it in. */
+  async function write(
+    newEvents: readonly NewHospitalEvent[],
+    changes: readonly Change[],
+    mode: { reset: boolean; expectedLastSeq?: number },
+  ): Promise<HospitalEvent[]> {
+    if (closed) throw new AppendError('Backend is closed')
+    validateAppend(newEvents, changes, { validateSchemas })
+    const currentSeq = events[events.length - 1]?.seq ?? 0
+    if (mode.expectedLastSeq !== undefined && mode.expectedLastSeq !== currentSeq) {
+      throw new ConcurrencyError(mode.expectedLastSeq, currentSeq)
+    }
+    const baseEvents = mode.reset ? [] : events
+    for (const event of newEvents) {
+      if (baseEvents.some((stored) => stored.id === event.id)) {
+        throw new AppendError(`Duplicate event id: ${event.id}`)
+      }
+    }
+
+    // Copy-on-write (atomic): untouched tables are shared, touched ones are copied.
+    const nextTables = mode.reset ? emptyTables() : { ...tables }
+    const touched = new Set<EntityName>()
+    for (const change of changes) {
+      if (!touched.has(change.entity) && !mode.reset) {
+        nextTables[change.entity] = new Map(tables[change.entity])
+      }
+      touched.add(change.entity)
+      const table = nextTables[change.entity]
+      if (change.op === 'put') table.set(change.record.id, structuredClone(change.record))
+      else table.delete(change.id)
+    }
+    for (const entity of touched) assertUnique(entity, nextTables[entity])
+
+    let seq = mode.reset ? 0 : currentSeq
+    const appended = newEvents.map((event) => ({ ...structuredClone(event), seq: ++seq }))
+
+    tables = nextTables
+    events = [...baseEvents, ...appended]
+    if (mode.reset || appended.length > 0 || changes.length > 0) notify()
+    return structuredClone(appended)
+  }
+
   const eventStore: EventStore = {
-    append: async (newEvents, changes = []) => {
-      if (closed) throw new AppendError('Backend is closed')
-      validateAppend(newEvents, changes, { validateSchemas })
-      for (const event of newEvents) {
-        if (events.some((stored) => stored.id === event.id)) {
-          throw new AppendError(`Duplicate event id: ${event.id}`)
-        }
-      }
-
-      // Copy-on-write: build the next state completely, then swap it in (atomic).
-      const nextTables = { ...tables }
-      const touched = new Set<EntityName>()
-      for (const change of changes as Change[]) {
-        if (!touched.has(change.entity)) {
-          nextTables[change.entity] = new Map(tables[change.entity])
-          touched.add(change.entity)
-        }
-        const table = nextTables[change.entity]
-        if (change.op === 'put') table.set(change.record.id, structuredClone(change.record))
-        else table.delete(change.id)
-      }
-      let seq = events.length === 0 ? 0 : events[events.length - 1]!.seq
-      const appended = newEvents.map((event) => ({ ...structuredClone(event), seq: ++seq }))
-
-      for (const entity of touched) assertUnique(entity, nextTables[entity])
-
-      tables = nextTables
-      events = [...events, ...appended]
-      if (appended.length > 0 || changes.length > 0) notify()
-      return structuredClone(appended)
-    },
+    append: (newEvents, changes = [], options = {}) =>
+      write(newEvents, changes, { reset: false, expectedLastSeq: options.expectedLastSeq }),
+    reset: (newEvents, changes = []) => write(newEvents, changes, { reset: true }),
     list: async ({ afterSeq = 0, limit } = {}) => {
       const result = events.filter((event) => event.seq > afterSeq)
       return structuredClone(limit === undefined ? result : result.slice(0, limit))

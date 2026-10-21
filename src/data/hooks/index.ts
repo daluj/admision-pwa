@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useDataBackend } from '@/data/dataContext'
 import type { DataBackendInfo, TableCounts } from '@/data/ports'
-import type { Bed, HospitalEvent, Id, Unit } from '@/domain/schemas'
+import type { Bed, HospitalEvent, Id, SimulationState, Unit } from '@/domain/schemas'
 import { useSubscribable } from './useSubscribable'
 
 export { useSubscribable } from './useSubscribable'
@@ -32,6 +32,15 @@ export function useBedsByUnit(unitId: Id): Bed[] | undefined {
   return useSubscribable(
     useMemo(() => repositories.bed.observeBedsByUnit(unitId), [repositories, unitId]),
   )
+}
+
+/** The singleton simulator state; `null` when not seeded yet, `undefined` while loading. */
+export function useSimulationState(): SimulationState | null | undefined {
+  const { repositories } = useDataBackend()
+  const rows = useSubscribable(
+    useMemo(() => repositories.simulationState.observeList(), [repositories]),
+  )
+  return rows === undefined ? undefined : (rows[0] ?? null)
 }
 
 /** The latest `limit` events, newest first. */

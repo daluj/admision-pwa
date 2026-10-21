@@ -97,6 +97,26 @@ export const es = {
     settings: {
       title: 'Ajustes',
       description: 'Preferencias de la aplicación, simulador y datos de demostración.',
+      demo: {
+        title: 'Datos de demostración',
+        description:
+          'El hospital simulado se genera a partir de una semilla: la misma semilla produce siempre el mismo hospital.',
+        currentSeed: 'Semilla actual',
+        startedAt: 'Hora simulada de inicio',
+        seedLabel: 'Semilla',
+        seedHint: 'Número entero entre 0 y 999999.',
+        seedInvalid: 'Introduzca un número entero entre 0 y 999999.',
+        reset: 'Restablecer demo',
+        resetting: 'Restableciendo…',
+        confirmTitle: '¿Restablecer la demo?',
+        confirmDescription: (seed: number) =>
+          `Se borrarán todos los datos locales y el registro de eventos y se generará de nuevo el hospital con la semilla ${seed}.`,
+        cancel: 'Cancelar',
+        confirm: 'Restablecer',
+        success: (seed: number) => `Demo restablecida con la semilla ${seed}`,
+        failure: 'No se pudo restablecer la demo',
+        notSeeded: 'Sin generar',
+      },
       database: {
         title: 'Base de datos local',
         description: 'Los datos se guardan solo en este navegador.',
