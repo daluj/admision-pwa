@@ -4,10 +4,10 @@ import { loginAs } from './helpers.js'
 const kpis = (page: Page) => page.getByRole('list', { name: 'Indicadores de camas' })
 const unitCards = (page: Page) => page.getByRole('region', { name: 'Unidades' }).getByRole('link')
 
-test('the census shows six KPIs and a card for every unit with beds', async ({ page }) => {
+test('the census shows seven KPIs and a card for every unit with beds', async ({ page }) => {
   await loginAs(page, 'Jefe/a de Admisión')
   await page.goto('/camas')
-  await expect(kpis(page).getByRole('listitem')).toHaveCount(6)
+  await expect(kpis(page).getByRole('listitem')).toHaveCount(7)
 
   // Seeded at ~85 % occupancy.
   const occupancy = kpis(page).getByRole('listitem').first()
