@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 13 — Scenarios & Demo Mode
 **Branch:** `phase-13-scenarios-demo`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 > Autonomous run (phases 13–14): no interview; the "Recommended" options of earlier interviews were applied. Choices are listed under **Decisions**.
 
@@ -40,6 +40,8 @@ Everything is in Ajustes (head only) plus the existing simulation menu (head onl
 - `SimulationState.scenarioId` already exists; unknown ids make the runner idle (existing behaviour), the selector only offers registered scenarios.
 - Jump-to is a runner-level helper over `advanceSimulationTo` with an abort signal, not a new domain command: the clock advance stays the documented state-only exception; pausing is the existing `SimulationPaused` event.
 - The demo script test is a smoke test of the flow (headings, counts > 0), not pixel checks.
+- `ScenarioTuning` reaches the policies through `ctx.tuning` (set from `Scenario.tuning` by `processMinute`) instead of an extra argument: policies keep their signatures and the normal day is byte-identical.
+- When the seed is unchanged a reset keeps the session (same simulated users); with another seed the demo returns to the login.
 - No new dependencies.
 
 ## Context
