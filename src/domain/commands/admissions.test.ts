@@ -211,6 +211,22 @@ describe('setExpectedDischarge and orderDischarge', () => {
     })
   })
 
+  it('rejects an expected discharge in the past, now, or more than 7 days ahead', async () => {
+    const admissionId = await admitted()
+    const run = (expectedDischargeAt: string) =>
+      h.run(setExpectedDischarge, { admissionId, expectedDischargeAt })
+    await expect(run('2026-10-21T07:59:00.000Z')).rejects.toThrow(/future/)
+    await expect(run('2026-10-21T08:00:00.000Z')).rejects.toThrow(/future/)
+    await expect(run('2026-10-28T08:00:01.000Z')).rejects.toThrow(/more than 7 days/)
+    await h.run(setExpectedDischarge, {
+      admissionId,
+      expectedDischargeAt: '2026-10-28T08:00:00.000Z',
+    })
+    expect(await h.backend.repositories.admission.get(admissionId)).toMatchObject({
+      expectedDischargeAt: '2026-10-28T08:00:00.000Z',
+    })
+  })
+
   it('orders the discharge once and records the time', async () => {
     const admissionId = await admitted()
     h.clock.advance(3_600_000)

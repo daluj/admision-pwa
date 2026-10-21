@@ -380,6 +380,155 @@ export const es = {
       emptyTitle: 'No hay ingresos ni altas pendientes',
       emptyDescription:
         'Aquí verá la cola de ingresos y las altas previstas cuando haya actividad.',
+      loading: 'Cargando ingresos y altas…',
+      scopeNotice: (unit: string) => `Mostrando solo: ${unit}`,
+      noUnit: {
+        title: 'Sin unidad asignada',
+        description:
+          'Su usuario no tiene una unidad asignada, así que no puede ver ninguna. Pida a un administrador que se la asigne.',
+      },
+      kpis: {
+        label: 'Indicadores de ingresos y altas',
+        admittedToday: {
+          label: 'Ingresos hoy',
+          context: (urgent: number, scheduled: number) =>
+            `${urgent} urgentes · ${scheduled} programados`,
+        },
+        scheduledPending: {
+          label: 'Programados pendientes',
+          context: (arrived: number) =>
+            arrived === 1 ? '1 ya ha llegado' : `${arrived} ya han llegado`,
+        },
+        discharged: {
+          label: 'Altas realizadas',
+          context: (expected: number) => `de ${expected} previstas hoy`,
+        },
+        beforeNoon: {
+          label: 'Altas antes de las 12:00',
+          context: (before: number, total: number) => `${before} de ${total} altas de hoy`,
+          none: 'sin altas todavía',
+          target: (pct: number) => `objetivo ≥ ${pct} %`,
+        },
+        balance: {
+          label: 'Balance de camas',
+          context: 'libres + altas previstas − pendientes',
+        },
+        cancelledNoBed: {
+          label: 'Cancelados por falta de cama',
+          context: 'ingresos programados de hoy',
+        },
+      },
+      exceptions: {
+        balanceDeficit: (value: number) => `Déficit de camas previsto hoy: ${value}`,
+        scheduledLate: (initials: string, since: string) =>
+          `${initials} (programado) espera cama desde hace ${since} sobre su hora`,
+        dischargeStuck: (initials: string, bed: string, since: string) =>
+          `${initials} · cama ${bed}: alta ordenada hace ${since} y sigue ingresado`,
+      },
+      scheduled: {
+        title: 'Ingresos programados de hoy',
+        counts: (pending: number, arrived: number, admitted: number, cancelled: number) =>
+          `${pending} pendientes · ${arrived} llegados · ${admitted} ingresados · ${cancelled} cancelados`,
+        columns: { time: 'Hora', patient: 'Paciente', service: 'Servicio', status: 'Estado' },
+        status: {
+          PENDING: 'Pendiente',
+          ARRIVED: 'Llegado · esperando cama',
+          BED_RESERVED: 'Cama reservada',
+          ADMITTED: 'Ingresado',
+          CANCELLED: 'Cancelado',
+        },
+        cancelReasons: {
+          NO_BED: 'sin cama',
+          PATIENT: 'paciente',
+          CLINICAL: 'motivo clínico',
+          OTHER: 'otro motivo',
+        },
+        empty: 'No hay ingresos programados para hoy.',
+      },
+      balance: {
+        title: 'Previsión de balance de camas',
+        description:
+          'Camas libres ahora más altas previstas pendientes, menos pacientes que necesitan cama.',
+        available: 'Camas libres ahora',
+        expectedRemaining: 'Altas previstas pendientes hoy',
+        boarding: 'Pendientes de ingreso (Urgencias)',
+        scheduledPending: 'Programados pendientes',
+        result: 'Balance previsto',
+        deficit: (value: number) =>
+          `Déficit de ${Math.abs(value)} camas: hay que liberar camas o reorganizar ingresos.`,
+        ok: 'Hay camas suficientes para la demanda prevista de hoy.',
+      },
+      units: {
+        title: 'Altas por unidad',
+        columns: {
+          unit: 'Unidad',
+          expected: 'Previstas',
+          done: 'Realizadas',
+          pending: 'Pendientes',
+          ordered: 'Ordenadas',
+          beforeNoon: 'Antes de las 12:00',
+        },
+        total: 'Total',
+        empty: 'Ninguna unidad tiene altas previstas o realizadas hoy.',
+      },
+      worklist: {
+        title: 'Altas de los pacientes ingresados',
+        description: 'Fije o edite el alta prevista y ordene el alta cuando proceda.',
+        tabs: {
+          today: 'Previstas hoy',
+          ordered: 'Ordenadas',
+          upcoming: 'Próximos días',
+          none: 'Sin fecha prevista',
+        },
+        columns: {
+          bed: 'Cama',
+          patient: 'Paciente',
+          service: 'Servicio',
+          stay: 'Estancia',
+          expected: 'Alta prevista',
+          actions: 'Acciones',
+        },
+        overdue: 'vencida',
+        ordered: 'Alta ordenada',
+        none: 'Sin fecha',
+        showMore: (remaining: number) => `Ver más (${remaining})`,
+        empty: 'No hay pacientes en esta lista.',
+        readOnly: 'Solo lectura',
+        edit: 'Fijar alta prevista',
+        editExisting: 'Editar alta prevista',
+        order: 'Ordenar alta',
+      },
+      expectedSheet: {
+        title: 'Alta prevista',
+        description: (label: string) => `Cama ${label}`,
+        day: 'Día',
+        days: ['Hoy', 'Mañana', 'Pasado mañana'],
+        time: 'Hora (24 h)',
+        save: 'Guardar alta prevista',
+        saving: 'Guardando…',
+        invalid: {
+          required: 'Indique la hora.',
+          past: 'La hora debe ser posterior a la hora actual.',
+        },
+      },
+      orderSheet: {
+        title: 'Ordenar alta',
+        description: (label: string) => `Cama ${label}`,
+        body: 'El paciente pasa a «Alta ordenada». La cama quedará pendiente de limpieza cuando salga.',
+        confirm: 'Ordenar alta',
+        working: 'Procesando…',
+      },
+      actions: {
+        toast: {
+          setExpected: (label: string) => `Alta prevista guardada · ${label}`,
+          order: (label: string) => `Alta ordenada · ${label}`,
+        },
+        errors: {
+          forbidden: 'No tiene permiso para esta acción.',
+          stale: 'El paciente ya no está en esa situación. Actualizando…',
+          failed: 'No se pudo completar la acción. Inténtelo de nuevo.',
+        },
+      },
     },
     transfers: {
       title: 'Traslados internos',
