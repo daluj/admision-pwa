@@ -20,6 +20,12 @@ export const PAGE_LOADERS: Record<AreaId, () => Promise<PageModule>> = {
 /** Sub-pages of an area; they sit under the same role guard as the area itself. */
 const AREA_SUBPAGES: Partial<Record<AreaId, RouteObject[]>> = {
   beds: [{ path: 'camas/:unitCode', lazy: lazyPage(() => import('@/features/beds/UnitPage')) }],
+  tracking: [
+    {
+      path: 'seguimiento/:patientId',
+      lazy: lazyPage(() => import('@/features/tracking/JourneyPage')),
+    },
+  ],
 }
 
 function lazyPage(load: () => Promise<PageModule>): RouteObject['lazy'] {

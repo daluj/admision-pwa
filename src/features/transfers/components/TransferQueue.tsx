@@ -1,3 +1,4 @@
+import { JourneyLink } from '@/components/dashboard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { QueueRow } from '@/domain/kpis'
@@ -81,7 +82,12 @@ export function TransferQueue({
                       <td className="py-2 pr-3 font-medium whitespace-nowrap">
                         {labels.transferPriorities[row.priority]}
                       </td>
-                      <td className="py-2 pr-3 font-medium tabular-nums">{row.initials}</td>
+                      <td className="py-2 pr-3 font-medium tabular-nums">
+                        <span className="flex items-center gap-1">
+                          {row.initials}
+                          <JourneyLink patientId={row.transfer.patientId} initials={row.initials} />
+                        </span>
+                      </td>
                       <td className="py-2 pr-3">
                         {row.fromLabel} → {row.toLabel}
                       </td>

@@ -1,9 +1,13 @@
 # Changelog
 
-<!-- last-commit: 26d9b1751f564663817366d1babf3dbac7553493 -->
+<!-- last-commit: b22093acc975b25c24a5634c4a111568fdbc41f8 -->
 
 ## 2026-10-21
 
+- Seguimiento de pacientes: search by NHC or name (accent- and case-insensitive) and an Amazon-style journey per patient — current location and situation, the next expected step with its ETA when the data has one, and a timeline from Urgencias arrival to discharge with the time each step took
+- Journeys cover scheduled and urgent admissions, cancelled admissions with their reason, transfers (requested, picked up, delivered) and earlier episodes of the same patient
+- Every dashboard row that identifies a patient (ED board and boarding list, bed sheet, bed requests, transfer queue, scheduled admissions, discharge worklist) links to the journey for roles that can open Seguimiento
+- Privacy: the search text never goes in the URL; nurse supervisors only find and see episodes of their own unit; this is the one screen that shows full name and NHC
 - Traslados dispatch board: six live indicators (open transfers, unassigned, median time to pickup, % picked up within SLA, free porters, completed today), a "Necesita atención" list for pickups past their SLA (critical when urgent) and the open queue — urgent first, then closest to its SLA — with the time left shown as text and icon
 - Porters panel with who is available or busy and their current job; the head of admissions and bed managers can assign an available porter (suggested: free the longest), cancel a transfer before pickup and request a new transfer for an inpatient. Management sees it read-only
 - "Mi cola" for porters: their own job with the next step (Recoger → Entregar) and the open queue to accept from while available; a porter can only act on their own jobs

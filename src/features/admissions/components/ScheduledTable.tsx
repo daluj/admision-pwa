@@ -1,3 +1,4 @@
+import { JourneyLink } from '@/components/dashboard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ScheduledRow, ScheduleStatus } from '@/domain/kpis'
 import { es } from '@/i18n/es'
@@ -62,7 +63,12 @@ export function ScheduledTable({ rows }: ScheduledTableProps) {
                     <td className="py-2 pr-3 whitespace-nowrap tabular-nums">
                       {localTimeOf(row.scheduledFor)}
                     </td>
-                    <td className="py-2 pr-3 font-medium tabular-nums">{row.initials}</td>
+                    <td className="py-2 pr-3 font-medium tabular-nums">
+                      <span className="flex items-center gap-1">
+                        {row.initials}
+                        <JourneyLink patientId={row.admission.patientId} initials={row.initials} />
+                      </span>
+                    </td>
                     <td className="py-2 pr-3">{row.specialtyName}</td>
                     <td className="py-2">
                       <span

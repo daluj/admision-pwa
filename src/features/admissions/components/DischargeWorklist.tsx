@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { JourneyLink } from '@/components/dashboard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { worklistTab, type WorklistRow, type WorklistTab } from '@/domain/kpis'
@@ -96,7 +97,15 @@ export function DischargeWorklist({ rows, now, canAct, onEdit, onOrder }: Discha
                         <span className="font-medium tabular-nums">{row.bed.label}</span>
                         <span className="text-muted-foreground block text-xs">{row.unit.name}</span>
                       </td>
-                      <td className="py-2 pr-3 font-medium tabular-nums">{row.initials}</td>
+                      <td className="py-2 pr-3 font-medium tabular-nums">
+                        <span className="flex items-center gap-1">
+                          {row.initials}
+                          <JourneyLink
+                            patientId={row.admission.patientId}
+                            initials={row.initials}
+                          />
+                        </span>
+                      </td>
                       <td className="py-2 pr-3">{row.specialtyName}</td>
                       <td className="py-2 pr-3 whitespace-nowrap tabular-nums">
                         {formatDuration(row.losMs)}

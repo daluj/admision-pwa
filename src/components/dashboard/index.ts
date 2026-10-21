@@ -1,5 +1,6 @@
 export { DurationText } from './DurationText'
 export { ExceptionList, type ExceptionItem } from './ExceptionList'
+export { JourneyLink } from './JourneyLink'
 export { KpiStrip } from './KpiStrip'
 export { KpiTile, type KpiTileProps } from './KpiTile'
 export { BED_STATUS_STYLES, StatusBadge } from './StatusBadge'

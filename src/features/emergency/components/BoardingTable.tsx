@@ -1,6 +1,6 @@
 import { Wind } from 'lucide-react'
 import { Link } from 'react-router'
-import { DurationText, TriageBadge } from '@/components/dashboard'
+import { DurationText, JourneyLink, TriageBadge } from '@/components/dashboard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ED_THRESHOLDS, type BoardingRow, type BoardingState } from '@/domain/kpis'
@@ -80,6 +80,7 @@ export function BoardingTable({ rows, now, canManage }: BoardingTableProps) {
                       <span className="flex items-center gap-2">
                         {row.level && <TriageBadge level={row.level} />}
                         <span className="font-medium tabular-nums">{row.initials}</span>
+                        <JourneyLink patientId={row.visit.patientId} initials={row.initials} />
                       </span>
                     </td>
                     <td className="py-2 pr-3">

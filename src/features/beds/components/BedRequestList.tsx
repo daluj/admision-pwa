@@ -1,5 +1,5 @@
 import { Wind } from 'lucide-react'
-import { DurationText } from '@/components/dashboard'
+import { DurationText, JourneyLink } from '@/components/dashboard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CENSUS_THRESHOLDS, type OpenRequestRow } from '@/domain/kpis'
@@ -69,7 +69,13 @@ export function BedRequestList({
                     {request.priority}
                   </span>
                   <div className="min-w-48 flex-1">
-                    <p className="text-sm font-medium tabular-nums">{row.initials ?? '—'}</p>
+                    <p className="flex items-center gap-1 text-sm font-medium tabular-nums">
+                      {row.initials ?? '—'}
+                      <JourneyLink
+                        patientId={row.admission.patientId}
+                        initials={row.initials ?? ''}
+                      />
+                    </p>
                     <p className="text-muted-foreground text-xs">
                       {row.source.kind === 'ED'
                         ? copy.sourceEd(row.source.triageLevel)

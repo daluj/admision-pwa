@@ -54,3 +54,7 @@ Light and dark themes; both must meet WCAG 2.1 AA contrast.
 - Keyboard navigable; visible focus; ARIA from Radix/shadcn primitives.
 - Charts have a text/table alternative.
 - `prefers-reduced-motion` disables animations.
+
+## Patient identity exception: Seguimiento
+
+Dashboards show initials only. Seguimiento (`/seguimiento`) is the one screen that shows the full name and NHC (synthetic in the MVP), because its purpose is to find one patient and confirm it is the right one. Dashboard rows link to it with a small route icon (`JourneyLink`, name "Ver recorrido del paciente <iniciales>") visible only to roles that can open Seguimiento; the URL carries the patient id only.
