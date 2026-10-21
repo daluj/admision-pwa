@@ -2,6 +2,7 @@
 
 **Roadmap phase:** 3 — Synthetic Hospital Seed
 **Branch:** `phase-3-synthetic-seed`
+**Status:** Complete — 2026-10-21
 
 ## Scope
 
