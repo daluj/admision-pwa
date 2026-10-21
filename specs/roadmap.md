@@ -49,15 +49,15 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Role-based navigation and route guards (`specs/domain.md` → Roles)
 - [x] Nurse supervisor scoped to their unit
 
-## Phase 5: Event Store & Simulator Engine
+## Phase 5: Event Store & Simulator Engine (Complete)
 
 **Goal:** The hospital comes alive.
 
-- [ ] Domain commands that validate transitions and append events + state in one transaction
-- [ ] Simulated `Clock` with speed (1×, 10×, 60×, 300×), start/pause in the top bar
-- [ ] Simulator "normal day" scenario: ED arrivals by hour-of-day curve, triage, admit decisions, discharges, cleaning, scheduled admissions
-- [ ] Event log viewer (developer/Ajustes page) with filters
-- [ ] Determinism test: same seed + scenario + duration ⇒ identical event sequence
+- [x] Domain commands that validate transitions and append events + state in one transaction
+- [x] Simulated `Clock` with speed (1×, 10×, 60×, 300×), start/pause in the top bar
+- [x] Simulator "normal day" scenario: ED arrivals by hour-of-day curve, triage, admit decisions, discharges, cleaning, scheduled admissions
+- [x] Event log viewer (developer/Ajustes page) with filters
+- [x] Determinism test: same seed + scenario + duration ⇒ identical event sequence
 
 ## Phase 6: Bed Management — Census Dashboard
 

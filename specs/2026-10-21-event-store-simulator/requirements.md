@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 5 — Event Store & Simulator Engine
 **Branch:** `phase-5-event-store-simulator`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 ## Scope
 
