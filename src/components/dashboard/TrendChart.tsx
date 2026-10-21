@@ -8,7 +8,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { useMediaQuery } from '@/components/layout/useMediaQuery'
 
 export type TrendPoint = {
   /** X-axis label ("14:00"). */
@@ -58,7 +57,7 @@ function Tip({ active, payload, formatValue, seriesName, noData }: TipProps) {
 
 /**
  * Line chart over time with an optional reference line. Colours come from the theme tokens, gaps
- * stay gaps, animation follows `prefers-reduced-motion`, and a visually hidden table carries the
+ * stay gaps, no redraw animation (it updates live and must stay calm; also honours `prefers-reduced-motion`), and a visually hidden table carries the
  * same numbers for screen readers.
  */
 export function TrendChart({
@@ -73,8 +72,6 @@ export function TrendChart({
   height = 240,
   noData = '—',
 }: TrendChartProps & { noData?: string }) {
-  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)', false)
-
   return (
     <figure aria-label={title} className="m-0">
       <figcaption className="sr-only">
@@ -123,7 +120,8 @@ export function TrendChart({
               strokeWidth={2}
               dot={{ r: 3, fill: 'var(--primary)' }}
               connectNulls={false}
-              isAnimationActive={!reducedMotion}
+              // Live data: a redraw animation on every update would be noise on a wall display.
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>

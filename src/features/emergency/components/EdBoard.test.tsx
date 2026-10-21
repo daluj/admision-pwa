@@ -87,6 +87,62 @@ describe('EdBoard', () => {
     expect(waitLevel('v10')).toBe('ok') // 1 h
   })
 
+  it('uses the same strict limits as the tiles: exactly 15 min / 4 h is not late, one minute more is', () => {
+    const at = (extra: object) =>
+      computeEd({
+        ...edInput,
+        edVisits: [
+          {
+            ...edInput.edVisits.find((v) => v.id === 'v2')!,
+            id: 'edge',
+            patientId: edInput.edVisits[1]!.patientId,
+            ...extra,
+          },
+        ],
+        now: ED_NOW,
+        ...{},
+      }).columns
+    const minutesAgo = (m: number) => new Date(Date.parse(ED_NOW) - m * 60_000).toISOString()
+    const level = (phase: 'ARRIVED' | 'ADMIT_DECISION', m: number) => {
+      const extra =
+        phase === 'ARRIVED'
+          ? { arrivedAt: minutesAgo(m) }
+          : { phase: 'ADMIT_DECISION' as const, admitDecisionAt: minutesAgo(m) }
+      const { unmount } = renderBoard(at(extra))
+      const found = [
+        ...document.querySelector('[data-visit="edge"]')!.querySelectorAll('[data-level]'),
+      ]
+        .find((el) => !el.className.includes('triage'))!
+        .getAttribute('data-level')
+      unmount()
+      return found
+    }
+    expect(level('ARRIVED', 15)).toBe('ok')
+    expect(level('ARRIVED', 16)).toBe('warn')
+    expect(level('ARRIVED', 30)).toBe('warn')
+    expect(level('ARRIVED', 31)).toBe('critical')
+    expect(level('ADMIT_DECISION', 240)).toBe('ok')
+    expect(level('ADMIT_DECISION', 241)).toBe('warn')
+    expect(level('ADMIT_DECISION', 480)).toBe('warn')
+    expect(level('ADMIT_DECISION', 481)).toBe('critical')
+  })
+
+  it('late waits carry an icon and a text alternative, not just a colour', () => {
+    renderBoard()
+    const late = document.querySelector('[data-visit="v9"]') as HTMLElement // 9 h boarding: critical
+    expect(late.querySelector('svg')).not.toBeNull()
+    expect(within(late).getByText(es.dashboard.late.critical, { exact: false })).toHaveClass(
+      'sr-only',
+    )
+    const fine = document.querySelector('[data-visit="v4"]') as HTMLElement // 30 min of 60: fine
+    expect(
+      within(fine).queryByText(es.dashboard.late.warn, { exact: false }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(fine).queryByText(es.dashboard.late.critical, { exact: false }),
+    ).not.toBeInTheDocument()
+  })
+
   it('shows initials, complaint and area on the card face, never the name or NHC', () => {
     renderBoard()
     const card = document.querySelector('[data-visit="v2"]') as HTMLElement

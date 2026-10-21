@@ -62,9 +62,10 @@ describe('ED tile statuses', () => {
   it.each([
     [null, 'neutral'],
     [239 * MIN, 'neutral'],
-    [240 * MIN, 'warn'],
-    [479 * MIN, 'warn'],
-    [480 * MIN, 'critical'],
+    [240 * MIN, 'neutral'], // exactly 4 h is not past it
+    [241 * MIN, 'warn'],
+    [480 * MIN, 'warn'],
+    [481 * MIN, 'critical'],
   ])('longest boarding %s → %s', (ms, status) => {
     expect(boardingLongStatus(ms)).toBe(status)
   })

@@ -18,7 +18,7 @@ ED flow and boarding at a glance, live as the simulator runs. `/urgencias` follo
 | Esperando triaje | phase `ARRIVED` | "espera máx. 12 min" | warn > 15 min oldest, critical > 30 min |
 | Esperando médico | phase `TRIAGED` | "N por encima del objetivo" | critical if an L1/L2 is over target, warn if any other is, ok otherwise, neutral when none |
 | Pendientes de ingreso | phase `ADMIT_DECISION` (boarding) | "N con cama reservada" | warn > 10, critical > 20 (hospital status level) |
-| Mayor espera de cama | longest `now − admitDecisionAt` | "N pacientes > 4 h" | warn ≥ 4 h, critical ≥ 8 h (`BOARDING_LONG`) |
+| Mayor espera de cama | longest `now − admitDecisionAt` | "N pacientes > 4 h" | warn > 4 h, critical > 8 h (`BOARDING_LONG`) |
 | Atendidos en objetivo | % of L2–L5 patients **seen** in the last 24 h with wait ≤ Manchester target | "N de M atendidos en 24 h" · "objetivo ≥ 85 %" | ok ≥ 85 %, warn ≥ 70 %, critical < 70 %, neutral without data |
 
 - Manchester targets (triage → physician): L1 0, L2 10, L3 60, L4 120, L5 240 min (constants in `ED_THRESHOLDS`, configurable in Phase 12).
@@ -35,7 +35,7 @@ ED flow and boarding at a glance, live as the simulator runs. `/urgencias` follo
 - Full name and NHC only in a tooltip (hover and keyboard focus), as on the bed map.
 - Empty column: "Sin pacientes".
 
-**4. Boarding list** — table below the board, longest first: patient initials + triage badge, requested specialty (full name) and unit type, isolation marker, **time since admit decision** (amber ≥ 4 h, red ≥ 8 h), **bed request status**: "Sin cama asignada" (`OPEN`) · "Cama 512-A reservada (<unidad>)" (`ASSIGNED`) · "En traslado a 512-A" (admission `IN_TRANSFER`). Link "Gestionar en Camas" for roles that can reserve beds (head); read-only for others. Empty state: "No hay pacientes pendientes de ingreso."
+**4. Boarding list** — table below the board, longest first: patient initials + triage badge, requested specialty (full name) and unit type, isolation marker, **time since admit decision** (amber > 4 h, red > 8 h), **bed request status**: "Sin cama asignada" (`OPEN`) · "Cama 512-A reservada (<unidad>)" (`ASSIGNED`) · "En traslado a 512-A" (admission `IN_TRANSFER`). Link "Gestionar en Camas" for roles that can reserve beds (head); read-only for others. Empty state: "No hay pacientes pendientes de ingreso."
 
 **5. Waiting-time chart** — "Atendidos en objetivo por hora (últimas 24 h)": one line of the % of L2–L5 patients seen within target in each of the last 24 clock hours (simulated time, Europe/Madrid labels), a dashed 85 % objective line, gaps for hours without patients, tooltip with "N de M". Built with Recharts (already in `specs/tech-stack.md`); includes a **visually-hidden data table** with the same numbers (`TrendChart` shared widget).
 

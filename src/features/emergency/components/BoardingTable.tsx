@@ -9,9 +9,10 @@ import { es } from '@/i18n/es'
 const copy = es.pages.emergency.boarding
 const MINUTE = 60_000
 
+// Strictly past 4 h / 8 h, like the KPI tile and the exceptions.
 const TARGET = {
-  warnMs: ED_THRESHOLDS.boardingLongWarnMin * MINUTE,
-  criticalMs: ED_THRESHOLDS.boardingLongCriticalMin * MINUTE,
+  warnMs: ED_THRESHOLDS.boardingLongWarnMin * MINUTE + 1,
+  criticalMs: ED_THRESHOLDS.boardingLongCriticalMin * MINUTE + 1,
 }
 
 function stateText(state: BoardingState): string {
@@ -37,7 +38,9 @@ export function BoardingTable({ rows, now, canManage }: BoardingTableProps) {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="text-base">{copy.title}</CardTitle>
+        <CardTitle className="text-base">
+          <h2>{copy.title}</h2>
+        </CardTitle>
         <CardDescription>{copy.description}</CardDescription>
         {canManage && rows.length > 0 && (
           <div className="mt-2">
@@ -93,11 +96,7 @@ export function BoardingTable({ rows, now, canManage }: BoardingTableProps) {
                       )}
                     </td>
                     <td className="py-2 pr-3 whitespace-nowrap">
-                      <DurationText
-                        from={row.visit.admitDecisionAt ?? now}
-                        now={now}
-                        target={TARGET}
-                      />
+                      <DurationText from={row.since} now={now} target={TARGET} />
                     </td>
                     <td className="py-2">{stateText(row.state)}</td>
                   </tr>

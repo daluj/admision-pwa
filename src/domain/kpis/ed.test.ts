@@ -300,6 +300,105 @@ describe('computeEd: boarding rows', () => {
   })
 })
 
+describe('computeEd: boarding join', () => {
+  const boardingOnly = (extra: Partial<EdInput>) =>
+    ed({
+      edVisits: [visits.find((v) => v.id === 'v8')!],
+      patients: [...patientsById.values()],
+      ...extra,
+    }).boarding[0]!
+
+  it('uses the latest live admission and ignores cancelled ones', () => {
+    const row = boardingOnly({
+      admissions: [
+        adm('a8-old', 'v8', {
+          status: 'CANCELLED',
+          bedId: 'b2',
+          createdAt: '2026-10-21T01:00:00.000Z',
+        }),
+        adm('a8', 'v8', {
+          status: 'BED_ASSIGNED',
+          bedId: 'b1',
+          createdAt: '2026-10-21T02:00:00.000Z',
+        }),
+      ],
+      bedRequests: [
+        req('r8', 'a8', { status: 'ASSIGNED', assignedBedId: 'b1', preferredSpecialtyCode: 'CAR' }),
+      ],
+    })
+    expect(row.state).toMatchObject({ kind: 'RESERVED', bedLabel: '512-A' })
+  })
+
+  it('picks the latest of several live admissions regardless of array order', () => {
+    const early = adm('a8-a', 'v8', {
+      status: 'BED_ASSIGNED',
+      bedId: 'b2',
+      createdAt: '2026-10-21T01:00:00.000Z',
+    })
+    const late = adm('a8-b', 'v8', {
+      status: 'BED_ASSIGNED',
+      bedId: 'b1',
+      createdAt: '2026-10-21T02:00:00.000Z',
+    })
+    for (const admissions of [
+      [early, late],
+      [late, early],
+    ]) {
+      expect(boardingOnly({ admissions, bedRequests: [] }).state).toMatchObject({
+        bedLabel: '512-A',
+      })
+    }
+  })
+
+  it('uses the latest open or assigned request and skips cancelled ones', () => {
+    const row = boardingOnly({
+      admissions: [adm('a8', 'v8', { status: 'AWAITING_BED' })],
+      bedRequests: [
+        req('r-cancelled', 'a8', {
+          status: 'CANCELLED',
+          assignedBedId: 'b2',
+          requestedAt: '2026-10-21T09:00:00.000Z',
+        }),
+        req('r-old', 'a8', {
+          status: 'OPEN',
+          preferredSpecialtyCode: 'MIN',
+          requestedAt: '2026-10-21T03:00:00.000Z',
+        }),
+        req('r-new', 'a8', {
+          status: 'OPEN',
+          preferredSpecialtyCode: 'CAR',
+          requestedAt: '2026-10-21T04:00:00.000Z',
+        }),
+      ],
+    })
+    expect(row.specialtyName).toBe('Cardiología')
+    expect(row.state).toEqual({ kind: 'NO_BED' })
+  })
+
+  it('a request holding a bed counts as reserved even if the admission row is lagging behind', () => {
+    const row = boardingOnly({
+      admissions: [adm('a8', 'v8', { status: 'AWAITING_BED' })],
+      bedRequests: [req('r8', 'a8', { status: 'ASSIGNED', assignedBedId: 'b1' })],
+    })
+    expect(row.state).toMatchObject({ kind: 'RESERVED', bedLabel: '512-A' })
+  })
+
+  it('a patient already admitted but still on the board is on the way', () => {
+    const row = boardingOnly({
+      admissions: [adm('a8', 'v8', { status: 'ADMITTED', bedId: 'b1' })],
+      bedRequests: [],
+    })
+    expect(row.state).toMatchObject({ kind: 'IN_TRANSFER', bedLabel: '512-A' })
+  })
+
+  it('the row starts counting where the card does (even without an admit-decision time)', () => {
+    const noDecision = [{ ...visits.find((v) => v.id === 'v8')!, admitDecisionAt: undefined }]
+    const result = ed({ edVisits: noDecision, patients: [...patientsById.values()] })
+    const card = result.columns.ADMIT_DECISION[0]!
+    expect(result.boarding[0]).toMatchObject({ since: card.since, sinceDecisionMs: card.waitMs })
+  })
+})
+
 describe('computeEd: exceptions', () => {
   it('flags late triaged patients and long boarders, most severe and oldest first', () => {
     const { exceptions } = ed()
@@ -353,6 +452,12 @@ describe('computeEd: exceptions', () => {
 })
 
 describe('computeEd: hourly series', () => {
+  it('marks only the current clock hour as partial', () => {
+    const { hourly } = ed()
+    expect(hourly.filter((b) => b.partial)).toHaveLength(1)
+    expect(hourly.at(-1)!.partial).toBe(true)
+  })
+
   it('has 24 consecutive hour buckets ending at the current clock hour', () => {
     const { hourly } = ed()
     expect(hourly).toHaveLength(24)

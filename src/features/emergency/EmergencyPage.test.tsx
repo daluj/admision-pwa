@@ -107,7 +107,7 @@ describe('Urgencias page', () => {
   it('shows a loading message until the data arrives, and an empty state without visits', async () => {
     const empty = createMemoryBackend()
     renderApp('/urgencias', empty)
-    expect(await screen.findByText(copy.loading)).toBeInTheDocument()
+    expect(await screen.findByRole('status')).toHaveTextContent(copy.loading)
     await act(() =>
       empty.events.append(
         [],

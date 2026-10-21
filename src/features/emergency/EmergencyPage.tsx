@@ -26,7 +26,7 @@ export default function EmergencyPage() {
     <>
       <PageHeader title={copy.title} description={copy.description} />
       {!data ? (
-        <p className="text-muted-foreground text-sm" aria-busy="true">
+        <p role="status" className="text-muted-foreground text-sm" aria-busy="true">
           {copy.loading}
         </p>
       ) : !data.hasVisits ? (

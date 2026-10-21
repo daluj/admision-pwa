@@ -17,16 +17,24 @@ const percent = (value: number) => `${Math.round(value)} %`
 
 /** "Atendidos en objetivo por hora": % of L2–L5 patients seen within target, last 24 clock hours. */
 export function WaitChart({ hourly }: { hourly: readonly HourBucket[] }) {
-  const points: TrendPoint[] = hourly.map((bucket) => ({
-    label: hourFormatter.format(Date.parse(bucket.start)),
-    value: bucket.pct === null ? null : bucket.pct * 100,
-    ...(bucket.seen > 0 ? { detail: copy.point(bucket.within, bucket.seen) } : {}),
-  }))
+  const points: TrendPoint[] = hourly.map((bucket) => {
+    const detail = [
+      bucket.seen > 0 ? copy.point(bucket.within, bucket.seen) : null,
+      bucket.partial ? copy.partial : null,
+    ].filter(Boolean)
+    return {
+      label: hourFormatter.format(Date.parse(bucket.start)),
+      value: bucket.pct === null ? null : bucket.pct * 100,
+      ...(detail.length ? { detail: detail.join(' · ') } : {}),
+    }
+  })
 
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="text-base">{copy.title}</CardTitle>
+        <CardTitle className="text-base">
+          <h2>{copy.title}</h2>
+        </CardTitle>
         <CardDescription>{copy.description}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -44,7 +52,7 @@ export function WaitChart({ hourly }: { hourly: readonly HourBucket[] }) {
           table={{
             headers: [copy.table.hour, copy.table.seen, copy.table.within, copy.table.pct],
             rows: hourly.map((bucket, i) => [
-              points[i]!.label,
+              bucket.partial ? `${points[i]!.label} (${copy.partial})` : points[i]!.label,
               String(bucket.seen),
               String(bucket.within),
               bucket.pct === null ? copy.noData : percent(bucket.pct * 100),

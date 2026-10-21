@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { MapPin } from 'lucide-react'
 import { DurationText, TriageBadge } from '@/components/dashboard'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -15,9 +14,10 @@ function waitTarget(
 ): { warnMs: number; criticalMs: number } | undefined {
   switch (phase) {
     case 'ARRIVED':
+      // Strictly past the limit, like the KPI tile.
       return {
-        warnMs: ED_THRESHOLDS.triageWaitWarnMin * MINUTE,
-        criticalMs: ED_THRESHOLDS.triageWaitCriticalMin * MINUTE,
+        warnMs: ED_THRESHOLDS.triageWaitWarnMin * MINUTE + 1,
+        criticalMs: ED_THRESHOLDS.triageWaitCriticalMin * MINUTE + 1,
       }
     case 'TRIAGED': {
       if (card.targetMs === undefined) return undefined
@@ -29,8 +29,8 @@ function waitTarget(
     }
     case 'ADMIT_DECISION':
       return {
-        warnMs: ED_THRESHOLDS.boardingLongWarnMin * MINUTE,
-        criticalMs: ED_THRESHOLDS.boardingLongCriticalMin * MINUTE,
+        warnMs: ED_THRESHOLDS.boardingLongWarnMin * MINUTE + 1,
+        criticalMs: ED_THRESHOLDS.boardingLongCriticalMin * MINUTE + 1,
       }
     default:
       return undefined
@@ -43,7 +43,7 @@ type EdCardProps = { card: Card; phase: BoardPhase; now: string }
  * One ED patient. The face shows triage (colour + number), initials, complaint, area and the time
  * in the phase; the full name and NHC live in the tooltip (hover and keyboard focus).
  */
-export const EdCard = memo(function EdCard({ card, phase, now }: EdCardProps) {
+export function EdCard({ card, phase, now }: EdCardProps) {
   const target = waitTarget(card, phase)
   return (
     <Tooltip>
@@ -89,4 +89,4 @@ export const EdCard = memo(function EdCard({ card, phase, now }: EdCardProps) {
       </TooltipContent>
     </Tooltip>
   )
-})
+}

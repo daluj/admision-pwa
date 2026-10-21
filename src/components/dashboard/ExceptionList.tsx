@@ -31,7 +31,9 @@ export function ExceptionList({ items, limit = DEFAULT_LIMIT }: ExceptionListPro
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="text-base">{es.dashboard.exceptions.title}</CardTitle>
+        <CardTitle className="text-base">
+          <h2>{es.dashboard.exceptions.title}</h2>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {sorted.length === 0 ? (

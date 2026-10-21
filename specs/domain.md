@@ -172,7 +172,7 @@ Calculators are pure functions in `src/domain/kpis/`, taking entities + `now` an
 - **Patients present** by phase and by triage level (visits not `LEFT_ED`).
 - **Time to triage** and **time to physician** (median, minutes) vs targets. Wait to physician = `seenAt − triagedAt` (for patients still waiting: `now − triagedAt`).
 - **% seen within target** by triage level. Manchester targets: L1 0 min, L2 10 min, L3 60 min, L4 120 min, L5 240 min (configurable). The dashboard tile and chart cover **L2–L5 patients seen in the last 24 simulated hours**; L1 must be seen immediately, so it is not a statistic: any L1 waiting for a physician is a critical exception. Tile status: ok ≥ 85 %, warn ≥ 70 %, critical < 70 %.
-- **Boarding count** and **boarding time** (now − `admitDecisionAt`): median and longest. Dashboard tiles: boarding count warn > 10 / critical > 20 (hospital status level); longest boarding warn ≥ 4 h / critical ≥ 8 h (the `BOARDING_LONG` rule).
+- **Boarding count** and **boarding time** (now − `admitDecisionAt`): median and longest. Dashboard tiles: boarding count warn > 10 / critical > 20 (hospital status level); longest boarding warn > 4 h / critical > 8 h (the `BOARDING_LONG` rule). Every ED threshold is strict ("over"): a patient exactly at the target, or boarding exactly 4 h, is not late yet — tiles, cards and exceptions agree.
 - **Hourly series** (chart): for each of the last 24 clock hours (Europe/Madrid), the share of L2–L5 patients seen in that hour (by `seenAt`) within target; hours without patients have no value.
 - **ED LOS** (median, hours); **LWBS** count today.
 

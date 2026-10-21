@@ -371,6 +371,7 @@ export const es = {
         seriesName: '% en objetivo',
         table: { hour: 'Hora', seen: 'Atendidos', within: 'En objetivo', pct: '% en objetivo' },
         noData: 'sin datos',
+        partial: 'hora en curso',
       },
     },
     admissions: {
@@ -617,6 +618,7 @@ export const es = {
     },
     day: { today: 'hoy', tomorrow: 'mañana', yesterday: 'ayer' },
     triage: (level: number) => `Triaje ${level}`,
+    late: { warn: 'Por encima del objetivo', critical: 'Muy por encima del objetivo' },
   },
   roles: {
     ADMISSIONS_HEAD: 'Jefe/a de Admisión',

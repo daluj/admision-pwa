@@ -54,6 +54,8 @@ export type BoardingRow = {
   specialtyName: string
   unitType: UnitType
   isolationRequired: boolean
+  /** Start of the wait (the admit decision); same instant the card uses. */
+  since: IsoDateTime
   sinceDecisionMs: number
   state: BoardingState
 }
@@ -86,6 +88,8 @@ export type HourBucket = {
   within: number
   /** Share within target; `null` when nobody was seen that hour. */
   pct: number | null
+  /** The current clock hour: still filling up, so its share is provisional. */
+  partial: boolean
 }
 
 export type EdException =
@@ -226,6 +230,7 @@ export function computeEd(input: EdInput): Ed {
       seen: inHour.length,
       within,
       pct: inHour.length === 0 ? null : within / inHour.length,
+      partial: i === 23,
     }
   })
 
@@ -294,13 +299,29 @@ function boardingRows(
     nameByCode: ReadonlyMap<string, string>
   },
 ): BoardingRow[] {
+  // A visit can have several admissions (an earlier cancelled one): use the latest live one.
   const admissionByVisit = new Map<string, Admission>()
   for (const admission of ctx.admissions) {
-    if (admission.edVisitId) admissionByVisit.set(admission.edVisitId, admission)
+    if (!admission.edVisitId || admission.status === 'CANCELLED') continue
+    const current = admissionByVisit.get(admission.edVisitId)
+    if (
+      !current ||
+      admission.createdAt > current.createdAt ||
+      (admission.createdAt === current.createdAt && admission.id > current.id)
+    ) {
+      admissionByVisit.set(admission.edVisitId, admission)
+    }
   }
+  // Likewise the latest open or assigned request of that admission.
   const requestByAdmission = new Map<string, BedRequest>()
   for (const request of ctx.bedRequests) {
-    if (request.status === 'OPEN' || request.status === 'ASSIGNED') {
+    if (request.status !== 'OPEN' && request.status !== 'ASSIGNED') continue
+    const current = requestByAdmission.get(request.admissionId)
+    if (
+      !current ||
+      request.requestedAt > current.requestedAt ||
+      (request.requestedAt === current.requestedAt && request.id > current.id)
+    ) {
       requestByAdmission.set(request.admissionId, request)
     }
   }
@@ -315,13 +336,15 @@ function boardingRows(
     const bed = bedId ? ctx.bedById.get(bedId) : undefined
     const unit = bed ? ctx.unitById.get(bed.unitId) : undefined
 
-    // BED_ASSIGNED = reserved; IN_TRANSFER (or just admitted, about to leave the ED) = on the way.
+    // On the way (IN_TRANSFER, or just admitted and about to leave the ED); otherwise a bed held
+    // for the patient — by the admission or by an ASSIGNED request — is "reserved".
     let state: BoardingState = { kind: 'NO_BED' }
-    if (bed && admission) {
+    if (bed) {
       const where = { bedLabel: bed.label, unitName: unit?.name ?? '' }
-      if (admission.status === 'BED_ASSIGNED') state = { kind: 'RESERVED', ...where }
-      else if (admission.status === 'IN_TRANSFER' || admission.status === 'ADMITTED') {
+      if (admission?.status === 'IN_TRANSFER' || admission?.status === 'ADMITTED') {
         state = { kind: 'IN_TRANSFER', ...where }
+      } else if (admission?.status === 'BED_ASSIGNED' || request?.status === 'ASSIGNED') {
+        state = { kind: 'RESERVED', ...where }
       }
     }
     return {
@@ -331,6 +354,7 @@ function boardingRows(
       specialtyName: ctx.nameByCode.get(code) ?? code,
       unitType: request?.requiredUnitType ?? 'WARD',
       isolationRequired: request?.isolationRequired ?? false,
+      since: card.since,
       sinceDecisionMs: card.waitMs,
       state,
     }

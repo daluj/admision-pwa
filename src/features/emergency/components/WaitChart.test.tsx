@@ -41,4 +41,15 @@ describe('WaitChart', () => {
     render(<WaitChart hourly={computeEd(edInput).hourly} />)
     expect(document.body.textContent).toContain(copy.objective(85))
   })
+
+  it('has a real heading and flags the current, still-filling hour as provisional', () => {
+    render(<WaitChart hourly={computeEd(edInput).hourly} />)
+    expect(screen.getByRole('heading', { level: 2, name: copy.title })).toBeInTheDocument()
+    const rows = within(screen.getByRole('table', { name: copy.title }))
+      .getAllByRole('row')
+      .slice(1)
+    expect(rows.at(-1)!.firstElementChild).toHaveTextContent(`12:00 (${copy.partial})`)
+    expect(rows[0]!.firstElementChild).not.toHaveTextContent(copy.partial)
+    expect(rows.filter((r) => r.textContent?.includes(copy.partial))).toHaveLength(1)
+  })
 })

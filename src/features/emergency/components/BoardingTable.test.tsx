@@ -43,6 +43,48 @@ describe('BoardingTable', () => {
     expect(level(r10!)).toBe('ok')
   })
 
+  it('exactly 4 h is not late yet; one minute more is amber; past 8 h is red; with icon and text', () => {
+    const level = (minutes: number) => {
+      const now = ED_NOW
+      const base = computeEd(edInput).boarding[2]! // the 1 h boarder
+      const since = new Date(Date.parse(now) - minutes * 60_000).toISOString()
+      const { unmount } = render(
+        <MemoryRouter>
+          <BoardingTable
+            rows={[{ ...base, since, sinceDecisionMs: minutes * 60_000 }]}
+            now={now}
+            canManage={false}
+          />
+        </MemoryRouter>,
+      )
+      const cell = document.querySelector('tbody td:nth-child(3) [data-level]')!
+      const result = {
+        level: cell.getAttribute('data-level'),
+        icon: cell.querySelector('svg') !== null,
+      }
+      unmount()
+      return result
+    }
+    expect(level(240)).toEqual({ level: 'ok', icon: false })
+    expect(level(241)).toEqual({ level: 'warn', icon: true })
+    expect(level(481)).toEqual({ level: 'critical', icon: true })
+  })
+
+  it('counts the wait from the row start, not from "now" (no 0 min for a lagging decision time)', () => {
+    const row = {
+      ...computeEd(edInput).boarding[1]!,
+      since: '2026-10-21T05:00:00.000Z',
+      sinceDecisionMs: 5 * 3_600_000,
+    }
+    renderTable(false, [row])
+    expect(bodyRows()[0]).toHaveTextContent('5 h')
+  })
+
+  it('has a real heading for the section', () => {
+    renderTable(false)
+    expect(screen.getByRole('heading', { level: 2, name: copy.title })).toBeInTheDocument()
+  })
+
   it('shows the three bed request states', () => {
     renderTable(false)
     const [noBed, reserved, transfer] = bodyRows()

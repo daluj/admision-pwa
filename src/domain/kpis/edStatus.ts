@@ -25,11 +25,11 @@ export function boardingCountStatus(count: number): TileStatus {
   return 'neutral'
 }
 
-/** Longest boarding: amber from 4 h, red from 8 h (`BOARDING_LONG`). */
+/** Longest boarding: amber past 4 h, red past 8 h (`BOARDING_LONG`; strictly over, like the exceptions). */
 export function boardingLongStatus(longestMs: number | null): TileStatus {
   if (longestMs === null) return 'neutral'
-  if (longestMs >= ED_THRESHOLDS.boardingLongCriticalMin * MINUTE) return 'critical'
-  if (longestMs >= ED_THRESHOLDS.boardingLongWarnMin * MINUTE) return 'warn'
+  if (longestMs > ED_THRESHOLDS.boardingLongCriticalMin * MINUTE) return 'critical'
+  if (longestMs > ED_THRESHOLDS.boardingLongWarnMin * MINUTE) return 'warn'
   return 'neutral'
 }
 
