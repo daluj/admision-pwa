@@ -1,9 +1,15 @@
 # Changelog
 
-<!-- last-commit: 785a45b2674d4b951e51474ce6204ca1374cc0b7 -->
+<!-- last-commit: 1a21df32cf8b80830fc7972bd63255e842019556 -->
 
 ## 2026-10-21
 
+- Bed requests on Camas: a "Solicitudes de cama" list with every open request (most urgent first, then longest wait), showing patient initials, where it comes from, the specialty, unit type, isolation and how long it has waited
+- "Asignar cama" opens a side sheet with ranked suggestions — same specialty first, outlier beds after (never for Pediatría, Ginecología y Obstetricia or Psiquiatría), isolation beds only when needed — and reserves the chosen bed with a confirmation message
+- Every bed on a unit's map opens a sheet with the actions that fit its state: block (with a reason), release a reservation, start or finish cleaning, unblock
+- Roles: the head of admissions and bed managers can do everything; nurse supervisors can start and finish cleaning in their own unit only; ED coordination and management are read-only. Every action is logged under the name of the person who did it
+- New "Rotación de cama" indicator: median time from discharge to bed cleaned today (target ≤ 90 min), and a "pendiente de limpieza" exception after 60 min (critical after 2 h)
+- If the simulation or a colleague gets there first, the sheet explains it instead of failing silently, and a release can never cancel a newer reservation
 - Bed census dashboard on Camas: six live KPIs (occupancy, free beds, pending cleaning, blocked, expected discharges today, outlier patients), a "Necesita atención" list (beds blocked > 72 h, units at 92 % or more, outliers) and a card per unit with its status breakdown
 - Filters by building, unit type and specialty apply to everything on the page and are remembered per user
 - Bed map per unit (`/camas/<unidad>`): every bed by room with its status, patient initials, length of stay and expected discharge; full name and NHC only in the tooltip
