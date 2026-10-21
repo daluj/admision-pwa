@@ -65,6 +65,111 @@ export const es = {
         'Los indicadores principales aparecerán aquí cuando se cargue el hospital simulado.',
     },
     beds: {
+      status: {
+        AVAILABLE: 'Libre',
+        RESERVED: 'Reservada',
+        OCCUPIED: 'Ocupada',
+        PENDING_CLEANING: 'Pendiente de limpieza',
+        CLEANING: 'En limpieza',
+        BLOCKED: 'Bloqueada',
+      },
+      unitTypes: {
+        WARD: 'Planta',
+        ICU: 'UCI',
+        INTERMEDIATE: 'Cuidados intermedios',
+        ED: 'Urgencias',
+        OTHER: 'Otra',
+      },
+      kpis: {
+        label: 'Indicadores de camas',
+        occupancy: {
+          label: 'Ocupación',
+          context: (occupied: number, operational: number) =>
+            `${occupied} de ${operational} camas operativas`,
+          target: (pct: number) => `umbral de alerta ${pct} %`,
+        },
+        free: {
+          label: 'Camas libres',
+          context: (reserved: number) =>
+            reserved === 1 ? '1 reservada' : `${reserved} reservadas`,
+        },
+        pendingCleaning: {
+          label: 'Pendientes de limpieza',
+          context: (cleaning: number) =>
+            cleaning === 1 ? '1 en limpieza' : `${cleaning} en limpieza`,
+        },
+        blocked: {
+          label: 'Bloqueadas',
+          context: (pct: number) => `${pct} % de las camas`,
+        },
+        expectedDischarges: {
+          label: 'Altas previstas hoy',
+          context: (done: number) => (done === 1 ? '1 ya realizada' : `${done} ya realizadas`),
+        },
+        outliers: {
+          label: 'Pacientes ectópicos',
+          context: (units: number) =>
+            units === 0 ? 'ninguno' : units === 1 ? 'en 1 unidad' : `en ${units} unidades`,
+        },
+      },
+      exceptions: {
+        blockedLong: (bed: string, age: string) => `Cama ${bed} bloqueada desde hace ${age}`,
+        reason: (reason: string) => `Motivo: ${reason}`,
+        unitFull: (unit: string, pct: number) => `${unit} al ${pct} % de ocupación`,
+        outlier: (initials: string, unit: string) => `${initials} ectópico en ${unit}`,
+        outlierDetail: (bed: string, specialty: string) => `Cama ${bed} · servicio ${specialty}`,
+      },
+      filters: {
+        label: 'Filtros',
+        building: 'Edificio',
+        type: 'Tipo de unidad',
+        specialty: 'Servicio',
+        all: 'Todos',
+        clear: 'Quitar filtros',
+      },
+      noUnit: {
+        title: 'Sin unidad asignada',
+        description:
+          'Su usuario no tiene una unidad asignada, así que no puede ver ninguna. Pida a un administrador que se la asigne.',
+      },
+      unit: {
+        back: 'Todas las unidades',
+        notFoundTitle: 'Unidad no encontrada',
+        notFoundDescription: (code: string) => `No existe ninguna unidad con el código ${code}.`,
+        loading: 'Cargando la unidad…',
+        header: (building: string, floor: number, type: string) =>
+          `${building} · planta ${floor} · ${type}`,
+        services: (names: string) => `Servicios: ${names}`,
+        mapTitle: 'Mapa de camas',
+        room: (room: string) => `Hab. ${room}`,
+        legend: 'Leyenda',
+        stay: (duration: string) => `Estancia ${duration}`,
+        discharge: {
+          expected: (when: string) => `Alta ${when}`,
+          ordered: 'Alta ordenada',
+          none: 'Sin alta prevista',
+        },
+        outlier: 'Ectópico',
+        reservedFor: 'Reservada para',
+        since: 'desde hace',
+        detail: {
+          patient: 'Paciente',
+          mrn: 'NHC',
+          admittedAt: 'Ingreso',
+          specialty: 'Servicio',
+          unitSpecialties: 'Servicios de la unidad',
+        },
+      },
+      grid: {
+        title: 'Unidades',
+        occupancy: (pct: number) => `${pct} %`,
+        floor: (building: string, floor: number) => `${building} · planta ${floor}`,
+        outliers: (n: number) => (n === 1 ? '1 ectópico' : `${n} ectópicos`),
+        openUnit: (name: string) => `Abrir el mapa de camas de ${name}`,
+        statusBar: (name: string, summary: string) => `${name}: ${summary}`,
+        noMatches: 'Ninguna unidad coincide con los filtros.',
+        loading: 'Cargando camas…',
+      },
       title: 'Gestión de camas',
       description: 'Mapa de camas por unidad: libres, reservadas, ocupadas, limpieza y bloqueos.',
       emptyTitle: 'No hay camas registradas',
@@ -299,6 +404,28 @@ export const es = {
     speedOption: (speed: number) => `${speed}×`,
     speedChanged: (speed: number) => `Velocidad ${speed}×`,
     failed: 'No se pudo cambiar la simulación',
+  },
+  dashboard: {
+    status: {
+      ok: 'Correcto',
+      warn: 'Atención',
+      critical: 'Crítico',
+      info: 'Informativo',
+      neutral: '',
+    },
+    exceptions: {
+      title: 'Necesita atención',
+      empty: 'Nada requiere atención ahora mismo.',
+      showAll: (total: number) => `Ver todas (${total})`,
+      showLess: 'Ver menos',
+    },
+    duration: {
+      lessThanMinute: '<1 min',
+      minutes: (m: number) => `${m} min`,
+      hoursMinutes: (h: number, m: number) => (m === 0 ? `${h} h` : `${h} h ${m} min`),
+      daysHours: (d: number, h: number) => (h === 0 ? `${d} d` : `${d} d ${h} h`),
+    },
+    day: { today: 'hoy', tomorrow: 'mañana', yesterday: 'ayer' },
   },
   roles: {
     ADMISSIONS_HEAD: 'Jefe/a de Admisión',

@@ -49,11 +49,12 @@ test('a nurse supervisor is scoped to the chosen unit; the session survives a re
   const unit = await unitSelect.locator('option').nth(2).innerText()
   await loginAs(page, 'Supervisor/a de enfermería', unit)
 
-  await expect(page).toHaveURL(/\/camas$/)
-  await expect(page.getByText(`Mostrando solo: ${unit}`)).toBeVisible()
+  // Camas sends supervisors straight to their own unit's bed map.
+  await expect(page).toHaveURL(/\/camas\/[^/]+$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(unit)
   await expect(nav(page).getByRole('link')).toHaveCount(3)
 
   await page.reload()
-  await expect(page).toHaveURL(/\/camas$/)
-  await expect(page.getByText(`Mostrando solo: ${unit}`)).toBeVisible()
+  await expect(page).toHaveURL(/\/camas\/[^/]+$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(unit)
 })

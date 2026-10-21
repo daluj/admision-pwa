@@ -8,9 +8,13 @@ import { sampleEntities } from '@/domain/schemas/fixtures'
 import type { Bed } from '@/domain/schemas'
 import {
   useBeds,
+  useAdmissions,
   useBedsByUnit,
   useDataInfo,
+  usePatients,
   useRecentEvents,
+  useSimNow,
+  useSpecialties,
   useSubscribable,
   useTableCounts,
   useUnits,
@@ -150,3 +154,51 @@ class ErrorCatcher extends Component<
     return this.state.failed ? null : this.props.children
   }
 }
+
+describe('census data hooks', () => {
+  it('useSpecialties, usePatients and useAdmissions list current rows', async () => {
+    const { backend, wrapper } = setup()
+    const specialties = renderHook(() => useSpecialties(), { wrapper })
+    const patients = renderHook(() => usePatients(), { wrapper })
+    const admissions = renderHook(() => useAdmissions(), { wrapper })
+    await waitFor(() => expect(patients.result.current).toEqual([]))
+    await act(() =>
+      backend.events.append(
+        [],
+        [
+          { entity: 'specialty', op: 'put', record: sampleEntities.specialty },
+          { entity: 'patient', op: 'put', record: sampleEntities.patient },
+          { entity: 'admission', op: 'put', record: sampleEntities.admission },
+        ],
+      ),
+    )
+    await waitFor(() => expect(specialties.result.current).toEqual([sampleEntities.specialty]))
+    await waitFor(() => expect(patients.result.current).toEqual([sampleEntities.patient]))
+    await waitFor(() => expect(admissions.result.current).toEqual([sampleEntities.admission]))
+  })
+
+  it('useSimNow is undefined until seeded, then follows simNow', async () => {
+    const { backend, wrapper } = setup()
+    const { result } = renderHook(() => useSimNow(), { wrapper })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(result.current).toBeUndefined()
+
+    const put = (simNow: string) =>
+      act(() =>
+        backend.events.append(
+          [],
+          [
+            {
+              entity: 'simulationState',
+              op: 'put',
+              record: { ...sampleEntities.simulationState, simNow },
+            },
+          ],
+        ),
+      )
+    await put('2026-10-21T08:00:00.000Z')
+    await waitFor(() => expect(result.current).toBe('2026-10-21T08:00:00.000Z'))
+    await put('2026-10-21T08:05:00.000Z')
+    await waitFor(() => expect(result.current).toBe('2026-10-21T08:05:00.000Z'))
+  })
+})

@@ -111,14 +111,27 @@ describe('SessionProvider', () => {
     expect(readSession()).toBeNull()
   })
 
+  it('keeps a nurse supervisor without a unit restricted (fails closed)', async () => {
+    const orphan: User = {
+      ...nurse,
+      id: '22222222-2222-4222-8222-222222222222',
+      username: 'orphan',
+      unitId: undefined,
+    }
+    writeSession(orphan.id)
+    const backend = await backendWith([orphan])
+    const { result } = renderHook(() => useUnitScope(), { wrapper: wrapperFor(backend) })
+    await waitFor(() => expect(result.current).toEqual({ restricted: true, unitId: null }))
+  })
+
   it('scopes only nurse supervisors to their unit', async () => {
     writeSession(nurse.id)
     const backend = await backendWith([head, nurse])
     const { result } = renderHook(() => useUnitScope(), { wrapper: wrapperFor(backend) })
-    await waitFor(() => expect(result.current).toBe(nurse.unitId))
+    await waitFor(() => expect(result.current).toEqual({ restricted: true, unitId: nurse.unitId }))
 
     act(() => writeSession(head.id))
     const other = renderHook(() => useUnitScope(), { wrapper: wrapperFor(backend) })
-    await waitFor(() => expect(other.result.current).toBeNull())
+    await waitFor(() => expect(other.result.current).toEqual({ restricted: false }))
   })
 })

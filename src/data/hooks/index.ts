@@ -1,7 +1,18 @@
 import { useMemo } from 'react'
 import { useDataBackend } from '@/data/dataContext'
 import type { DataBackendInfo, TableCounts } from '@/data/ports'
-import type { Bed, HospitalEvent, Id, SimulationState, Unit, User } from '@/domain/schemas'
+import type {
+  Admission,
+  Bed,
+  HospitalEvent,
+  Id,
+  IsoDateTime,
+  Patient,
+  SimulationState,
+  Specialty,
+  Unit,
+  User,
+} from '@/domain/schemas'
 import { useSubscribable } from './useSubscribable'
 
 export { useSubscribable } from './useSubscribable'
@@ -20,6 +31,21 @@ export function useTableCounts(): TableCounts | undefined {
 export function useUnits(): Unit[] | undefined {
   const { repositories } = useDataBackend()
   return useSubscribable(useMemo(() => repositories.unit.observeList(), [repositories]))
+}
+
+export function useSpecialties(): Specialty[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.specialty.observeList(), [repositories]))
+}
+
+export function usePatients(): Patient[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.patient.observeList(), [repositories]))
+}
+
+export function useAdmissions(): Admission[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.admission.observeList(), [repositories]))
 }
 
 export function useUsers(): User[] | undefined {
@@ -52,4 +78,9 @@ export function useSimulationState(): SimulationState | null | undefined {
 export function useRecentEvents(limit: number): HospitalEvent[] | undefined {
   const { events } = useDataBackend()
   return useSubscribable(useMemo(() => events.observeRecent(limit), [events, limit]))
+}
+
+/** The simulated "now" (`SimulationState.simNow`); `undefined` until the demo is seeded. Dashboards use this, never the wall clock. */
+export function useSimNow(): IsoDateTime | undefined {
+  return useSimulationState()?.simNow
 }

@@ -16,6 +16,13 @@ describe('navigation config', () => {
     expect(es.nav.items[item.labelKey].length).toBeGreaterThan(0)
   })
 
+  it('serves the unit bed map under the Camas area guard', () => {
+    const matches = matchRoutes(routes, '/camas/UCI')
+    expect(matches?.at(-1)?.params).toEqual({ unitCode: 'UCI' })
+    expect(matches?.at(-1)?.route.path).toBe('camas/:unitCode')
+    expect(matches?.at(-1)?.route.lazy).toBeTypeOf('function')
+  })
+
   it('has unique paths', () => {
     const paths = NAV_ITEMS.map((item) => item.path)
     expect(new Set(paths).size).toBe(paths.length)
