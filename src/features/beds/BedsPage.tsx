@@ -1,26 +1,73 @@
 import { BedDouble } from 'lucide-react'
+import { useCallback, useMemo } from 'react'
+import { Navigate } from 'react-router'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
-import { useUnits } from '@/data/hooks'
+import { useSpecialties, useUnits } from '@/data/hooks'
+import { censusExceptions } from '@/domain/kpis'
+import type { Unit } from '@/domain/schemas'
+import { useSession } from '@/features/auth/useSession'
 import { useUnitScope } from '@/features/auth/useUnitScope'
 import { es } from '@/i18n/es'
+import { applyFilters, filterOptions, hasActiveFilters } from './bedFilters'
+import { BedFilters } from './components/BedFilters'
+import { CensusExceptions } from './components/CensusExceptions'
+import { CensusKpis } from './components/CensusKpis'
+import { UnitGrid } from './components/UnitGrid'
+import { useBedFilters } from './useBedFilters'
+import { useCensus } from './useCensus'
 
 const copy = es.pages.beds
 
+/** `/camas`: the hospital census. Nurse supervisors go straight to their own unit. */
 export default function BedsPage() {
-  const unitId = useUnitScope()
+  const session = useSession()
+  const scopeUnitId = useUnitScope()
   const units = useUnits()
-  const unitName = unitId ? units?.find((unit) => unit.id === unitId)?.name : undefined
+
+  if (scopeUnitId) {
+    const own = units?.find((unit) => unit.id === scopeUnitId)
+    if (own) return <Navigate to={`/camas/${own.code}`} replace />
+    return <p className="text-muted-foreground text-sm">{copy.grid.loading}</p>
+  }
+  if (session.status !== 'authenticated') return null
+  return <Census userId={session.user.id} />
+}
+
+function Census({ userId }: { userId: string }) {
+  const [filters, setFilters] = useBedFilters(userId)
+  const specialties = useSpecialties()
+  const allUnits = useUnits()
+  const selectUnits = useCallback(
+    (units: readonly Unit[]) => applyFilters(units, filters),
+    [filters],
+  )
+  const data = useCensus(selectUnits)
+  const options = useMemo(
+    () => filterOptions(allUnits ?? [], specialties ?? []),
+    [allUnits, specialties],
+  )
+  const exceptions = useMemo(() => (data ? censusExceptions(data.census, data.now) : []), [data])
+
+  const empty = data && data.census.units.length === 0 && !hasActiveFilters(filters)
 
   return (
     <>
       <PageHeader title={copy.title} description={copy.description} />
-      {unitName && (
-        <p role="note" className="bg-status-info/15 mb-4 rounded-md px-3 py-2 text-sm font-medium">
-          {es.scope.unitOnly(unitName)}
+      {!data ? (
+        <p className="text-muted-foreground text-sm" aria-busy="true">
+          {copy.grid.loading}
         </p>
+      ) : empty ? (
+        <EmptyState icon={BedDouble} title={copy.emptyTitle} description={copy.emptyDescription} />
+      ) : (
+        <>
+          <BedFilters filters={filters} options={options} onChange={setFilters} />
+          <CensusKpis kpis={data.census.hospital} />
+          <CensusExceptions exceptions={exceptions} />
+          <UnitGrid units={data.census.units} />
+        </>
       )}
-      <EmptyState icon={BedDouble} title={copy.emptyTitle} description={copy.emptyDescription} />
     </>
   )
 }
