@@ -167,7 +167,7 @@ export default function WallPage() {
       </header>
       <main
         aria-label={copy.slide(Math.min(index, count - 1) + 1, count, label)}
-        className="min-h-0 flex-1 overflow-hidden p-6"
+        className="min-h-0 flex-1 overflow-y-auto p-6"
         style={{ zoom: 1.25 }}
       >
         <Suspense fallback={<p className="text-muted-foreground text-sm">{copy.loading}</p>}>
