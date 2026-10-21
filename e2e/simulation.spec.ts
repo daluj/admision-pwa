@@ -52,6 +52,8 @@ test('the simulated time survives a reload and a second tab follows it', async (
   await expect.poll(() => minutes(page), { timeout: 15_000 }).toBeGreaterThan(8 * 60 + 1)
   await controls(page).getByRole('button', { name: 'Pausar simulación' }).click()
   await expect(controls(page).getByRole('button', { name: 'Iniciar simulación' })).toBeVisible()
+  // A tick that was already running when Pause was pressed may still land: let it settle first.
+  await page.waitForTimeout(1500)
   const paused = await clock(page).textContent()
 
   await page.reload()
