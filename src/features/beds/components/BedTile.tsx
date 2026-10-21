@@ -15,6 +15,8 @@ type BedTileProps = {
   now: string
   /** Full specialty name for the detail (falls back to the code). */
   specialtyName?: string | undefined
+  /** Opens the bed's action sheet. */
+  onSelect?: ((bedId: string) => void) | undefined
 }
 
 function dischargeText(view: BedView, now: string): string {
@@ -28,7 +30,7 @@ function dischargeText(view: BedView, now: string): string {
  * One bed. The face shows status (colour + icon + text) and patient initials only; the full
  * name and NHC live in the tooltip, which opens on hover and on keyboard focus.
  */
-export const BedTile = memo(function BedTile({ view, now, specialtyName }: BedTileProps) {
+export const BedTile = memo(function BedTile({ view, now, specialtyName, onSelect }: BedTileProps) {
   const { bed, patient } = view
   const occupied = bed.status === 'OCCUPIED'
   const waiting = bed.status === 'PENDING_CLEANING' || bed.status === 'CLEANING'
@@ -38,6 +40,7 @@ export const BedTile = memo(function BedTile({ view, now, specialtyName }: BedTi
       <TooltipTrigger asChild>
         <button
           type="button"
+          onClick={() => onSelect?.(bed.id)}
           data-status={bed.status}
           data-outlier={view.outlier || undefined}
           className={cn(

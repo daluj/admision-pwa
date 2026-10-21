@@ -149,6 +149,37 @@ export const es = {
         assignFor: (initials: string) => (initials ? `Asignar cama a ${initials}` : 'Asignar cama'),
         list: 'Solicitudes abiertas',
       },
+      bedSheet: {
+        title: (bed: string) => `Cama ${bed}`,
+        readOnly: 'Solo lectura: su rol no puede modificar esta cama.',
+        occupied: 'Cama ocupada: no hay acciones disponibles.',
+        patient: (initials: string) => `Paciente ${initials}`,
+        actions: 'Acciones',
+        block: {
+          title: 'Bloquear cama',
+          reason: 'Motivo del bloqueo',
+          presets: 'Motivos habituales',
+          preset: 'Elegir un motivo…',
+          submit: 'Bloquear cama',
+          required: 'Indique el motivo del bloqueo.',
+        },
+        release: {
+          title: 'Liberar reserva',
+          reason: 'Motivo (opcional)',
+          submit: 'Liberar reserva',
+        },
+        startCleaning: 'Iniciar limpieza',
+        finishCleaning: 'Terminar limpieza',
+        unblock: 'Desbloquear cama',
+        working: 'Procesando…',
+        blockReasons: [
+          'Avería de la cama',
+          'Obras en la habitación',
+          'Aislamiento ambiental',
+          'Falta de personal de enfermería',
+          'Revisión de mantenimiento',
+        ],
+      },
       assignSheet: {
         title: 'Asignar cama',
         description: (who: string, specialty: string, unitType: string) =>

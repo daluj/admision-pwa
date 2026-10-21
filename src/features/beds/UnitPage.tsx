@@ -1,5 +1,5 @@
 import { ArrowLeft, BedDouble } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -8,9 +8,12 @@ import { useSpecialties, useUnits } from '@/data/hooks'
 import type { Unit } from '@/domain/schemas'
 import { useUnitScope } from '@/features/auth/useUnitScope'
 import { es } from '@/i18n/es'
+import { BED_STATUS_ACTIONS } from '@/domain/access'
+import { BedActionSheet, type BedSheetCommand } from './components/BedActionSheet'
 import { BedLegend } from './components/BedLegend'
 import { BedMap } from './components/BedMap'
 import { CensusKpis } from './components/CensusKpis'
+import { useBedActions } from './useBedActions'
 import { useCensus } from './useCensus'
 import { useTurnaround } from './useTurnaround'
 
@@ -66,6 +69,13 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
   const specialties = useSpecialties()
   const selectUnit = useCallback(() => [unit], [unit])
   const data = useCensus(selectUnit)
+  const actions = useBedActions()
+  const [selectedBedId, setSelectedBedId] = useState<string | null>(null)
+  const returnFocusTo = useRef<HTMLElement | null>(null)
+  const selectBed = useCallback((bedId: string) => {
+    returnFocusTo.current = document.activeElement as HTMLElement | null
+    setSelectedBedId(bedId)
+  }, [])
   const specialtyNames = useMemo(
     () => new Map((specialties ?? []).map((s) => [s.code, s.name])),
     [specialties],
@@ -84,6 +94,28 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
   const unitCensus = data?.census.units[0]
   const bedIds = useMemo(() => new Set(unitCensus?.beds.map((v) => v.bed.id) ?? []), [unitCensus])
   const turnaround = useTurnaround(bedIds)
+
+  // The sheet follows live data: it shows the bed's current status and the actions that fit it.
+  const selected = unitCensus?.beds.find((v) => v.bed.id === selectedBedId) ?? null
+  const allowed = selected
+    ? BED_STATUS_ACTIONS[selected.bed.status].filter((action) => actions.canAct(action, unit.id))
+    : []
+  const perform = (command: BedSheetCommand) => {
+    const bed = selected!.bed
+    const base = { bedId: bed.id, unitId: unit.id, bedLabel: bed.label }
+    switch (command.action) {
+      case 'block':
+        return actions.perform({ ...base, action: 'block', reason: command.reason })
+      case 'release':
+        return actions.perform({
+          ...base,
+          action: 'release',
+          ...(command.reason ? { reason: command.reason } : {}),
+        })
+      default:
+        return actions.perform({ ...base, action: command.action })
+    }
+  }
 
   return (
     <>
@@ -111,7 +143,24 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
         <>
           <CensusKpis kpis={unitCensus.kpis} turnaround={turnaround} />
           <BedLegend />
-          <BedMap views={unitCensus.beds} now={data.now} specialtyNames={specialtyNames} />
+          <BedMap
+            views={unitCensus.beds}
+            now={data.now}
+            specialtyNames={specialtyNames}
+            onSelect={selectBed}
+          />
+          <BedActionSheet
+            view={selected}
+            now={data.now}
+            allowed={allowed}
+            busy={actions.busy}
+            onPerform={perform}
+            onClose={() => setSelectedBedId(null)}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault()
+              returnFocusTo.current?.focus()
+            }}
+          />
         </>
       )}
     </>
