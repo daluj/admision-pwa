@@ -9,7 +9,7 @@ import type { Unit } from '@/domain/schemas'
 import { useSession } from '@/features/auth/useSession'
 import { useUnitScope } from '@/features/auth/useUnitScope'
 import { es } from '@/i18n/es'
-import { applyFilters, filterOptions, hasActiveFilters } from './bedFilters'
+import { applyFilters, filterOptions, hasActiveFilters, sanitizeFilters } from './bedFilters'
 import { BedFilters } from './components/BedFilters'
 import { CensusExceptions } from './components/CensusExceptions'
 import { CensusKpis } from './components/CensusKpis'
@@ -49,17 +49,26 @@ function NoUnit() {
 }
 
 function Census({ userId }: { userId: string }) {
-  const [filters, setFilters] = useBedFilters(userId)
+  const [storedFilters, setFilters] = useBedFilters(userId)
   const specialties = useSpecialties()
   const allUnits = useUnits()
+  const options = useMemo(
+    () => filterOptions(allUnits ?? [], specialties ?? []),
+    [allUnits, specialties],
+  )
+  // Only trust saved values the hospital still offers (not while the options are loading).
+  const filters = useMemo(
+    () => (allUnits && specialties ? sanitizeFilters(storedFilters, options) : storedFilters),
+    [allUnits, specialties, storedFilters, options],
+  )
   const selectUnits = useCallback(
     (units: readonly Unit[]) => applyFilters(units, filters),
     [filters],
   )
   const data = useCensus(selectUnits)
-  const options = useMemo(
-    () => filterOptions(allUnits ?? [], specialties ?? []),
-    [allUnits, specialties],
+  const specialtyNames = useMemo(
+    () => new Map((specialties ?? []).map((s) => [s.code, s.name])),
+    [specialties],
   )
   const exceptions = useMemo(() => (data ? censusExceptions(data.census, data.now) : []), [data])
 
@@ -78,7 +87,7 @@ function Census({ userId }: { userId: string }) {
         <>
           <BedFilters filters={filters} options={options} onChange={setFilters} />
           <CensusKpis kpis={data.census.hospital} />
-          <CensusExceptions exceptions={exceptions} />
+          <CensusExceptions exceptions={exceptions} specialtyNames={specialtyNames} />
           <UnitGrid units={data.census.units} />
         </>
       )}

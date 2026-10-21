@@ -10,7 +10,12 @@ import { cn } from '@/lib/utils'
 
 const copy = es.pages.beds.unit
 
-type BedTileProps = { view: BedView; now: string }
+type BedTileProps = {
+  view: BedView
+  now: string
+  /** Full specialty name for the detail (falls back to the code). */
+  specialtyName?: string | undefined
+}
 
 function dischargeText(view: BedView, now: string): string {
   if (view.dischargeOrdered) return copy.discharge.ordered
@@ -23,7 +28,7 @@ function dischargeText(view: BedView, now: string): string {
  * One bed. The face shows status (colour + icon + text) and patient initials only; the full
  * name and NHC live in the tooltip, which opens on hover and on keyboard focus.
  */
-export const BedTile = memo(function BedTile({ view, now }: BedTileProps) {
+export const BedTile = memo(function BedTile({ view, now, specialtyName }: BedTileProps) {
   const { bed, patient } = view
   const occupied = bed.status === 'OCCUPIED'
   const waiting = bed.status === 'PENDING_CLEANING' || bed.status === 'CLEANING'
@@ -37,13 +42,13 @@ export const BedTile = memo(function BedTile({ view, now }: BedTileProps) {
           data-outlier={view.outlier || undefined}
           className={cn(
             'bg-card focus-visible:ring-ring flex min-h-28 w-full flex-col items-stretch gap-1 rounded-md border p-2 text-left text-xs focus-visible:ring-2 focus-visible:outline-none',
-            view.outlier && 'border-dashed border-status-warn',
+            view.outlier && 'border-dashed border-status-info',
           )}
         >
           <div className="flex items-center justify-between gap-1">
             <span className="text-sm font-semibold tabular-nums">{bed.label}</span>
             {view.outlier && (
-              <span className="text-status-critical inline-flex items-center gap-0.5 font-medium">
+              <span className="text-status-info inline-flex items-center gap-0.5 font-medium">
                 <Shuffle className="size-3" aria-hidden="true" />
                 {copy.outlier}
               </span>
@@ -86,7 +91,7 @@ export const BedTile = memo(function BedTile({ view, now }: BedTileProps) {
             {view.specialtyCode && (
               <>
                 <dt>{copy.detail.specialty}</dt>
-                <dd>{view.specialtyCode}</dd>
+                <dd>{specialtyName ?? view.specialtyCode}</dd>
               </>
             )}
           </dl>

@@ -1,5 +1,5 @@
 import { ArrowLeft, BedDouble } from 'lucide-react'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -65,6 +65,10 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
   const specialties = useSpecialties()
   const selectUnit = useCallback(() => [unit], [unit])
   const data = useCensus(selectUnit)
+  const specialtyNames = useMemo(
+    () => new Map((specialties ?? []).map((s) => [s.code, s.name])),
+    [specialties],
+  )
 
   const names = unit.specialtyCodes
     .map((code) => specialties?.find((s) => s.code === code)?.name ?? code)
@@ -104,7 +108,7 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
         <>
           <CensusKpis kpis={unitCensus.kpis} />
           <BedLegend />
-          <BedMap views={unitCensus.beds} now={data.now} />
+          <BedMap views={unitCensus.beds} now={data.now} specialtyNames={specialtyNames} />
         </>
       )}
     </>

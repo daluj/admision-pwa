@@ -49,6 +49,20 @@ export function filterOptions(
   }
 }
 
+/**
+ * Drops filter values that are no longer offered (e.g. a saved building that does not exist after
+ * the hospital changed), so the controls never show a blank choice or hide every unit.
+ */
+export function sanitizeFilters(filters: BedFilters, options: FilterOptions): BedFilters {
+  return {
+    building: options.buildings.includes(filters.building) ? filters.building : ALL,
+    type: filters.type !== ALL && options.types.includes(filters.type) ? filters.type : ALL,
+    specialty: options.specialties.some((s) => s.code === filters.specialty)
+      ? filters.specialty
+      : ALL,
+  }
+}
+
 const StoredFilters = z.object({
   building: z.string(),
   type: z.union([z.literal(ALL), UnitType]),

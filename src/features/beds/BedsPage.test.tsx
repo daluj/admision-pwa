@@ -5,7 +5,7 @@ import { createMemoryBackend } from '@/data/adapters/memory/createMemoryBackend'
 import { sampleEntities } from '@/domain/schemas/fixtures'
 import { es } from '@/i18n/es'
 import { seedCensus } from '@/test/censusFixture'
-import { renderApp } from '@/test/renderApp'
+import { renderApp, TEST_USERS } from '@/test/renderApp'
 
 const copy = es.pages.beds
 
@@ -70,6 +70,24 @@ describe('BedsPage (census)', () => {
 
     await user.click(screen.getByRole('button', { name: copy.filters.clear }))
     expect(within(grid).getAllByRole('link')).toHaveLength(2)
+  })
+
+  it('ignores a saved filter the hospital no longer has', async () => {
+    window.localStorage.setItem(
+      `torre-control.filters.beds.${TEST_USERS.ADMISSIONS_HEAD.id}`,
+      JSON.stringify({ building: 'Edificio Fantasma', type: 'all', specialty: 'all' }),
+    )
+    await openCensus()
+    const grid = screen.getByRole('region', { name: copy.grid.title })
+    expect(within(grid).getAllByRole('link')).toHaveLength(2)
+    expect(screen.getByLabelText(copy.filters.building)).toHaveValue('all')
+  })
+
+  it('names the specialty of an outlier in the exception detail', async () => {
+    await openCensus()
+    expect(
+      screen.getByText(copy.exceptions.outlierDetail('A2', 'Medicina Interna')),
+    ).toBeInTheDocument()
   })
 
   it('shows a message when no unit matches', async () => {

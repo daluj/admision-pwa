@@ -7,6 +7,7 @@ import {
   DEFAULT_BED_FILTERS,
   filterOptions,
   hasActiveFilters,
+  sanitizeFilters,
   readFilters,
   writeFilters,
 } from './bedFilters'
@@ -61,6 +62,32 @@ describe('filterOptions', () => {
       { code: 'CAR', name: 'Cardiología' },
       { code: 'MIN', name: 'Medicina Interna' },
     ])
+  })
+})
+
+describe('sanitizeFilters', () => {
+  const options = filterOptions(units, [
+    { ...sampleEntities.specialty, id: '1', code: 'CAR', name: 'Cardiología' },
+    { ...sampleEntities.specialty, id: '2', code: 'MIN', name: 'Medicina Interna' },
+  ])
+
+  it('keeps values that are still offered', () => {
+    const filters = { building: 'Norte', type: 'WARD', specialty: 'CAR' } as const
+    expect(sanitizeFilters(filters, options)).toEqual(filters)
+  })
+
+  it('resets saved values the hospital no longer has', () => {
+    expect(
+      sanitizeFilters(
+        { building: 'Edificio Fantasma', type: 'INTERMEDIATE', specialty: 'ZZZ' },
+        options,
+      ),
+    ).toEqual(DEFAULT_BED_FILTERS)
+    expect(sanitizeFilters({ building: 'Sur', type: 'ICU', specialty: 'ZZZ' }, options)).toEqual({
+      building: 'Sur',
+      type: 'ICU',
+      specialty: ALL,
+    })
   })
 })
 

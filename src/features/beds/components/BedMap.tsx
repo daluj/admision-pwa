@@ -18,7 +18,14 @@ export function groupByRoom(views: readonly BedView[]): Array<{ room: string; be
     .map(([room, beds]) => ({ room, beds }))
 }
 
-export function BedMap({ views, now }: { views: readonly BedView[]; now: string }) {
+type BedMapProps = {
+  views: readonly BedView[]
+  now: string
+  /** Specialty code → full name. */
+  specialtyNames: ReadonlyMap<string, string>
+}
+
+export function BedMap({ views, now, specialtyNames }: BedMapProps) {
   return (
     <section aria-labelledby="bed-map-title">
       <h2 id="bed-map-title" className="mb-3 text-lg font-semibold">
@@ -30,7 +37,14 @@ export function BedMap({ views, now }: { views: readonly BedView[]; now: string 
             <h3 className="text-muted-foreground mb-2 text-xs font-medium">{copy.room(room)}</h3>
             <div className="grid grid-cols-2 gap-2">
               {beds.map((view) => (
-                <BedTile key={view.bed.id} view={view} now={now} />
+                <BedTile
+                  key={view.bed.id}
+                  view={view}
+                  now={now}
+                  specialtyName={
+                    view.specialtyCode ? specialtyNames.get(view.specialtyCode) : undefined
+                  }
+                />
               ))}
             </div>
           </li>

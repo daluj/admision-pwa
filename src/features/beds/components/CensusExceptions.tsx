@@ -5,7 +5,10 @@ import { formatDuration } from '@/lib/format'
 
 const copy = es.pages.beds.exceptions
 
-function toItem(exception: CensusException): ExceptionItem {
+function toItem(
+  exception: CensusException,
+  specialtyNames: ReadonlyMap<string, string>,
+): ExceptionItem {
   const href = `/camas/${exception.unitCode}`
   switch (exception.kind) {
     case 'blockedLong':
@@ -30,13 +33,22 @@ function toItem(exception: CensusException): ExceptionItem {
         id: exception.id,
         severity: exception.severity,
         title: copy.outlier(exception.initials, exception.unitName),
-        detail: copy.outlierDetail(exception.bedLabel, exception.specialtyCode),
+        detail: copy.outlierDetail(
+          exception.bedLabel,
+          specialtyNames.get(exception.specialtyCode) ?? exception.specialtyCode,
+        ),
         ageMs: exception.ageMs,
         href,
       }
   }
 }
 
-export function CensusExceptions({ exceptions }: { exceptions: readonly CensusException[] }) {
-  return <ExceptionList items={exceptions.map(toItem)} />
+export function CensusExceptions({
+  exceptions,
+  specialtyNames,
+}: {
+  exceptions: readonly CensusException[]
+  specialtyNames: ReadonlyMap<string, string>
+}) {
+  return <ExceptionList items={exceptions.map((e) => toItem(e, specialtyNames))} />
 }

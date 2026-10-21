@@ -60,6 +60,8 @@ describe('UnitPage (bed map)', () => {
     const a2 = tile('A2')
     expect(a2).toHaveAttribute('data-outlier', 'true')
     expect(a2).toHaveTextContent(unit.outlier)
+    // Same severity as the exception it comes from (info), not a critical red.
+    expect(within(a2).getByText(unit.outlier)).toHaveClass('text-status-info')
     expect(a2).toHaveTextContent(unit.discharge.ordered)
 
     expect(tile('A3')).toHaveTextContent(copy.status.AVAILABLE)
@@ -75,6 +77,8 @@ describe('UnitPage (bed map)', () => {
     const a1 = within(map).getByText('A1', { selector: 'span' }).closest('button')!
     act(() => a1.focus())
     expect((await screen.findAllByText('María García Ruiz')).length).toBeGreaterThan(0)
+    // The specialty is shown by name, not by code.
+    expect(screen.getAllByText('Cardiología').length).toBeGreaterThan(0)
     expect(screen.getAllByText('SIM-P1').length).toBeGreaterThan(0)
   })
 

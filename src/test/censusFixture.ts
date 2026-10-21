@@ -63,6 +63,16 @@ export const censusRows: Change[] = [
     op: 'put',
     record: { ...sampleEntities.simulationState, simNow: CENSUS_NOW },
   },
+  {
+    entity: 'specialty',
+    op: 'put',
+    record: { ...sampleEntities.specialty, id: 'spec-car', code: 'CAR', name: 'Cardiología' },
+  },
+  {
+    entity: 'specialty',
+    op: 'put',
+    record: { ...sampleEntities.specialty, id: 'spec-min', code: 'MIN', name: 'Medicina Interna' },
+  },
   { entity: 'unit', op: 'put', record: WARD },
   { entity: 'unit', op: 'put', record: ICU },
   ...[
