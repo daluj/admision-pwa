@@ -42,6 +42,8 @@ export type PorterRow = {
   porter: Porter
   /** The transfer the porter is working on (assigned or on the way). */
   job?: QueueRow
+  /** Latest delivery by this porter (free since then); absent if none yet. */
+  lastDeliveredAt?: IsoDateTime
 }
 
 export type TransferKpis = {
@@ -171,11 +173,18 @@ export function computeTransfers(input: TransfersInput): Transfers {
       if (!current || row.status === 'PICKED_UP') jobByPorter.set(row.porter.id, row)
     }
   }
+  const lastDelivered = new Map<string, IsoDateTime>()
+  for (const t of transfers) {
+    if (t.status !== 'DELIVERED' || !t.porterId || !t.deliveredAt) continue
+    const seen = lastDelivered.get(t.porterId)
+    if (!seen || t.deliveredAt > seen) lastDelivered.set(t.porterId, t.deliveredAt)
+  }
   const porterRows: PorterRow[] = porters
     .filter((p) => p.status !== 'OFF_SHIFT')
     .map((porter) => {
       const job = jobByPorter.get(porter.id)
-      return { porter, ...(job ? { job } : {}) }
+      const last = lastDelivered.get(porter.id)
+      return { porter, ...(job ? { job } : {}), ...(last ? { lastDeliveredAt: last } : {}) }
     })
     .sort(
       (a, b) =>
