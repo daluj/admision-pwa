@@ -11,6 +11,7 @@ import { useUnitScope } from '@/features/auth/useUnitScope'
 import { es } from '@/i18n/es'
 import { applyFilters, filterOptions, hasActiveFilters, sanitizeFilters } from './bedFilters'
 import { BedFilters } from './components/BedFilters'
+import { BedRequestSection } from './components/BedRequestSection'
 import { CensusExceptions } from './components/CensusExceptions'
 import { CensusKpis } from './components/CensusKpis'
 import { UnitGrid } from './components/UnitGrid'
@@ -94,6 +95,7 @@ function Census({ userId }: { userId: string }) {
           <BedFilters filters={filters} options={options} onChange={setFilters} />
           <CensusKpis kpis={data.census.hospital} turnaround={turnaround} />
           <CensusExceptions exceptions={exceptions} specialtyNames={specialtyNames} />
+          <BedRequestSection filters={filters} />
           <UnitGrid units={data.census.units} />
         </>
       )}

@@ -24,6 +24,20 @@ export function applyFilters(units: readonly Unit[], filters: BedFilters): Unit[
   )
 }
 
+/**
+ * Requests honour the filters that describe the request itself (unit type, specialty); a request
+ * has no building yet.
+ */
+export function applyRequestFilters<
+  T extends { request: { requiredUnitType: string; preferredSpecialtyCode: string } },
+>(rows: readonly T[], filters: BedFilters): T[] {
+  return rows.filter(
+    ({ request }) =>
+      (filters.type === ALL || request.requiredUnitType === filters.type) &&
+      (filters.specialty === ALL || request.preferredSpecialtyCode === filters.specialty),
+  )
+}
+
 export type FilterOptions = {
   buildings: string[]
   types: UnitType[]

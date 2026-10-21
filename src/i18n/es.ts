@@ -135,6 +135,39 @@ export const es = {
         all: 'Todos',
         clear: 'Quitar filtros',
       },
+      requests: {
+        title: 'Solicitudes de cama',
+        counts: (open: number, assigned: number) =>
+          `${open === 1 ? '1 abierta' : `${open} abiertas`} · ${assigned} con cama reservada`,
+        empty: 'No hay solicitudes de cama abiertas.',
+        priority: (priority: string) => `Prioridad ${priority.slice(1)}`,
+        sourceEd: (triage?: number) => (triage ? `Urgencias · triaje ${triage}` : 'Urgencias'),
+        sourceScheduled: 'Programado',
+        isolation: 'Aislamiento',
+        waiting: 'Espera',
+        assign: 'Asignar cama',
+        assignFor: (initials: string) => (initials ? `Asignar cama a ${initials}` : 'Asignar cama'),
+        list: 'Solicitudes abiertas',
+      },
+      assignSheet: {
+        title: 'Asignar cama',
+        description: (who: string, specialty: string, unitType: string) =>
+          `${who ? `${who} · ` : ''}${specialty} · ${unitType}`,
+        suggested: 'Camas sugeridas',
+        all: 'Camas libres compatibles',
+        none: 'No hay camas libres compatibles ahora mismo.',
+        showAll: (count: number) => `Ver todas las camas libres compatibles (${count})`,
+        showLess: 'Ver solo las sugeridas',
+        tags: {
+          SPECIALTY: 'Mismo servicio',
+          OUTLIER: 'Ectópico',
+          ISOLATION: 'Aislamiento',
+        },
+        reserve: 'Reservar cama',
+        reserving: 'Reservando…',
+        close: 'Cerrar',
+        selectHint: 'Elija una cama para reservarla.',
+      },
       actions: {
         toast: {
           reserve: (bed: string, initials: string) =>
