@@ -75,7 +75,7 @@ npm run build && npm run preview   # production build, installable PWA (http://l
 
 1. Open the app and **log in as Jefe/a de Admisión** (simulated login, no password).
 2. **Ajustes → Datos de demostración**: pick a scenario — *Martes normal*, *Lunes de alta presión* or *Pico de gripe (plan de invierno)* — and **Restablecer demo**. The same seed and scenario always give the same day.
-3. Press ▶ in the top bar and choose a speed (1×, 10×, 60×, 300×, **1800×** = a day in about a minute), or use **Ajustes → Avance rápido** to jump to 10:00, 14:00, 20:00 or any HH:MM; the run stops paused there.
+3. Press ▶ in the top bar and choose a speed (1×, 10×, 60×, 300×, **1800×** is the ceiling: with IndexedDB a laptop plays a simulated day in a few minutes), or use **Ajustes → Avance rápido** to jump to 10:00, 14:00, 20:00 or any HH:MM; the run stops paused there.
 4. Walk through the panels: **Torre de control** (status level, KPIs, alerts, 24 h trends), **Camas**, **Urgencias**, **Ingresos y altas**, **Traslados**, **Seguimiento** (search a patient, follow their journey) and **Modo pantalla** (`/pantalla`, rotating wall display).
 5. Follow the script in [`docs/demo-script.md`](docs/demo-script.md) (7–8 minutes, in Spanish); `e2e/demo-script.spec.ts` runs it automatically.
 

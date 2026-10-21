@@ -26,7 +26,8 @@ test('every route opens offline after one visit, with the data already in the br
       page.evaluate(async () => (await navigator.serviceWorker.ready).active?.state ?? null),
     )
     .toBe('activated')
-  // The app shell is precached: wait until the worker controls the page.
+  // The app shell is precached: a reload lets the activated worker take control of the page.
+  await page.reload()
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true)
 
   await context.setOffline(true)

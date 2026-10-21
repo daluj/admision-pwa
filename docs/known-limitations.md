@@ -10,7 +10,7 @@ Lo que el MVP **no** hace a propósito (o hace de forma provisional). Cada punto
 ## Simulación
 - La simulación corre en el navegador (una pestaña «líder» mediante Web Locks) y se detiene si se cierran todas las pestañas.
 - El reloj simulado (`simNow`) se guarda sin evento (excepción documentada en `specs/domain.md`); una orden manual que coincida con un tick puede retrasarlo un tick, y el simulador lo corrige saltando minutos ya jugados.
-- El avance rápido y 1800× dependen de la potencia del equipo; en un portátil, un día completo tarda del orden de un minuto.
+- El avance rápido y 1800× dependen de la potencia del equipo; medido en un portátil con IndexedDB, un día simulado completo tarda unos 4–5 minutos (≈ 0,09 h simuladas por segundo): 1800× es un techo, no una garantía. El avance rápido va a la misma velocidad.
 
 ## Indicadores y alertas
 - Los umbrales editables en *Ajustes* (nivel del hospital, reglas de alerta, rotación de pantalla) se guardan **en el navegador**, no en la base de datos. Los indicadores de cada panel conservan sus umbrales por defecto.

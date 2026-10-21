@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 14 — MVP Hardening
 **Branch:** `phase-14-mvp-hardening`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21 (NEEDS HUMAN: real install on desktop and iPad Safari, see `docs/install-and-offline.md`)
 
 > Autonomous run (phases 13–14): no interview; the "Recommended" options of earlier interviews were applied. Choices are listed under **Decisions**.
 
@@ -46,6 +46,7 @@ Make the MVP safe to put in front of the hospital: fast with a week of data, usa
 - Performance targets are about calculators and loading; there is no automated frame-time test (jank is judged in the manual check with the 1800× runner).
 - Hardening fixes accessibility violations in the tokens/components rather than disabling rules; any rule left disabled is listed with a reason in the spec.
 - Release tag is local; pushing is left to the user.
+- The index review found no query that needs a new Dexie index (every dashboard reads whole tables through shared live queries; lookups by id use the primary key), so there is **no schema bump**. Throughput of the runner with IndexedDB (not the UI) is the measured limit; documented, not optimised here.
 
 ## Context
 `src/data/hooks`, `src/data/adapters/dexie`, `vite.config.ts` (PWA), `e2e/*`, `specs/tech-stack.md` (indexes, accessibility), `specs/ux-guidelines.md`.

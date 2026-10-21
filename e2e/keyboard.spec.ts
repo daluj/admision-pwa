@@ -76,20 +76,21 @@ test('wall mode is fully keyboard driven', async ({ page }) => {
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('reduced motion: no animations run while the page is idle', async ({ page }) => {
+test('reduced motion: nothing loops forever while the page is idle', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await loginAs(page, 'Jefe/a de Admisión')
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  const running = await page.evaluate(() =>
+  await page.waitForTimeout(500)
+  // Finite transitions (hover, focus) are fine; infinite keyframe animations (spinners, pulses)
+  // must not run on an idle page.
+  const looping = await page.evaluate(() =>
     document
       .getAnimations()
       .filter(
-        (a) =>
-          a.playState === 'running' &&
-          !(a.effect as KeyframeEffect | null)?.target?.closest('[role="status"]'),
+        (a) => a instanceof CSSAnimation && a.effect?.getComputedTiming().iterations === Infinity,
       )
-      .map((a) => a.constructor.name + ':' + ((a as CSSAnimation).animationName ?? '')),
+      .map((a) => (a as CSSAnimation).animationName),
   )
-  expect(running).toEqual([])
+  expect(looping).toEqual([])
 })

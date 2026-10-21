@@ -43,7 +43,7 @@ Este guion lo sigue el test `e2e/demo-script.spec.ts`: cada paso numerado es un 
 > «Esto es lo que verían en la pantalla de la oficina de Admisión.»
 
 ## 7. Cierre — avanzar el día (30 s)
-- En **Ajustes → Avance rápido** pulse **20:00** y vuelva a la torre de control: el hospital ha evolucionado y las alertas con él. O ponga la velocidad a **1800×** en la barra superior para ver correr un día entero en menos de un minuto.
+- En **Ajustes → Avance rápido** pulse **20:00** y vuelva a la torre de control: el hospital ha evolucionado y las alertas con él. O ponga la velocidad a **1800×** en la barra superior para ver correr el día (en un portátil, unos minutos).
 
 ## Si algo no sale
 - **No hay alertas / todo en verde:** elija «Pico de gripe» y avance a las 14:00.

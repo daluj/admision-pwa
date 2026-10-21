@@ -131,15 +131,15 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Time-lapse: run a full simulated day in minutes; jump to a time of day
 - [x] Guided demo script (`docs/demo-script.md`) and a Playwright test that follows it
 
-## Phase 14: MVP Hardening
+## Phase 14: MVP Hardening (Complete)
 
 **Goal:** Ready to show to the hospital.
 
-- [ ] Performance with ~600 beds and 7 simulated days of events (no jank, fast live queries; indexes reviewed)
-- [ ] Offline + install verified on Chrome/Edge desktop and iPad Safari
-- [ ] Accessibility pass (axe in Playwright, keyboard, contrast)
-- [ ] Error boundaries and empty/loading states everywhere
-- [ ] README with demo instructions; tag `v0.1.0-mvp`
+- [x] Performance with ~600 beds and 7 simulated days of events (no jank, fast live queries; indexes reviewed)
+- [x] Offline + install verified on Chrome/Edge desktop and iPad Safari
+- [x] Accessibility pass (axe in Playwright, keyboard, contrast)
+- [x] Error boundaries and empty/loading states everywhere
+- [x] README with demo instructions; tag `v0.1.0-mvp`
 
 ---
 

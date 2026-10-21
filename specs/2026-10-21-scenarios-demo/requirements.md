@@ -20,7 +20,7 @@ A repeatable, compelling demo: three scenarios, a fast-forward to watch a whole 
 - Ajustes → Datos de demostración: a **scenario selector** next to the seed; "Restablecer demo" loads the hospital of that scenario and sets `SimulationState.scenarioId`. The current scenario is shown there and in the top bar tooltip of the clock.
 
 **2. Time-lapse**
-- New speed **1800×** (a simulated day in ≈ 48 s of wall time when the machine keeps up). `SIMULATION_SPEEDS = 1, 10, 60, 300, 1800`.
+- New speed **1800×** (the ceiling: measured in Phase 14, a laptop with IndexedDB plays ≈ 0.09 simulated hours per second, i.e. a day in 4–5 minutes). `SIMULATION_SPEEDS = 1, 10, 60, 300, 1800`.
 - **Jump to a time of day** (Ajustes → card "Avance rápido", and the simulation menu in the top bar): choose HH:MM (Europe/Madrid) and "Avanzar" — the simulator plays the minutes up to the next occurrence of that time headlessly (pauses the run, shows progress, can be cancelled), then stays paused there. Same code path as the runner (`advanceSimulationTo`), so results are identical to watching it.
 - Preset buttons: 10:00, 14:00, 20:00, 08:00 (next day).
 
