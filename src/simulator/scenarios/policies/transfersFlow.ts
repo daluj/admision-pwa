@@ -89,15 +89,20 @@ export async function transfersFlow(ctx: MinuteContext, world: World): Promise<v
     }
   }
 
-  // 4. Delivered patients are admitted; ED patients leave the ED.
-  const delivered = new Set(
-    world.transfers
-      .filter((t) => t.status === 'DELIVERED' && t.reason === 'ADMISSION')
-      .map((t) => t.toLocation.refId),
-  )
+  // 4. Delivered patients are admitted; ED patients leave the ED. The delivered transfer must be
+  // this admission's own: same patient, same bed, delivered after the admission was created.
+  const deliveredFor = (admission: (typeof world.admissions)[number]) =>
+    world.transfers.some(
+      (t) =>
+        t.status === 'DELIVERED' &&
+        t.reason === 'ADMISSION' &&
+        t.patientId === admission.patientId &&
+        t.toLocation.refId === admission.bedId &&
+        (t.deliveredAt ?? '') >= admission.createdAt,
+    )
   for (const admission of sortedById(world.admissions)) {
     if (admission.status !== 'IN_TRANSFER' || !admission.bedId) continue
-    if (!delivered.has(admission.bedId)) continue
+    if (!deliveredFor(admission)) continue
     const admitted = await ctx.exec(admitPatient, { admissionId: admission.id })
     const visit = world.edVisits.find((v) => v.id === admission.edVisitId)
     if (admitted && visit?.phase === 'ADMIT_DECISION') {

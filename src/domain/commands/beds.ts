@@ -1,5 +1,6 @@
 import type { Admission, Bed, BedRequest, Id, IsoDateTime } from '@/domain/schemas'
 import { admissionMachine, bedMachine } from '@/domain/state-machines'
+import { cancelPendingBedTransfers } from './transferCleanup'
 import {
   buildEvent,
   InvalidCommandError,
@@ -87,14 +88,21 @@ export const releaseBedReservation: Command<ReleaseBedReservationInput> = async 
     const { assignedBedId: _ab, etaAt: _eta, ...requestRest } = request
     changes.push(putChange(ctx, 'bedRequest', { ...requestRest, status: 'OPEN' }))
   }
+  const transfers = await cancelPendingBedTransfers(
+    ctx,
+    admission.patientId,
+    bed.id,
+    input.reason ?? 'Reserva liberada',
+  )
   return {
     events: [
       buildEvent(ctx, 'BedReservationReleased', bed.id, {
         ...(request ? { bedRequestId: request.id } : {}),
         ...(input.reason ? { reason: input.reason } : {}),
       }),
+      ...transfers.events,
     ],
-    changes,
+    changes: [...changes, ...transfers.changes],
   }
 }
 

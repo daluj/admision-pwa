@@ -138,6 +138,42 @@ describe('transfer life cycle', () => {
     )
   })
 
+  it('does not move another patient’s admission when picking up', async () => {
+    const [arrived] = await h.run(registerEdArrival, {
+      patient: {
+        data: {
+          mrn: `SIM-${mrn++}`,
+          firstName: 'Ot',
+          lastName: 'Ficticio Prueba',
+          sex: 'M',
+          birthYear: 1966,
+        },
+      },
+      chiefComplaint: 'Dolor',
+    })
+    const edVisitId = arrived!.entityId
+    await h.run(triageEdPatient, { edVisitId, triageLevel: 3 })
+    await h.run(startEdAssessment, { edVisitId })
+    const [, requestEvent] = await h.run(decideAdmission, { edVisitId, targetSpecialtyCode: 'CAR' })
+    const request = (await h.backend.repositories.bedRequest.get(requestEvent!.entityId))!
+    await h.run(reserveBed, { bedRequestId: request.id, bedId: 'bed-1' })
+
+    // A transfer for a DIFFERENT patient to the same bed (stale request).
+    const other = await patientId()
+    const [event] = await h.run(requestTransfer, {
+      patientId: other,
+      fromLocation: ED,
+      toLocation: { kind: 'BED', refId: 'bed-1', label: 'bed-1' },
+      reason: 'ADMISSION',
+      priority: 'NORMAL',
+    })
+    await h.run(assignTransfer, { transferId: event!.entityId, porterId: 'por-1' })
+    await h.run(pickUpTransfer, { transferId: event!.entityId })
+    expect(await h.backend.repositories.admission.get(request.admissionId)).toMatchObject({
+      status: 'BED_ASSIGNED',
+    })
+  })
+
   it('moves the admission to IN_TRANSFER when the patient is picked up for a reserved bed', async () => {
     const [arrived] = await h.run(registerEdArrival, {
       patient: {

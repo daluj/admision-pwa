@@ -275,6 +275,41 @@ describe('transfersFlow', () => {
     expect(stateViolations(await readState(h.backend))).toEqual([])
   })
 
+  it('does not admit a patient on the strength of an earlier patient’s delivered transfer to the same bed', async () => {
+    const h = await createScenarioHarness()
+    await h.put(
+      putPatient('p0', 0),
+      putPatient('p1', 1),
+      putBed({ id: 'bed-1', status: 'RESERVED', patientId: 'p1', admissionId: 'a1' }),
+      putAdmission({ id: 'a1', patientId: 'p1', status: 'IN_TRANSFER', bedId: 'bed-1' }),
+      putRequest({ id: 'r1', admissionId: 'a1', status: 'ASSIGNED', assignedBedId: 'bed-1' }),
+      // Last week's patient was delivered to the same bed…
+      putTransfer({
+        id: 'trf-old',
+        patientId: 'p0',
+        reason: 'ADMISSION',
+        toLocation: { kind: 'BED', refId: 'bed-1', label: 'bed-1' },
+        status: 'DELIVERED',
+        deliveredAt: '2026-10-14T08:00:00.000Z',
+      }),
+      // …but this patient is still on the way.
+      putTransfer({
+        id: 'trf-new',
+        patientId: 'p1',
+        reason: 'ADMISSION',
+        toLocation: { kind: 'BED', refId: 'bed-1', label: 'bed-1' },
+        status: 'PICKED_UP',
+        pickedUpAt: iso(-1),
+        deliveredAt: undefined,
+      }),
+    )
+    await h.play(policies(transfersFlow), 1)
+    expect(await h.events('PatientAdmitted')).toHaveLength(0)
+    expect(await h.backend.repositories.admission.get('a1')).toMatchObject({
+      status: 'IN_TRANSFER',
+    })
+  })
+
   it('does not create a second transfer for the same bed', async () => {
     const h = await reservedPatients(1)
     await h.put(

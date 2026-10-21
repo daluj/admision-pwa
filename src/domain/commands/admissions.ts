@@ -11,6 +11,7 @@ import type {
 } from '@/domain/schemas'
 import { admissionMachine, bedMachine } from '@/domain/state-machines'
 import type { NewPatientData } from './ed'
+import { cancelPendingBedTransfers } from './transferCleanup'
 import {
   buildEvent,
   InvalidCommandError,
@@ -152,6 +153,14 @@ export const cancelAdmission: Command<CancelAdmissionInput> = async (ctx, input)
         reason: 'ADMISSION_CANCELLED',
       }),
     )
+    const transfers = await cancelPendingBedTransfers(
+      ctx,
+      admission.patientId,
+      bed.id,
+      'ADMISSION_CANCELLED',
+    )
+    events.push(...transfers.events)
+    changes.push(...transfers.changes)
   }
   return { events, changes }
 }

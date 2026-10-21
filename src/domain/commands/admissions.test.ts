@@ -9,6 +9,7 @@ import {
   setExpectedDischarge,
 } from './admissions'
 import { admitPatient, reserveBed } from './beds'
+import { assignTransfer, requestTransfer } from './transfers'
 import { InvalidCommandError } from './types'
 
 let h: CommandHarness
@@ -132,6 +133,32 @@ describe('cancelAdmission', () => {
     expect(bed?.admissionId).toBeUndefined()
     const admission = await h.backend.repositories.admission.get(admissionId)
     expect(admission?.bedId).toBeUndefined()
+  })
+
+  it('cancels the pending transfer to the reserved bed and frees the porter', async () => {
+    const { admissionId, requestId } = await awaitingBed()
+    await h.run(reserveBed, { bedRequestId: requestId, bedId: 'bed-1' })
+    const admission = (await h.backend.repositories.admission.get(admissionId))!
+    const [requested] = await h.run(requestTransfer, {
+      patientId: admission.patientId,
+      fromLocation: { kind: 'OTHER', label: 'Admisión' },
+      toLocation: { kind: 'BED', refId: 'bed-1', label: 'bed-1' },
+      reason: 'ADMISSION',
+      priority: 'NORMAL',
+    })
+    await h.run(assignTransfer, { transferId: requested!.entityId, porterId: 'por-1' })
+    expect(await h.backend.repositories.porter.get('por-1')).toMatchObject({ status: 'BUSY' })
+
+    const events = await h.run(cancelAdmission, { admissionId, reason: 'PATIENT' })
+    expect(events.map((e) => e.type)).toEqual([
+      'AdmissionCancelled',
+      'BedReservationReleased',
+      'TransferCancelled',
+    ])
+    expect(await h.backend.repositories.transferRequest.get(requested!.entityId)).toMatchObject({
+      status: 'CANCELLED',
+    })
+    expect(await h.backend.repositories.porter.get('por-1')).toMatchObject({ status: 'AVAILABLE' })
   })
 
   it('cannot cancel an admission already in a bed', async () => {

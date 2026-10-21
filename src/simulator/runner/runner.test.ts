@@ -141,6 +141,30 @@ describe('advanceSimulationTo', () => {
     expect(await chunked.events.list()).toEqual(await whole.events.list())
   })
 
+  it('never undoes a pause that commits while the clock is being written', async () => {
+    const backend = await seededBackend({ running: true })
+    const real = backend.events.append.bind(backend.events)
+    let raced = false
+    vi.spyOn(backend.events, 'append').mockImplementation(async (events, changes, options) => {
+      if (!raced && events.length === 0) {
+        raced = true
+        // The user presses Pause after the runner read the state and before it writes simNow.
+        await executeCommand(
+          { backend, clock: { now: () => START }, newId: counterIds(700_000) },
+          pauseSimulation,
+          {},
+        )
+      }
+      return real(events, changes, options)
+    })
+
+    await advanceSimulationTo(backend, arrivals, '2026-10-21T08:00:10.000Z')
+
+    const state = (await backend.repositories.simulationState.get('current'))!
+    expect(state).toMatchObject({ running: false, simNow: '2026-10-21T08:00:10.000Z' })
+    expect((await backend.events.list()).map((e) => e.type)).toEqual(['SimulationPaused'])
+  })
+
   it('stops when shouldContinue turns false', async () => {
     const backend = await seededBackend()
     let calls = 0

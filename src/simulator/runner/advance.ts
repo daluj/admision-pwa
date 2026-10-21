@@ -1,3 +1,4 @@
+import { ConcurrencyError } from '@/data/ports'
 import { advanceSimulation } from '@/domain/commands'
 import { SIMULATION_STATE_ID, type IsoDateTime } from '@/domain/schemas'
 import type { Scenario, SimulationBackend } from '@/simulator/scenarios/types'
@@ -16,11 +17,25 @@ async function readState(backend: SimulationBackend) {
   return state
 }
 
-/** Persists `simNow` (state-only change, no event: see `advanceSimulation`). */
+const MAX_CLOCK_WRITE_ATTEMPTS = 5
+
+/**
+ * Persists `simNow` (state-only change, no event: see `advanceSimulation`). The write carries
+ * `expectedLastSeq`: if a control command (pause, speed) committed since we read the state, the
+ * write is rejected and retried from fresh state, so it can never undo a pause or speed change.
+ */
 async function writeSimNow(backend: SimulationBackend, simNow: IsoDateTime): Promise<void> {
-  const latest = await readState(backend)
-  if (Date.parse(simNow) <= Date.parse(latest.simNow)) return
-  await backend.events.append([], [advanceSimulation(latest, simNow)])
+  for (let attempt = 1; ; attempt++) {
+    const expectedLastSeq = await backend.events.lastSeq()
+    const latest = await readState(backend)
+    if (Date.parse(simNow) <= Date.parse(latest.simNow)) return
+    try {
+      await backend.events.append([], [advanceSimulation(latest, simNow)], { expectedLastSeq })
+      return
+    } catch (error) {
+      if (!(error instanceof ConcurrencyError) || attempt >= MAX_CLOCK_WRITE_ATTEMPTS) throw error
+    }
+  }
 }
 
 /**

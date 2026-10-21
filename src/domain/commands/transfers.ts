@@ -88,7 +88,11 @@ export const pickUpTransfer: Command<{ transferId: Id }> = async (ctx, { transfe
     const admission = bed.admissionId
       ? await ctx.repositories.admission.get(bed.admissionId)
       : undefined
-    if (admission && admissionMachine.can(admission.status, 'startTransfer')) {
+    if (
+      admission &&
+      admission.patientId === transfer.patientId &&
+      admissionMachine.can(admission.status, 'startTransfer')
+    ) {
       changes.push(
         putChange(ctx, 'admission', {
           ...admission,
