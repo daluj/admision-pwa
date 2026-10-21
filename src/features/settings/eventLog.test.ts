@@ -78,14 +78,29 @@ describe('eventSummary', () => {
     ).toBe('Semilla 7')
   })
 
-  it('lists short primitive fields and skips long ids and objects', () => {
-    const summary = eventSummary(
-      event(1, 'BedReserved', 'Bed', NOW, {
-        bedRequestId: '00000000-0000-4000-8000-000000000001-and-a-very-long-id',
-        admissionId: 'adm-1',
-      }),
+  it('describes events in Spanish, without raw field names or enum codes', () => {
+    const summary = (type: HospitalEvent['type'], payload: Record<string, unknown>) =>
+      eventSummary(event(1, type, 'Bed', NOW, payload))
+    expect(summary('BedBlocked', { reason: 'Avería' })).toBe('Motivo: Avería')
+    expect(summary('EdPatientLeft', { outcome: 'LWBS' })).toBe('Se marcha sin ser atendido')
+    expect(summary('AdmissionCancelled', { reason: 'NO_BED' })).toBe('Sin cama')
+    expect(summary('AdmissionDecided', { admissionId: 'a', targetSpecialtyCode: 'CAR' })).toBe(
+      'Servicio CAR',
     )
-    expect(summary).toBe('admissionId: adm-1')
+    expect(
+      summary('BedRequested', {
+        admissionId: 'a',
+        priority: 'P1',
+        requiredUnitType: 'ICU',
+        preferredSpecialtyCode: 'CAR',
+        isolationRequired: false,
+      }),
+    ).toBe('Prioridad P1 · UCI')
+    expect(summary('TransferCancelled', { reason: 'ADMISSION_CANCELLED' })).toBe(
+      'Motivo: Ingreso cancelado',
+    )
+    // Nothing to add: the type says it all, and ids are never shown.
+    expect(summary('BedReserved', { bedRequestId: 'x', admissionId: 'y' })).toBe('')
     expect(eventSummary(event(1, 'BedUnblocked', 'Bed', NOW))).toBe('')
   })
 })

@@ -6,7 +6,7 @@ import type { DataBackend } from '@/data/ports'
 import type { Role } from '@/domain/schemas'
 import { sampleEntities } from '@/domain/schemas/fixtures'
 import { es } from '@/i18n/es'
-import { renderApp } from '@/test/renderApp'
+import { renderApp, TEST_USERS } from '@/test/renderApp'
 
 async function backendWithSimulation(
   overrides: Partial<typeof sampleEntities.simulationState> = {},
@@ -81,6 +81,8 @@ describe('simulation controls', () => {
     await waitFor(async () =>
       expect((await backend.events.list()).map((e) => e.type)).toEqual(['SimulationStarted']),
     )
+    // Done by a person: the event carries the user, not "simulator".
+    expect((await backend.events.list())[0]!.actor).toBe(TEST_USERS.ADMISSIONS_HEAD.id)
     expect(await backend.repositories.simulationState.get('current')).toMatchObject({
       running: true,
     })

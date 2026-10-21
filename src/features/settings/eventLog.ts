@@ -1,4 +1,6 @@
 import type { EntityType, EventType, HospitalEvent } from '@/domain/schemas'
+import { es } from '@/i18n/es'
+import { formatDateTime } from '@/lib/time'
 
 export const WINDOWS = ['1h', '6h', '24h', 'all'] as const
 export type EventWindow = (typeof WINDOWS)[number]
@@ -39,28 +41,44 @@ export function filterEvents(
   )
 }
 
-const MAX_VALUE_LENGTH = 40
+const details = es.pages.settings.eventLog.details
+const reasonText = (reason: string) => details.reasonCodes[reason] ?? reason
 
-/** Short human-readable payload: primitive fields only, long ids left out. */
+/** Short Spanish description of what an event adds (empty when the type says it all). */
 export function eventSummary(event: HospitalEvent): string {
-  const payload = event.payload as Record<string, unknown>
   switch (event.type) {
+    case 'EdPatientArrived':
+      return event.payload.chiefComplaint
     case 'EdPatientTriaged':
-      return `Nivel ${event.payload.triageLevel}`
+      return details.triage(event.payload.triageLevel)
+    case 'AdmissionDecided':
+      return details.specialty(event.payload.targetSpecialtyCode)
+    case 'EdPatientLeft':
+      return details.outcomes[event.payload.outcome]
+    case 'ScheduledAdmissionCreated':
+      return `${details.specialty(event.payload.specialtyCode)} · ${formatDateTime(event.payload.scheduledFor)}`
+    case 'BedRequested':
+      return details.bedRequest(
+        event.payload.priority,
+        details.unitTypes[event.payload.requiredUnitType],
+      )
+    case 'BedBlocked':
+      return details.reason(reasonText(event.payload.reason))
+    case 'BedReservationReleased':
+      return event.payload.reason ? details.reason(reasonText(event.payload.reason)) : ''
+    case 'ExpectedDischargeSet':
+      return formatDateTime(event.payload.expectedDischargeAt)
+    case 'TransferRequested':
+      return `${details.transferReasons[event.payload.reason]} · ${details.transferPriorities[event.payload.priority]}`
+    case 'TransferCancelled':
+      return event.payload.reason ? details.reason(reasonText(event.payload.reason)) : ''
+    case 'AdmissionCancelled':
+      return details.cancelReasons[event.payload.reason]
     case 'SimulationSpeedChanged':
-      return `${event.payload.speed}×`
+      return details.speed(event.payload.speed)
     case 'DemoSeeded':
-      return `Semilla ${event.payload.seed}`
+      return details.seed(event.payload.seed)
     default:
-      return Object.entries(payload)
-        .filter(
-          ([, value]) =>
-            (typeof value === 'string' ||
-              typeof value === 'number' ||
-              typeof value === 'boolean') &&
-            String(value).length <= MAX_VALUE_LENGTH,
-        )
-        .map(([key, value]) => `${key}: ${String(value)}`)
-        .join(' · ')
+      return ''
   }
 }

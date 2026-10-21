@@ -48,7 +48,7 @@ describe('EventLogCard', () => {
     expect(rows).toHaveLength(3)
     expect(within(rows[0]!).getByText(copy.types.BedBlocked)).toBeInTheDocument()
     expect(within(rows[0]!).getByText('21/10/2026 12:00')).toBeInTheDocument()
-    expect(within(rows[0]!).getByText('reason: Avería')).toBeInTheDocument()
+    expect(within(rows[0]!).getByText('Motivo: Avería')).toBeInTheDocument()
     expect(within(rows[0]!).getByText(copy.simulator)).toBeInTheDocument()
   })
 
@@ -121,6 +121,34 @@ describe('EventLogCard', () => {
       />,
     )
     expect(screen.queryByRole('button', { name: copy.loadMore })).not.toBeInTheDocument()
+  })
+})
+
+describe('EventLogCard actors', () => {
+  it('shows who did it: the simulator, a known user or a short id', () => {
+    const people = [
+      {
+        ...make(3, 'SimulationPaused', 'SimulationState', '2026-10-21T10:00:00.000Z'),
+        actor: 'usr-head',
+      },
+      {
+        ...make(2, 'SimulationStarted', 'SimulationState', '2026-10-21T09:00:00.000Z'),
+        actor: 'usr-unknown-long-id',
+      },
+      make(1, 'BedUnblocked', 'Bed', '2026-10-21T08:00:00.000Z'),
+    ] as HospitalEvent[]
+    render(
+      <EventLogCard
+        events={people}
+        simNow={undefined}
+        actors={new Map([['usr-head', 'Sergio Medina']])}
+        canLoadMore={false}
+        onLoadMore={() => {}}
+      />,
+    )
+    expect(screen.getByText('Sergio Medina')).toBeInTheDocument()
+    expect(screen.getByText('usr-unkn')).toBeInTheDocument()
+    expect(screen.getByText(copy.simulator)).toBeInTheDocument()
   })
 })
 

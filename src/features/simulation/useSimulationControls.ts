@@ -10,6 +10,7 @@ import {
   type Command,
 } from '@/domain/commands'
 import type { SimulationSpeed } from '@/domain/schemas'
+import { useSession } from '@/features/auth/useSession'
 import { es } from '@/i18n/es'
 import { useSimulationClock } from './simulationClockContext'
 
@@ -18,6 +19,8 @@ export function useSimulationControls() {
   const backend = useDataBackend()
   const clock = useSimulationClock()
   const state = useSimulationState()
+  const session = useSession()
+  const actor = session.status === 'authenticated' ? session.user.id : 'simulator'
   const [busy, setBusy] = useState(false)
 
   const run = useCallback(
@@ -25,7 +28,7 @@ export function useSimulationControls() {
       setBusy(true)
       try {
         await executeCommand(
-          { backend, clock, newId: () => crypto.randomUUID(), actor: 'simulator' },
+          { backend, clock, newId: () => crypto.randomUUID(), actor },
           command,
           input,
         )
@@ -36,7 +39,7 @@ export function useSimulationControls() {
         setBusy(false)
       }
     },
-    [backend, clock],
+    [backend, clock, actor],
   )
 
   return {

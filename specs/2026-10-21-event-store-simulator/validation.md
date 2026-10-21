@@ -38,7 +38,7 @@ Implementation is complete and ready to merge when all of the following pass.
 
 ## Copy Check
 
-- [ ] All new strings in `src/i18n/es.ts`; event type labels in Spanish; speed labels "1×, 10×, 60×, 300×"; "acceso" roles unchanged
+- [x] All new strings in `src/i18n/es.ts`; event type labels in Spanish; speed labels "1×, 10×, 60×, 300×"; "acceso" roles unchanged
 
 ## Architecture Check
 

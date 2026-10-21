@@ -18,7 +18,7 @@ export function SimClock() {
 
   return (
     <div
-      className="text-muted-foreground hidden items-center gap-1.5 text-sm sm:flex"
+      className="text-muted-foreground flex items-center gap-1.5 text-sm"
       title={simNow ? `${es.topBar.clock.label}: ${formatDateTime(simNow)}` : es.topBar.clock.label}
     >
       <Clock className="size-4" aria-hidden="true" />

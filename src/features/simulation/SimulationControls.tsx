@@ -40,7 +40,7 @@ export function SimulationControls() {
           <Button
             variant="outline"
             size="sm"
-            className="tabular-nums"
+            className="hidden tabular-nums sm:inline-flex"
             aria-label={`${es.simulation.speed}: ${es.simulation.speedOption(state.speed)}`}
           >
             {es.simulation.speedOption(state.speed)}

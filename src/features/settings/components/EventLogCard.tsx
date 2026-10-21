@@ -20,6 +20,8 @@ const copy = es.pages.settings.eventLog
 type EventLogCardProps = {
   /** Newest first; `undefined` while loading. */
   events: HospitalEvent[] | undefined
+  /** Display names of users, by id (events made by people show their name). */
+  actors?: ReadonlyMap<string, string>
   /** Simulated time, the end of the time window. */
   simNow: string | undefined
   /** More events may exist beyond the loaded ones. */
@@ -30,7 +32,13 @@ type EventLogCardProps = {
 const SELECT_CLASS = 'border-input bg-background h-9 rounded-md border px-2 text-sm'
 
 /** Presentational: filters + table of the latest events. */
-export function EventLogCard({ events, simNow, canLoadMore, onLoadMore }: EventLogCardProps) {
+export function EventLogCard({
+  events,
+  simNow,
+  actors,
+  canLoadMore,
+  onLoadMore,
+}: EventLogCardProps) {
   const ids = { type: useId(), entity: useId(), window: useId() }
   const [filters, setFilters] = useState<EventLogFilters>(DEFAULT_FILTERS)
   const visible = useMemo(
@@ -148,7 +156,9 @@ export function EventLogCard({ events, simNow, canLoadMore, onLoadMore }: EventL
                       </span>
                     </td>
                     <td className="py-1.5 pr-3">
-                      {event.actor === 'simulator' ? copy.simulator : event.actor.slice(0, 8)}
+                      {event.actor === 'simulator'
+                        ? copy.simulator
+                        : (actors?.get(event.actor) ?? event.actor.slice(0, 8))}
                     </td>
                     <td className="text-muted-foreground py-1.5">{eventSummary(event)}</td>
                   </tr>
