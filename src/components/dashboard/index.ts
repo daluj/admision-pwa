@@ -5,4 +5,5 @@ export { KpiTile, type KpiTileProps } from './KpiTile'
 export { BED_STATUS_STYLES, StatusBadge } from './StatusBadge'
 export type { Severity } from './statusStyles'
 export { TriageBadge } from './TriageBadge'
-export { TrendChart, type TrendPoint } from './TrendChart'
+// TrendChart is imported from './TrendChart' directly: it pulls in Recharts, which must stay out
+// of the chunks that load on every page.

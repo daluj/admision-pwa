@@ -1,4 +1,4 @@
-import { TrendChart, type TrendPoint } from '@/components/dashboard'
+import { TrendChart, type TrendPoint } from '@/components/dashboard/TrendChart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ED_THRESHOLDS, type HourBucket } from '@/domain/kpis'
 import { es } from '@/i18n/es'
