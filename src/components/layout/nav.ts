@@ -8,17 +8,15 @@ import {
   Settings,
   Siren,
 } from 'lucide-react'
-import type { Messages } from '@/i18n/es'
+import type { AreaId } from '@/domain/access'
 
-export type AreaId = keyof Messages['nav']['items']
+export type { AreaId }
 
 export type NavItem = {
   id: AreaId
   path: string
   labelKey: AreaId
   icon: LucideIcon
-  /** Reserved for Phase 4 (role-based navigation). */
-  roles?: readonly string[]
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
