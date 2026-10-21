@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 6 — Bed Management — Census Dashboard
 **Branch:** `phase-6-bed-census-dashboard`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 ## Scope
 

@@ -59,14 +59,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Event log viewer (developer/Ajustes page) with filters
 - [x] Determinism test: same seed + scenario + duration ⇒ identical event sequence
 
-## Phase 6: Bed Management — Census Dashboard
+## Phase 6: Bed Management — Census Dashboard (Complete)
 
 **Goal:** See every bed in the hospital in real time.
 
-- [ ] KPI strip: occupancy, free beds, pending cleaning, blocked, expected discharges today, outliers
-- [ ] Unit grid with per-unit occupancy and bed status breakdown
-- [ ] Bed map per unit (status colours, patient initials, LOS, expected discharge)
-- [ ] Filters by building, unit type, specialty; live updates
+- [x] KPI strip: occupancy, free beds, pending cleaning, blocked, expected discharges today, outliers
+- [x] Unit grid with per-unit occupancy and bed status breakdown
+- [x] Bed map per unit (status colours, patient initials, LOS, expected discharge)
+- [x] Filters by building, unit type, specialty; live updates
 
 ## Phase 7: Bed Management — Actions & Turnaround
 
