@@ -21,6 +21,8 @@ type AssignBedSheetProps = {
   suggestions: BedSuggestions
   onReserve: (candidate: BedSuggestion) => Promise<BedActionResult>
   onClose: () => void
+  /** The request was assigned or cancelled by someone else while the sheet was open. */
+  unavailable?: boolean
   /** Where focus goes when the sheet closes (the button that opened it). */
   onCloseAutoFocus?: (event: Event) => void
   busy?: boolean
@@ -33,6 +35,7 @@ export function AssignBedSheet({
   onReserve,
   onClose,
   onCloseAutoFocus,
+  unavailable = false,
   busy = false,
 }: AssignBedSheetProps) {
   return (
@@ -45,6 +48,7 @@ export function AssignBedSheet({
             suggestions={suggestions}
             onReserve={onReserve}
             onClose={onClose}
+            unavailable={unavailable}
             busy={busy}
           />
         )}
@@ -59,7 +63,12 @@ function SheetBody({
   onReserve,
   onClose,
   busy,
-}: Omit<AssignBedSheetProps, 'row'> & { row: OpenRequestRow; busy: boolean }) {
+  unavailable,
+}: Omit<AssignBedSheetProps, 'row'> & {
+  row: OpenRequestRow
+  busy: boolean
+  unavailable: boolean
+}) {
   const [showAll, setShowAll] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -67,6 +76,7 @@ function SheetBody({
   const shown = showAll ? suggestions.candidates : suggestions.suggestions
   // A bed taken by someone else (the simulator) drops out of the live candidates: the choice goes with it.
   const selected = suggestions.candidates.find((c) => c.bed.id === selectedId) ?? null
+  const lostSelection = selectedId !== null && selected === null && !unavailable
 
   const reserve = async () => {
     if (!selected) return
@@ -90,7 +100,11 @@ function SheetBody({
       </SheetHeader>
 
       <div className="flex-1 overflow-y-auto px-4">
-        {suggestions.candidates.length === 0 ? (
+        {unavailable ? (
+          <p role="alert" className="text-status-critical text-sm font-medium">
+            {copy.gone}
+          </p>
+        ) : suggestions.candidates.length === 0 ? (
           <p className="text-muted-foreground text-sm">{copy.none}</p>
         ) : (
           <fieldset className="flex flex-col gap-2">
@@ -154,6 +168,11 @@ function SheetBody({
             )}
           </fieldset>
         )}
+        {lostSelection && (
+          <p role="alert" className="text-status-critical mt-3 text-sm font-medium">
+            {copy.bedTaken}
+          </p>
+        )}
         {error && (
           <p role="alert" className="text-status-critical mt-3 text-sm font-medium">
             {error}
@@ -162,10 +181,20 @@ function SheetBody({
       </div>
 
       <SheetFooter>
-        <Button onClick={reserve} disabled={!selected || busy}>
-          {busy ? copy.reserving : copy.reserve}
-        </Button>
-        {!selected && <p className="text-muted-foreground text-xs">{copy.selectHint}</p>}
+        {unavailable ? (
+          <Button variant="outline" onClick={onClose}>
+            {copy.dismiss}
+          </Button>
+        ) : (
+          <>
+            <Button onClick={reserve} disabled={!selected || busy}>
+              {busy ? copy.reserving : copy.reserve}
+            </Button>
+            {!selected && !lostSelection && (
+              <p className="text-muted-foreground text-xs">{copy.selectHint}</p>
+            )}
+          </>
+        )}
       </SheetFooter>
     </>
   )

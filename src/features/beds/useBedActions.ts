@@ -22,24 +22,22 @@ import { addMinutes } from '@/lib/time'
 
 const copy = es.pages.beds.actions
 
-/** What a person asks for. `bedLabel` / `initials` only feed the confirmation toast. */
+/**
+ * What a person asks for. `bedLabel` / `initials` only feed the confirmation toast. The unit is
+ * never part of the request: permission is judged on the bed's own unit.
+ */
 export type BedActionRequest =
+  | { action: 'reserve'; bedRequestId: Id; bedId: Id; bedLabel: string; initials?: string }
   | {
-      action: 'reserve'
-      bedRequestId: Id
+      action: 'release'
       bedId: Id
-      unitId: Id
       bedLabel: string
-      initials?: string
+      reason?: string
+      /** The reservation the person saw; a different one makes the release stale. */
+      expectedAdmissionId?: Id
     }
-  | { action: 'release'; bedId: Id; unitId: Id; bedLabel: string; reason?: string }
-  | { action: 'block'; bedId: Id; unitId: Id; bedLabel: string; reason: string }
-  | {
-      action: 'unblock' | 'startCleaning' | 'finishCleaning'
-      bedId: Id
-      unitId: Id
-      bedLabel: string
-    }
+  | { action: 'block'; bedId: Id; bedLabel: string; reason: string }
+  | { action: 'unblock' | 'startCleaning' | 'finishCleaning'; bedId: Id; bedLabel: string }
 
 export type BedActionResult =
   { ok: true } | { ok: false; reason: 'forbidden' | 'stale' | 'failed'; message: string }
@@ -73,7 +71,11 @@ export function useBedActions() {
 
   const perform = useCallback(
     async (request: BedActionRequest): Promise<BedActionResult> => {
-      if (userId === null || !canAct(request.action, request.unitId)) return failure('forbidden')
+      if (userId === null) return failure('forbidden')
+      // Permission is judged on the bed's real unit, read here — never on what the caller says.
+      const target = await backend.repositories.bed.get(request.bedId)
+      if (!target) return failure('stale')
+      if (!canAct(request.action, target.unitId)) return failure('forbidden')
       const deps = { backend, clock, newId: () => crypto.randomUUID(), actor: userId }
 
       setBusy(true)
@@ -91,6 +93,9 @@ export function useBedActions() {
             await executeCommand(deps, releaseBedReservation, {
               bedId: request.bedId,
               ...(request.reason ? { reason: request.reason } : {}),
+              ...(request.expectedAdmissionId
+                ? { expectedAdmissionId: request.expectedAdmissionId }
+                : {}),
             })
             toast.success(copy.toast.release(request.bedLabel))
             break

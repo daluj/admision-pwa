@@ -52,7 +52,8 @@ export function BedActionSheet({
       <SheetContent side="right" className="sm:max-w-md" onCloseAutoFocus={onCloseAutoFocus}>
         {view && (
           <Body
-            key={view.bed.id}
+            // A different state or reservation is a different sheet: forms reset, nothing stale survives.
+            key={`${view.bed.id}:${view.bed.status}:${view.bed.admissionId ?? ''}`}
             view={view}
             now={now}
             allowed={allowed}

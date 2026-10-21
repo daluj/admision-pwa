@@ -198,6 +198,9 @@ export const es = {
         reserving: 'Reservando…',
         close: 'Cerrar',
         selectHint: 'Elija una cama para reservarla.',
+        dismiss: 'Entendido',
+        gone: 'Esa solicitud ya no está abierta: otra persona o la simulación la ha atendido.',
+        bedTaken: 'La cama elegida ya no está libre. Elija otra.',
       },
       actions: {
         toast: {

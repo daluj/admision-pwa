@@ -68,12 +68,23 @@ export const reserveBed: Command<ReserveBedInput> = async (ctx, input) => {
   }
 }
 
-export type ReleaseBedReservationInput = { bedId: Id; reason?: string }
+export type ReleaseBedReservationInput = {
+  bedId: Id
+  reason?: string
+  /**
+   * The reservation the caller was looking at. When given, the release is rejected if the bed is
+   * now reserved for a different admission (someone re-reserved it in the meantime).
+   */
+  expectedAdmissionId?: Id
+}
 
 /** Releases a reservation: the bed is free again and the request and admission wait for a bed. */
 export const releaseBedReservation: Command<ReleaseBedReservationInput> = async (ctx, input) => {
   const bed = await requireEntity(ctx, 'bed', input.bedId)
   const status = bedMachine.next(bed.status, 'release')
+  if (input.expectedAdmissionId !== undefined && bed.admissionId !== input.expectedAdmissionId) {
+    throw new InvalidCommandError(`Bed ${bed.label} is now reserved for another admission`)
+  }
   const admission = await requireEntity(ctx, 'admission', bed.admissionId ?? '')
   const admissionStatus = admissionMachine.next(admission.status, 'releaseBed')
   const requests = await ctx.repositories.bedRequest.list()

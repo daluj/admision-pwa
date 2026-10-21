@@ -178,6 +178,37 @@ describe('BedActionSheet: performing', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('resets when the bed changes state or reservation under it (no stale form survives)', async () => {
+    const user = userEvent.setup()
+    const reservedFor = (admissionId: string) => {
+      const v = view('RESERVED')
+      return { ...v, bed: { ...v.bed, admissionId } }
+    }
+    const { rerender } = render(
+      <BedActionSheet
+        view={reservedFor('adm-1')}
+        now={NOW}
+        allowed={['release']}
+        onPerform={ok}
+        onClose={() => {}}
+      />,
+    )
+    await user.type(screen.getByLabelText(copy.release.reason), 'Cambio de unidad')
+    expect(screen.getByLabelText(copy.release.reason)).toHaveValue('Cambio de unidad')
+
+    // The simulator re-reserved the bed for someone else.
+    rerender(
+      <BedActionSheet
+        view={reservedFor('adm-2')}
+        now={NOW}
+        allowed={['release']}
+        onPerform={ok}
+        onClose={() => {}}
+      />,
+    )
+    expect(screen.getByLabelText(copy.release.reason)).toHaveValue('')
+  })
+
   it('disables the actions while busy and renders nothing without a bed', () => {
     const { rerender } = render(
       <BedActionSheet

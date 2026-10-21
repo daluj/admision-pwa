@@ -59,6 +59,11 @@ const rows: Change[] = [
   { entity: 'unit', op: 'put', record: unit('unit-icu', 'ICU-1', 'ICU') },
   { entity: 'bed', op: 'put', record: bed('b-free', 'AVAILABLE') as never },
   { entity: 'bed', op: 'put', record: bed('b-dirty', 'PENDING_CLEANING') as never },
+  {
+    entity: 'bed',
+    op: 'put',
+    record: bed('b-dirty-icu', 'PENDING_CLEANING', { unitId: 'unit-icu' }) as never,
+  },
   { entity: 'patient', op: 'put', record: sampleEntities.patient },
   {
     entity: 'admission',
@@ -107,7 +112,6 @@ describe('useBedActions', () => {
       action: 'reserve',
       bedRequestId: 'r1',
       bedId: 'b-free',
-      unitId: 'unit-ward',
       bedLabel: '512-A',
       initials: 'M. G. R.',
     })
@@ -133,7 +137,6 @@ describe('useBedActions', () => {
     const result = await perform(hook, {
       action,
       bedId,
-      unitId: 'unit-ward',
       bedLabel: bedId,
       ...extra,
     } as BedActionRequest)
@@ -147,7 +150,6 @@ describe('useBedActions', () => {
     const result = await perform(hook, {
       action: 'block',
       bedId: 'b-free',
-      unitId: 'unit-ward',
       bedLabel: 'b-free',
       reason: 'x',
     })
@@ -170,7 +172,6 @@ describe('useBedActions', () => {
       await perform(hook, {
         action: 'block',
         bedId: 'b-free',
-        unitId: 'unit-ward',
         bedLabel: 'b-free',
         reason: 'x',
       }),
@@ -178,9 +179,8 @@ describe('useBedActions', () => {
     expect(
       await perform(hook, {
         action: 'startCleaning',
-        bedId: 'b-dirty',
-        unitId: 'unit-icu',
-        bedLabel: 'b-dirty',
+        bedId: 'b-dirty-icu',
+        bedLabel: 'b-dirty-icu',
       }),
     ).toMatchObject({ ok: false, reason: 'forbidden' })
     expect(await backend.events.lastSeq()).toBe(0)
@@ -189,7 +189,6 @@ describe('useBedActions', () => {
       await perform(hook, {
         action: 'startCleaning',
         bedId: 'b-dirty',
-        unitId: 'unit-ward',
         bedLabel: 'b-dirty',
       }),
     ).toEqual({ ok: true })
@@ -216,7 +215,6 @@ describe('useBedActions', () => {
       action: 'reserve',
       bedRequestId: 'r1',
       bedId: 'b-free',
-      unitId: 'unit-ward',
       bedLabel: 'b-free',
     })
     expect(result).toEqual({
@@ -231,9 +229,61 @@ describe('useBedActions', () => {
     const dirty = await perform(hook, {
       action: 'finishCleaning',
       bedId: 'b-dirty',
-      unitId: 'unit-ward',
       bedLabel: 'b-dirty',
     })
     expect(dirty).toMatchObject({ ok: false, reason: 'stale' })
+  })
+
+  it("judges permission on the bed's own unit (a supervisor cannot clean another unit's bed)", async () => {
+    const { backend, hook } = await setup(USERS.nurse)
+    const result = await perform(hook, {
+      action: 'startCleaning',
+      bedId: 'b-dirty-icu',
+      bedLabel: 'b-dirty-icu',
+    })
+    expect(result).toMatchObject({ ok: false, reason: 'forbidden' })
+    expect(await backend.repositories.bed.get('b-dirty-icu')).toMatchObject({
+      status: 'PENDING_CLEANING',
+    })
+    expect(await backend.events.lastSeq()).toBe(0)
+  })
+
+  it('an unknown bed is stale, not a crash', async () => {
+    const { backend, hook } = await setup(USERS.head)
+    expect(
+      await perform(hook, { action: 'unblock', bedId: 'no-such-bed', bedLabel: '?' }),
+    ).toMatchObject({ ok: false, reason: 'stale' })
+    expect(await backend.events.lastSeq()).toBe(0)
+  })
+
+  it('a release for a reservation the bed no longer holds is stale and changes nothing', async () => {
+    const { backend, hook } = await setup(USERS.head)
+    await perform(hook, {
+      action: 'reserve',
+      bedRequestId: 'r1',
+      bedId: 'b-free',
+      bedLabel: 'b-free',
+    })
+    const before = await backend.events.lastSeq()
+
+    const result = await perform(hook, {
+      action: 'release',
+      bedId: 'b-free',
+      bedLabel: 'b-free',
+      expectedAdmissionId: 'a-someone-else',
+    })
+    expect(result).toMatchObject({ ok: false, reason: 'stale' })
+    expect(await backend.events.lastSeq()).toBe(before)
+    expect(await backend.repositories.bed.get('b-free')).toMatchObject({ status: 'RESERVED' })
+
+    // With the reservation the person actually saw it goes through.
+    expect(
+      await perform(hook, {
+        action: 'release',
+        bedId: 'b-free',
+        bedLabel: 'b-free',
+        expectedAdmissionId: 'a1',
+      }),
+    ).toEqual({ ok: true })
   })
 })

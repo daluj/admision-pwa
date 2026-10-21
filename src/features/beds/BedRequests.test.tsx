@@ -39,6 +39,11 @@ describe('open bed requests on /camas', () => {
     expect(screen.getByText(copy.requests.counts(4, 1))).toBeInTheDocument()
   })
 
+  it('keeps the text block wide enough to wrap the button underneath on phones', async () => {
+    await openCensus()
+    expect(rowsOf()[0]!.querySelector('div.flex-1')).toHaveClass('min-w-48')
+  })
+
   it('colours long waits: red after 2 h, amber after 1 h', async () => {
     await openCensus()
     const level = (index: number) =>
@@ -142,11 +147,12 @@ describe('assigning a bed', () => {
     expect(screen.getByText(copy.requests.counts(3, 2))).toBeInTheDocument()
   })
 
-  it('closes by itself when the simulator assigns the request meanwhile', async () => {
+  it('stays open with an explanation when the simulator assigns the request meanwhile', async () => {
     const user = userEvent.setup()
     const { backend } = await openCensus()
     await user.click(screen.getByRole('button', { name: copy.requests.assignFor('I. L. M.') }))
-    await screen.findByRole('dialog', { name: sheet.title })
+    const dialog = await screen.findByRole('dialog', { name: sheet.title })
+    await user.click(within(dialog).getByRole('radio', { name: /A8/ }))
 
     const request = (await backend.repositories.bedRequest.get('r-old'))!
     await act(() =>
@@ -161,6 +167,12 @@ describe('assigning a bed', () => {
         ],
       ),
     )
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(sheet.gone)
+    expect(within(dialog).queryByRole('radio')).not.toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: sheet.reserve })).not.toBeInTheDocument()
+    // Nothing was written by us, and the user can close it.
+    expect((await backend.events.list()).filter((e) => e.type === 'BedReserved')).toHaveLength(0)
+    await user.click(within(dialog).getByRole('button', { name: sheet.dismiss }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
@@ -182,7 +194,10 @@ describe('assigning a bed', () => {
       expect(within(dialog).queryByRole('radio', { name: /A8/ })).not.toBeInTheDocument(),
     )
     expect(within(dialog).getByRole('button', { name: sheet.reserve })).toBeDisabled()
+    // The user is told why their choice went away.
+    expect(within(dialog).getByRole('alert')).toHaveTextContent(sheet.bedTaken)
     await user.click(within(dialog).getByRole('radio', { name: /A3/ }))
+    expect(within(dialog).queryByRole('alert')).not.toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: sheet.reserve })).toBeEnabled()
   })
 

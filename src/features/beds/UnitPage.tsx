@@ -15,6 +15,7 @@ import { BedMap } from './components/BedMap'
 import { CensusKpis } from './components/CensusKpis'
 import { useBedActions } from './useBedActions'
 import { useCensus } from './useCensus'
+import { useBedIdSet } from './useBedIdSet'
 import { useTurnaround } from './useTurnaround'
 
 const copy = es.pages.beds
@@ -92,7 +93,7 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
     .join(' — ')
 
   const unitCensus = data?.census.units[0]
-  const bedIds = useMemo(() => new Set(unitCensus?.beds.map((v) => v.bed.id) ?? []), [unitCensus])
+  const bedIds = useBedIdSet(unitCensus?.beds.map((v) => v.bed.id) ?? [])
   const turnaround = useTurnaround(bedIds)
 
   // The sheet follows live data: it shows the bed's current status and the actions that fit it.
@@ -102,7 +103,7 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
     : []
   const perform = (command: BedSheetCommand) => {
     const bed = selected!.bed
-    const base = { bedId: bed.id, unitId: unit.id, bedLabel: bed.label }
+    const base = { bedId: bed.id, bedLabel: bed.label }
     switch (command.action) {
       case 'block':
         return actions.perform({ ...base, action: 'block', reason: command.reason })
@@ -111,6 +112,7 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
           ...base,
           action: 'release',
           ...(command.reason ? { reason: command.reason } : {}),
+          ...(bed.admissionId ? { expectedAdmissionId: bed.admissionId } : {}),
         })
       default:
         return actions.perform({ ...base, action: command.action })

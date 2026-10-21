@@ -68,7 +68,7 @@ export function BedRequestList({
                     <span className="sr-only">{copy.priority(request.priority)}: </span>
                     {request.priority}
                   </span>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-48 flex-1">
                     <p className="text-sm font-medium tabular-nums">{row.initials ?? '—'}</p>
                     <p className="text-muted-foreground text-xs">
                       {row.source.kind === 'ED'

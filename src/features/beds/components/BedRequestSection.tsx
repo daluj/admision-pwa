@@ -1,6 +1,11 @@
 import { useMemo, useRef, useState } from 'react'
 import { useBedRequests, useEdVisits, useSpecialties } from '@/data/hooks'
-import { openBedRequests, suggestBeds, type BedSuggestions } from '@/domain/kpis'
+import {
+  openBedRequests,
+  suggestBeds,
+  type BedSuggestions,
+  type OpenRequestRow,
+} from '@/domain/kpis'
 import { applyRequestFilters, type BedFilters } from '../bedFilters'
 import { useBedActions } from '../useBedActions'
 import { useCensusSource } from '../useCensus'
@@ -16,7 +21,8 @@ export function BedRequestSection({ filters }: { filters: BedFilters }) {
   const edVisits = useEdVisits()
   const specialties = useSpecialties()
   const actions = useBedActions()
-  const [assigningId, setAssigningId] = useState<string | null>(null)
+  // What was clicked (kept so the sheet can explain itself if the request disappears).
+  const [assigningRow, setAssigningRow] = useState<OpenRequestRow | null>(null)
   const returnFocusTo = useRef<HTMLElement | null>(null)
 
   const open = useMemo(
@@ -35,10 +41,13 @@ export function BedRequestSection({ filters }: { filters: BedFilters }) {
   )
   const rows = useMemo(() => (open ? applyRequestFilters(open.open, filters) : []), [open, filters])
 
-  // The row follows live data: once the simulator (or someone else) assigns it, the sheet closes.
-  const assigning = assigningId
-    ? (open?.open.find((row) => row.request.id === assigningId) ?? null)
+  // The row follows live data. If the request vanishes while the sheet is open (assigned by the
+  // simulator or someone else) the sheet stays, with an explanation, instead of closing silently.
+  const live = assigningRow
+    ? (open?.open.find((row) => row.request.id === assigningRow.request.id) ?? null)
     : null
+  const gone = assigningRow !== null && open !== undefined && live === null
+  const assigning = live
   const suggestions = useMemo(
     () =>
       assigning && source
@@ -58,14 +67,15 @@ export function BedRequestSection({ filters }: { filters: BedFilters }) {
         canAssign={actions.canAct('reserve', '')}
         onAssign={(row) => {
           returnFocusTo.current = document.activeElement as HTMLElement | null
-          setAssigningId(row.request.id)
+          setAssigningRow(row)
         }}
       />
       <AssignBedSheet
-        row={assigning}
+        row={live ?? assigningRow}
+        unavailable={gone}
         suggestions={suggestions}
         busy={actions.busy}
-        onClose={() => setAssigningId(null)}
+        onClose={() => setAssigningRow(null)}
         onCloseAutoFocus={(event) => {
           event.preventDefault()
           returnFocusTo.current?.focus()
@@ -75,7 +85,6 @@ export function BedRequestSection({ filters }: { filters: BedFilters }) {
             action: 'reserve',
             bedRequestId: assigning!.request.id,
             bedId: candidate.bed.id,
-            unitId: candidate.unit.id,
             bedLabel: candidate.bed.label,
             ...(assigning!.initials ? { initials: assigning!.initials } : {}),
           })
