@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import type { RouteObject } from 'react-router'
+import { RouteError } from '@/components/common/RouteError'
 import { AppShell } from '@/components/layout/AppShell'
 import { NAV_ITEMS, type AreaId } from '@/components/layout/nav'
 import { RequireArea, RequireSession, SessionRoot } from '@/features/auth/guards'
@@ -35,6 +36,8 @@ function lazyPage(load: () => Promise<PageModule>): RouteObject['lazy'] {
 export const routes: RouteObject[] = [
   {
     Component: SessionRoot,
+    // Anything that escapes the page-level boundaries (providers, layout) lands here.
+    errorElement: <RouteError variant="page" />,
     children: [
       { path: '/login', lazy: lazyPage(() => import('@/features/auth/LoginPage')) },
       {
@@ -46,6 +49,8 @@ export const routes: RouteObject[] = [
             children: [
               ...NAV_ITEMS.map((item): RouteObject => ({
                 element: <RequireArea area={item.id} />,
+                // Inside the layout: the shell survives a crashing page.
+                errorElement: <RouteError />,
                 children: [
                   item.path === '/'
                     ? { index: true, lazy: lazyPage(PAGE_LOADERS[item.id]) }
@@ -53,12 +58,17 @@ export const routes: RouteObject[] = [
                   ...(AREA_SUBPAGES[item.id] ?? []),
                 ],
               })),
-              { path: '*', lazy: lazyPage(() => import('@/features/not-found/NotFoundPage')) },
+              {
+                path: '*',
+                errorElement: <RouteError />,
+                lazy: lazyPage(() => import('@/features/not-found/NotFoundPage')),
+              },
             ],
           },
           // The wall display has its own full-screen layout (no sidebar, no top bar).
           {
             element: <RequireArea area="overview" />,
+            errorElement: <RouteError variant="page" />,
             children: [
               { path: '/pantalla', lazy: lazyPage(() => import('@/features/wall/WallPage')) },
             ],

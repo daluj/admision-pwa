@@ -39,13 +39,49 @@ function createStore<T>(source: Subscribable<T>): Store<T> {
   }
 }
 
+/** One store (hence one upstream query) per Subscribable instance, however many components use it. */
+const stores = new WeakMap<object, Store<unknown>>()
+function storeFor<T>(source: Subscribable<T>): Store<T> {
+  let store = stores.get(source) as Store<T> | undefined
+  if (!store) {
+    store = createStore(source)
+    stores.set(source, store)
+  }
+  return store
+}
+
+const sources = new WeakMap<object, Map<string, Subscribable<unknown>>>()
+
+/**
+ * The same Subscribable for the same `(owner, key)` every time. Combined with `useSubscribable`
+ * this means ONE live query per table (or event window) for the whole app: the top bar, the page,
+ * the overview and the alert evaluator all share it instead of each re-reading the table on every change.
+ */
+export function sharedSource<T>(
+  owner: object,
+  key: string,
+  make: () => Subscribable<T>,
+): Subscribable<T> {
+  let byKey = sources.get(owner)
+  if (!byKey) {
+    byKey = new Map()
+    sources.set(owner, byKey)
+  }
+  let source = byKey.get(key) as Subscribable<T> | undefined
+  if (!source) {
+    source = make()
+    byKey.set(key, source)
+  }
+  return source
+}
+
 /**
  * Subscribes a component to a Subscribable. Returns `undefined` until the first value arrives.
  * Errors are rethrown during render so the nearest error boundary handles them.
  * Pass a memoised Subscribable (a new one re-subscribes).
  */
 export function useSubscribable<T>(source: Subscribable<T>): T | undefined {
-  const store = useMemo(() => createStore(source), [source])
+  const store = useMemo(() => storeFor(source), [source])
   const { value, failure } = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,

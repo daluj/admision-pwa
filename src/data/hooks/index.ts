@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useDataBackend } from '@/data/dataContext'
 import type { DataBackendInfo, TableCounts } from '@/data/ports'
 import type {
@@ -18,9 +17,9 @@ import type {
   Unit,
   User,
 } from '@/domain/schemas'
-import { useSubscribable } from './useSubscribable'
+import { sharedSource, useSubscribable } from './useSubscribable'
 
-export { useSubscribable } from './useSubscribable'
+export { sharedSource, useSubscribable } from './useSubscribable'
 
 /** Which adapter is in use and its schema version. */
 export function useDataInfo(): DataBackendInfo {
@@ -30,53 +29,71 @@ export function useDataInfo(): DataBackendInfo {
 /** Live row count per table plus the event log; `undefined` while loading. */
 export function useTableCounts(): TableCounts | undefined {
   const backend = useDataBackend()
-  return useSubscribable(useMemo(() => backend.observeTableCounts(), [backend]))
+  return useSubscribable(sharedSource(backend, 'tableCounts', () => backend.observeTableCounts()))
 }
 
 export function useUnits(): Unit[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.unit.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'unit:list', () => repositories.unit.observeList()),
+  )
 }
 
 export function useSpecialties(): Specialty[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.specialty.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'specialty:list', () => repositories.specialty.observeList()),
+  )
 }
 
 export function usePatients(): Patient[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.patient.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'patient:list', () => repositories.patient.observeList()),
+  )
 }
 
 export function useAdmissions(): Admission[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.admission.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'admission:list', () => repositories.admission.observeList()),
+  )
 }
 
 export function useBedRequests(): BedRequest[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.bedRequest.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'bedRequest:list', () => repositories.bedRequest.observeList()),
+  )
 }
 
 export function useEdVisits(): EdVisit[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.edVisit.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'edVisit:list', () => repositories.edVisit.observeList()),
+  )
 }
 
 export function useUsers(): User[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.user.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'user:list', () => repositories.user.observeList()),
+  )
 }
 
 export function useBeds(): Bed[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.bed.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'bed:list', () => repositories.bed.observeList()),
+  )
 }
 
 export function useBedsByUnit(unitId: Id): Bed[] | undefined {
   const { repositories } = useDataBackend()
   return useSubscribable(
-    useMemo(() => repositories.bed.observeBedsByUnit(unitId), [repositories, unitId]),
+    sharedSource(repositories, `bedsByUnit:${unitId}`, () =>
+      repositories.bed.observeBedsByUnit(unitId),
+    ),
   )
 }
 
@@ -84,7 +101,9 @@ export function useBedsByUnit(unitId: Id): Bed[] | undefined {
 export function useSimulationState(): SimulationState | null | undefined {
   const { repositories } = useDataBackend()
   const rows = useSubscribable(
-    useMemo(() => repositories.simulationState.observeList(), [repositories]),
+    sharedSource(repositories, 'simulationState:list', () =>
+      repositories.simulationState.observeList(),
+    ),
   )
   return rows === undefined ? undefined : (rows[0] ?? null)
 }
@@ -92,7 +111,7 @@ export function useSimulationState(): SimulationState | null | undefined {
 /** The latest `limit` events, newest first. */
 export function useRecentEvents(limit: number): HospitalEvent[] | undefined {
   const { events } = useDataBackend()
-  return useSubscribable(useMemo(() => events.observeRecent(limit), [events, limit]))
+  return useSubscribable(sharedSource(events, `recent:${limit}`, () => events.observeRecent(limit)))
 }
 
 /** The simulated "now" (`SimulationState.simNow`); `undefined` until the demo is seeded. Dashboards use this, never the wall clock. */
@@ -102,15 +121,23 @@ export function useSimNow(): IsoDateTime | undefined {
 
 export function usePorters(): Porter[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.porter.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'porter:list', () => repositories.porter.observeList()),
+  )
 }
 
 export function useTransferRequests(): TransferRequest[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.transferRequest.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'transferRequest:list', () =>
+      repositories.transferRequest.observeList(),
+    ),
+  )
 }
 
 export function useAlerts(): Alert[] | undefined {
   const { repositories } = useDataBackend()
-  return useSubscribable(useMemo(() => repositories.alert.observeList(), [repositories]))
+  return useSubscribable(
+    sharedSource(repositories, 'alert:list', () => repositories.alert.observeList()),
+  )
 }

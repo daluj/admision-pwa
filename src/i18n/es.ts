@@ -1205,6 +1205,18 @@ export const es = {
       'La configuración del origen de datos no es válida. Revise la variable VITE_DATA_BACKEND (valores admitidos: dexie, memory).',
     detail: 'Detalle técnico',
   },
+  crash: {
+    title: 'Algo ha fallado en esta pantalla',
+    description:
+      'El resto de la aplicación sigue funcionando. Puede reintentar o volver al inicio; si el problema continúa, recargue la página.',
+    pageTitle: 'La aplicación ha tenido un problema',
+    pageDescription:
+      'No se ha perdido ningún dato: todo se guarda en este navegador. Recargue la página para continuar.',
+    retry: 'Reintentar',
+    home: 'Volver al inicio',
+    reload: 'Recargar la página',
+    detail: 'Detalle técnico',
+  },
   loading: 'Cargando…',
   simulation: {
     controls: 'Control de la simulación',
