@@ -136,7 +136,7 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 **Goal:** Ready to show to the hospital.
 
 - [x] Performance with ~600 beds and 7 simulated days of events (no jank, fast live queries; indexes reviewed)
-- [x] Offline + install verified on Chrome/Edge desktop and iPad Safari
+- [ ] Offline + install verified on Chrome/Edge desktop and iPad Safari — automated offline/manifest checks pass; real install on desktop and iPad Safari is **NEEDS HUMAN** (`docs/install-and-offline.md`)
 - [x] Accessibility pass (axe in Playwright, keyboard, contrast)
 - [x] Error boundaries and empty/loading states everywhere
 - [x] README with demo instructions; tag `v0.1.0-mvp`
