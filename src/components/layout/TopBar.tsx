@@ -1,4 +1,5 @@
 import { Separator } from '@/components/ui/separator'
+import { SimulationControls } from '@/features/simulation/SimulationControls'
 import { AlertBell } from './AlertBell'
 import { MobileNav } from './MobileNav'
 import { SimClock } from './SimClock'
@@ -13,6 +14,7 @@ export function TopBar() {
       <StatusLevelBadge />
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
         <SimClock />
+        <SimulationControls />
         <Separator orientation="vertical" className="hidden h-6 sm:block" />
         <AlertBell />
         <ThemeToggle />

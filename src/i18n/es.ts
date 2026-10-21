@@ -32,6 +32,7 @@ export const es = {
     },
     clock: {
       label: 'Hora simulada',
+      unknown: '--:--',
     },
     alerts: {
       label: 'Alertas',
@@ -174,6 +175,17 @@ export const es = {
     detail: 'Detalle técnico',
   },
   loading: 'Cargando…',
+  simulation: {
+    controls: 'Control de la simulación',
+    start: 'Iniciar simulación',
+    pause: 'Pausar simulación',
+    running: 'Simulación en marcha',
+    paused: 'Simulación en pausa',
+    speed: 'Velocidad de la simulación',
+    speedOption: (speed: number) => `${speed}×`,
+    speedChanged: (speed: number) => `Velocidad ${speed}×`,
+    failed: 'No se pudo cambiar la simulación',
+  },
   roles: {
     ADMISSIONS_HEAD: 'Jefe/a de Admisión',
     BED_MANAGER: 'Gestor/a de camas',

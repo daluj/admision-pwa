@@ -4,14 +4,17 @@ import { toast } from 'sonner'
 import { homeFor, type AreaId } from '@/domain/access'
 import type { Role } from '@/domain/schemas'
 import { es } from '@/i18n/es'
+import { SimulationClockProvider } from '@/features/simulation/SimulationClockProvider'
 import { SessionProvider } from './SessionProvider'
 import { useSession } from './useSession'
 
-/** Root route element: provides the simulated session to the whole route tree. */
+/** Root route element: provides the simulated session and the simulated clock to the whole tree. */
 export function SessionRoot() {
   return (
     <SessionProvider>
-      <Outlet />
+      <SimulationClockProvider>
+        <Outlet />
+      </SimulationClockProvider>
     </SessionProvider>
   )
 }
