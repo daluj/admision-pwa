@@ -77,14 +77,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Block/unblock beds; mark cleaning started/finished
 - [x] Bed turnaround KPI and "pending cleaning > 60 min" exceptions
 
-## Phase 8: Emergency Department Dashboard
+## Phase 8: Emergency Department Dashboard (Complete)
 
 **Goal:** ED flow and boarding at a glance.
 
-- [ ] KPI strip: patients present, waiting triage, waiting physician, boarding count, longest boarding, % within target
-- [ ] ED board by phase and triage level (Manchester colours)
-- [ ] Boarding list with time since admit decision and bed request status
-- [ ] Waiting time vs target chart (last 24 h)
+- [x] KPI strip: patients present, waiting triage, waiting physician, boarding count, longest boarding, % within target
+- [x] ED board by phase and triage level (Manchester colours)
+- [x] Boarding list with time since admit decision and bed request status
+- [x] Waiting time vs target chart (last 24 h)
 
 ## Phase 9: Admissions & Discharges
 

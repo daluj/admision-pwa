@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 8 — Emergency Department Dashboard
 **Branch:** `phase-8-ed-dashboard`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 ## Scope
 
