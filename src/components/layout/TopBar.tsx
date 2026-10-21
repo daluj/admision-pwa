@@ -1,9 +1,9 @@
 import { Separator } from '@/components/ui/separator'
 import { SimulationControls } from '@/features/simulation/SimulationControls'
-import { AlertBell } from './AlertBell'
+import { AlertBell } from '@/features/alerts/AlertBell'
+import { StatusLevelBadge } from '@/features/alerts/StatusLevelBadge'
 import { MobileNav } from './MobileNav'
 import { SimClock } from './SimClock'
-import { StatusLevelBadge } from './StatusLevelBadge'
 import { ThemeToggle } from './ThemeToggle'
 import { UserMenu } from './UserMenu'
 

@@ -29,6 +29,8 @@ export const es = {
     statusLevel: {
       label: 'Nivel del hospital',
       normal: 'Normal',
+      alert: 'Alerta',
+      critical: 'Crítico',
     },
     clock: {
       label: 'Hora simulada',
@@ -38,6 +40,8 @@ export const es = {
       label: 'Alertas',
       count: (n: number) => (n === 1 ? '1 alerta activa' : `${n} alertas activas`),
       empty: 'No hay alertas activas',
+      pending: (n: number, worst: string) =>
+        n === 1 ? `1 alerta sin reconocer (${worst})` : `${n} alertas sin reconocer (${worst})`,
     },
     user: {
       label: 'Usuario',
@@ -55,6 +59,61 @@ export const es = {
     light: 'Claro',
     dark: 'Oscuro',
     system: 'Sistema',
+  },
+  alerts: {
+    centre: {
+      title: 'Centro de alertas',
+      description: 'Alertas abiertas del hospital, de las más graves a las más antiguas.',
+      open: 'Abiertas',
+      resolved: 'Resueltas recientemente',
+      emptyOpen: 'No hay alertas abiertas.',
+      emptyFiltered: 'Ninguna alerta coincide con los filtros.',
+      emptyResolved: 'Todavía no se ha resuelto ninguna alerta.',
+      severity: 'Gravedad',
+      area: 'Área',
+      all: 'Todas',
+      severities: { CRITICAL: 'Crítica', WARNING: 'Aviso', INFO: 'Información' },
+      areas: {
+        emergency: 'Urgencias',
+        beds: 'Camas',
+        admissions: 'Ingresos y altas',
+        transfers: 'Traslados',
+      },
+      since: (time: string) => `desde hace ${time}`,
+      acknowledge: 'Reconocer',
+      acknowledgeFor: (message: string) => `Reconocer alerta: ${message}`,
+      acknowledged: (who: string, when: string) => `Reconocida por ${who} · ${when}`,
+      acknowledgedAnon: (when: string) => `Reconocida · ${when}`,
+      resolvedAt: (when: string) => `Resuelta ${when}`,
+      goTo: (area: string) => `Ir a ${area}`,
+      toast: 'Alerta reconocida',
+      errors: {
+        forbidden: 'No tiene permiso para reconocer alertas.',
+        stale: 'La alerta ya no está abierta o ya fue reconocida. Actualizando…',
+        failed: 'No se pudo reconocer la alerta. Inténtelo de nuevo.',
+      },
+      close: 'Cerrar',
+    },
+    rules: {
+      ED_TRIAGE_TARGET_BREACH: (p: { initials: string; level: number; targetMin: number }) =>
+        `${p.initials} (nivel ${p.level}) espera al médico más allá de su objetivo de ${p.targetMin} min`,
+      BOARDING_LONG: (p: { initials: string }) =>
+        `${p.initials} lleva demasiado tiempo pendiente de ingreso en Urgencias`,
+      BED_PENDING_CLEANING_LONG: (p: { bedLabel: string; unitName: string }) =>
+        `Cama ${p.bedLabel} (${p.unitName}) pendiente de limpieza demasiado tiempo`,
+      TRANSFER_SLA_BREACH: (p: { initials: string; to: string }) =>
+        `Traslado de ${p.initials} a ${p.to} sin recoger fuera de plazo`,
+      UNIT_FULL: (p: { unitName: string; requests: number }) =>
+        `${p.unitName} sin camas libres y ${p.requests} ${p.requests === 1 ? 'solicitud abierta' : 'solicitudes abiertas'}`,
+      BED_BALANCE_NEGATIVE: (p: { value: number }) =>
+        `Previsión de camas negativa para hoy (${p.value})`,
+    },
+    status: {
+      occupancy: (pct: number) => `Ocupación del ${pct} %`,
+      boardingCount: (n: number) => `${n} pacientes pendientes de ingreso en Urgencias`,
+      boardingLong: (hours: string) => `Espera máxima de ingreso: ${hours} h`,
+      none: 'Ningún indicador fuera de rango.',
+    },
   },
   pages: {
     overview: {
