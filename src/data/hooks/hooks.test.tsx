@@ -9,6 +9,8 @@ import type { Bed } from '@/domain/schemas'
 import {
   useBeds,
   useAdmissions,
+  useBedRequests,
+  useEdVisits,
   useBedsByUnit,
   useDataInfo,
   usePatients,
@@ -200,5 +202,25 @@ describe('census data hooks', () => {
     await waitFor(() => expect(result.current).toBe('2026-10-21T08:00:00.000Z'))
     await put('2026-10-21T08:05:00.000Z')
     await waitFor(() => expect(result.current).toBe('2026-10-21T08:05:00.000Z'))
+  })
+})
+
+describe('bed request hooks', () => {
+  it('useBedRequests and useEdVisits list current rows', async () => {
+    const { backend, wrapper } = setup()
+    const requests = renderHook(() => useBedRequests(), { wrapper })
+    const visits = renderHook(() => useEdVisits(), { wrapper })
+    await waitFor(() => expect(requests.result.current).toEqual([]))
+    await act(() =>
+      backend.events.append(
+        [],
+        [
+          { entity: 'bedRequest', op: 'put', record: sampleEntities.bedRequest },
+          { entity: 'edVisit', op: 'put', record: sampleEntities.edVisit },
+        ],
+      ),
+    )
+    await waitFor(() => expect(requests.result.current).toEqual([sampleEntities.bedRequest]))
+    await waitFor(() => expect(visits.result.current).toEqual([sampleEntities.edVisit]))
   })
 })

@@ -129,6 +129,22 @@ export const es = {
         all: 'Todos',
         clear: 'Quitar filtros',
       },
+      actions: {
+        toast: {
+          reserve: (bed: string, initials: string) =>
+            initials ? `Cama ${bed} reservada para ${initials}` : `Cama ${bed} reservada`,
+          release: (bed: string) => `Cama ${bed}: reserva liberada`,
+          block: (bed: string) => `Cama ${bed} bloqueada`,
+          unblock: (bed: string) => `Cama ${bed} desbloqueada`,
+          startCleaning: (bed: string) => `Cama ${bed}: limpieza iniciada`,
+          finishCleaning: (bed: string) => `Cama ${bed}: limpieza terminada, disponible`,
+        },
+        errors: {
+          forbidden: 'No tiene permiso para esta acción.',
+          stale: 'Esa cama o solicitud ya no está disponible.',
+          failed: 'No se pudo completar la acción. Inténtelo de nuevo.',
+        },
+      },
       noUnit: {
         title: 'Sin unidad asignada',
         description:
