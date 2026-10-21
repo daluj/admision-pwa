@@ -5,6 +5,7 @@ import { BedRequestPriority } from './bedRequest'
 import { Actor, Code, EntityType, EventId, Id, IsoDateTime, Location, TriageLevel } from './common'
 import { EdArea, EdOutcome } from './edVisit'
 import { TransferPriority, TransferReason } from './transferRequest'
+import { SimulationSpeed } from './simulationState'
 import { UnitType } from './unit'
 
 const Empty = z.object({}).strict()
@@ -108,6 +109,12 @@ const EVENT_DEFINITIONS = {
       /** Rows written per entity name. */
       counts: z.record(z.string().min(1), z.int().nonnegative()),
     }),
+  },
+  SimulationStarted: { entityType: 'SimulationState', payload: Empty },
+  SimulationPaused: { entityType: 'SimulationState', payload: Empty },
+  SimulationSpeedChanged: {
+    entityType: 'SimulationState',
+    payload: z.object({ speed: SimulationSpeed }),
   },
 } as const satisfies Record<string, { entityType: EntityType; payload: z.ZodObject }>
 

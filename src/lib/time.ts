@@ -73,6 +73,16 @@ export function zonedDayAt(iso: string, timeZone: string, hour: number, minute =
   return new Date(result).toISOString()
 }
 
+/** Local calendar date (`YYYY-MM-DD`) and minute of the local day (0–1439) of an instant. */
+export function zonedClock(
+  iso: string,
+  timeZone: string = HOSPITAL_TIME_ZONE,
+): { date: string; minuteOfDay: number } {
+  const w = wallTime(Date.parse(iso), timeZone)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return { date: `${w.year}-${pad(w.month)}-${pad(w.day)}`, minuteOfDay: w.hour * 60 + w.minute }
+}
+
 /** Adds minutes to an ISO instant. */
 export function addMinutes(iso: string, minutes: number): string {
   return new Date(Date.parse(iso) + minutes * MINUTE).toISOString()

@@ -209,7 +209,8 @@ create table events (
     'ExpectedDischargeSet', 'DischargeOrdered', 'PatientDischarged', 'PatientTransferredBetweenBeds',
     'BedCleaningStarted', 'BedCleaningFinished', 'BedBlocked', 'BedUnblocked', 'TransferRequested',
     'TransferAssigned', 'TransferPickedUp', 'TransferDelivered', 'TransferCancelled', 'AdmissionCancelled',
-    'AlertRaised', 'AlertAcknowledged', 'AlertResolved', 'DemoSeeded'
+    'AlertRaised', 'AlertAcknowledged', 'AlertResolved', 'DemoSeeded',
+    'SimulationStarted', 'SimulationPaused', 'SimulationSpeedChanged'
   )),
   occurred_at  timestamptz not null,
   actor        text not null,            -- user id or 'simulator'

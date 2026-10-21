@@ -81,6 +81,7 @@ UI labels: Llegada, Triado, En atención, Pendiente de ingreso, Fuera de Urgenci
 SCHEDULED ─▶ AWAITING_BED ─▶ BED_ASSIGNED ─▶ IN_TRANSFER ─▶ ADMITTED ─▶ DISCHARGE_ORDERED ─▶ DISCHARGED
 (URGENT admissions start at AWAITING_BED)
 SCHEDULED | AWAITING_BED | BED_ASSIGNED ─▶ CANCELLED
+BED_ASSIGNED ─▶ AWAITING_BED   (reservation released)
 ```
 
 ### TransferRequest ("order tracking")
@@ -116,6 +117,7 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 | `AdmissionCancelled` | Admissions | A11 |
 | `AlertRaised` / `AlertAcknowledged` / `AlertResolved` | Alert engine / users | — |
 | `DemoSeeded` | Demo seed / "Restablecer demo" (always seq 1 after a reset) | — |
+| `SimulationStarted` / `SimulationPaused` / `SimulationSpeedChanged` | Simulator controls (Admissions head) | — |
 
 ### Event payloads
 
@@ -149,6 +151,10 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 | `AlertAcknowledged` | Alert | `acknowledgedBy` |
 | `AlertResolved` | Alert | — |
 | `DemoSeeded` | SimulationState (`current`) | `seed`, `profileId`, `anchorAt`, `counts` (rows per entity) |
+| `SimulationStarted` / `SimulationPaused` | SimulationState (`current`) | — |
+| `SimulationSpeedChanged` | SimulationState (`current`) | `speed` (1 \| 10 \| 60 \| 300) |
+
+**Exception to "every state change appends an event":** the advance of `SimulationState.simNow` while the simulator runs is the clock, not a domain fact, so it is persisted as a state-only change (`advanceSimulation`). Control actions (start, pause, speed) do append events.
 
 ## KPIs
 

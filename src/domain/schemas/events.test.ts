@@ -67,6 +67,9 @@ const validPayloads: Record<EventType, Record<string, unknown>> = {
     anchorAt: '2026-10-20T06:00:00.000Z',
     counts: { bed: 600, patient: 550 },
   },
+  SimulationStarted: {},
+  SimulationPaused: {},
+  SimulationSpeedChanged: { speed: 60 },
 }
 
 function makeEvent(type: EventType, payload: Record<string, unknown> = validPayloads[type]) {
@@ -82,8 +85,8 @@ function makeEvent(type: EventType, payload: Record<string, unknown> = validPayl
 }
 
 describe('event schemas', () => {
-  it('cover the 28 events of specs/domain.md', () => {
-    expect(EVENT_TYPES).toHaveLength(28)
+  it('cover the 31 events of specs/domain.md', () => {
+    expect(EVENT_TYPES).toHaveLength(31)
   })
 
   it.each(EVENT_TYPES)('%s parses with a valid payload', (type) => {
@@ -122,6 +125,15 @@ describe('event schemas', () => {
     ]) {
       expect(NewHospitalEvent.safeParse(makeEvent('DemoSeeded', payload)).success).toBe(false)
     }
+  })
+
+  it('only accepts the supported simulation speeds', () => {
+    expect(
+      NewHospitalEvent.safeParse(makeEvent('SimulationSpeedChanged', { speed: 60 })).success,
+    ).toBe(true)
+    expect(
+      NewHospitalEvent.safeParse(makeEvent('SimulationSpeedChanged', { speed: 7 })).success,
+    ).toBe(false)
   })
 
   it('requires a UUID event id', () => {

@@ -13,7 +13,7 @@ export type Census = {
 
 const DAY_MINUTES = 24 * 60
 
-const BLOCK_REASONS = [
+export const BLOCK_REASONS = [
   'Avería de la cama',
   'Obras en la habitación',
   'Aislamiento ambiental',

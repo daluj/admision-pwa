@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addMinutes, formatDateTime, zonedDayAt } from './time'
+import { addMinutes, formatDateTime, zonedClock, zonedDayAt } from './time'
 
 const MADRID = 'Europe/Madrid'
 
@@ -42,5 +42,16 @@ describe('addMinutes', () => {
   it('adds and subtracts minutes', () => {
     expect(addMinutes('2026-10-20T06:00:00.000Z', 90)).toBe('2026-10-20T07:30:00.000Z')
     expect(addMinutes('2026-10-20T06:00:00.000Z', -60 * 24)).toBe('2026-10-19T06:00:00.000Z')
+  })
+})
+
+describe('zonedClock', () => {
+  it.each([
+    ['2026-10-20T06:00:00.000Z', '2026-10-20', 8 * 60],
+    ['2026-10-19T22:30:00.000Z', '2026-10-20', 30],
+    ['2026-12-01T22:59:00.000Z', '2026-12-01', 23 * 60 + 59],
+    ['2026-10-25T00:30:00.000Z', '2026-10-25', 2 * 60 + 30],
+  ])('%s → %s minute %i', (iso, date, minuteOfDay) => {
+    expect(zonedClock(iso, MADRID)).toEqual({ date, minuteOfDay })
   })
 })

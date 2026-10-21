@@ -28,7 +28,7 @@ export type EdAndFlows = {
 }
 
 /** Chief complaints and the specialty that admits them. */
-const COMPLAINTS: ReadonlyArray<readonly [complaint: string, specialty: Code]> = [
+export const COMPLAINTS: ReadonlyArray<readonly [complaint: string, specialty: Code]> = [
   ['Dolor torácico', 'CAR'],
   ['Disnea', 'NML'],
   ['Dolor abdominal', 'CGD'],
