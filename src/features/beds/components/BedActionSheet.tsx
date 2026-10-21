@@ -102,7 +102,7 @@ function Body({
           {view.patient && (
             <p className="flex items-center gap-1 font-medium">
               {copy.patient(view.patient.initials)}
-              <JourneyLink patientId={view.patient.id} initials={view.patient.initials} />
+              <JourneyLink patientId={view.patient.id} initials={view.patient.initials} inOwnUnit />
             </p>
           )}
           {view.losMs !== undefined && (

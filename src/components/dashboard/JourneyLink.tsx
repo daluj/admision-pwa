@@ -13,15 +13,22 @@ export function JourneyLink({
   patientId,
   initials,
   className,
+  inOwnUnit = false,
 }: {
   patientId: string
   initials: string
   className?: string
+  /**
+   * The row is already limited to the user's own unit (a bed of the unit map). Nurse supervisors
+   * only reach patients of their unit, so elsewhere the link is hidden for them.
+   */
+  inOwnUnit?: boolean
 }) {
   // Boards are also rendered on their own (tests, previews): without a session or a router there is no link.
   const session = useContext(SessionContext)
   const inRouter = useInRouterContext()
   if (!inRouter || session?.status !== 'authenticated' || !session.can('tracking')) return null
+  if (session.user.role === 'NURSE_SUPERVISOR' && !inOwnUnit) return null
   return (
     <Link
       to={`/seguimiento/${patientId}`}

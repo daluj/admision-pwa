@@ -20,16 +20,17 @@ const ORPHAN: User = { ...SUPERVISOR, id: 'usr-orphan', username: 'orphan', unit
 
 async function open(path: string, as: Role | User = 'ADMISSIONS_HEAD') {
   const backend = createMemoryBackend()
+  let router!: ReturnType<typeof renderApp>['router']
   await seedJourney(backend)
   if (typeof as === 'string') {
-    renderApp(path, backend, { as })
+    ;({ router } = renderApp(path, backend, { as }))
   } else {
     await backend.events.append([], [{ entity: 'user', op: 'put', record: as }])
     writeSession(as.id)
-    renderApp(path, backend, { as: null })
+    ;({ router } = renderApp(path, backend, { as: null }))
   }
   await screen.findByRole('heading', { level: 1, name: copy.title })
-  return { backend }
+  return { backend, router }
 }
 
 beforeEach(() => localStorage.clear())
@@ -59,7 +60,8 @@ describe('Seguimiento: search', () => {
 
   it('finds by name ignoring accents and says when nothing matches', async () => {
     const user = userEvent.setup()
-    await open('/seguimiento?q=nunez')
+    await open('/seguimiento')
+    await user.type(await screen.findByLabelText(copy.search.label), 'nunez')
     expect(await screen.findByText('Inés Núñez Gil')).toBeInTheDocument()
     expect(screen.getByText(copy.search.noEpisode)).toBeInTheDocument()
     await user.clear(screen.getByLabelText(copy.search.label))
@@ -67,9 +69,20 @@ describe('Seguimiento: search', () => {
     expect(await screen.findByText(copy.search.none)).toBeInTheDocument()
   })
 
+  it('never puts the search text (a name or NHC) in the URL', async () => {
+    const user = userEvent.setup()
+    const { router } = await open('/seguimiento')
+    await user.type(await screen.findByLabelText(copy.search.label), 'SIM-000D')
+    await user.click(await screen.findByRole('link', { name: /^Ver recorrido de D\. P\. R\./ }))
+    await screen.findByRole('heading', { level: 2, name: 'Daniel Pons Ruiz' })
+    expect(router.state.location.search).toBe('')
+    expect(router.state.location.pathname).toBe('/seguimiento/p-d')
+  })
+
   it('opens the journey from a result and goes back keeping the search', async () => {
     const user = userEvent.setup()
-    await open('/seguimiento?q=SIM-000D')
+    await open('/seguimiento')
+    await user.type(await screen.findByLabelText(copy.search.label), 'SIM-000D')
     await user.click(await screen.findByRole('link', { name: /^Ver recorrido de D\. P\. R\./ }))
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Daniel Pons Ruiz' }),
@@ -167,7 +180,8 @@ describe('Seguimiento: journey', () => {
 
 describe('Seguimiento: nurse supervisor scope', () => {
   it("only finds patients of the supervisor's unit", async () => {
-    await open('/seguimiento?q=SIM-', SUPERVISOR)
+    await open('/seguimiento', SUPERVISOR)
+    await userEvent.type(await screen.findByLabelText(copy.search.label), 'SIM-')
     const list = await screen.findByRole('list', { name: copy.search.resultsLabel })
     expect(
       within(list)
@@ -184,7 +198,8 @@ describe('Seguimiento: nurse supervisor scope', () => {
   })
 
   it('without a unit sees nobody', async () => {
-    await open('/seguimiento?q=SIM-', ORPHAN)
+    await open('/seguimiento', ORPHAN)
+    await userEvent.type(await screen.findByLabelText(copy.search.label), 'SIM-')
     expect(await screen.findByText(copy.search.noneScoped)).toBeInTheDocument()
     await open('/seguimiento/p-c', ORPHAN)
   })

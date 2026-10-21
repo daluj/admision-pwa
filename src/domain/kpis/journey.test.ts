@@ -231,3 +231,88 @@ describe('searchPatients', () => {
     expect(find('SIM-', { unitIds: new Set() })).toEqual([])
   })
 })
+
+describe('buildJourney: edge cases from review', () => {
+  const withData = (patch: Partial<typeof journeyData>) => ({ ...journeyData, ...patch })
+  const base = journeyData.transfers.find((t) => t.id === 'tc')!
+
+  it('an older discharged admission in the same bed does not take the newer admission transfer', () => {
+    const older = {
+      ...journeyData.admissions.find((a) => a.id === 'ad')!,
+      id: 'old',
+      patientId: 'p-d',
+      status: 'DISCHARGED' as const,
+      edVisitId: undefined,
+      admittedAt: '2026-10-01T10:00:00.000Z',
+      dischargedAt: '2026-10-05T10:00:00.000Z',
+      expectedDischargeAt: undefined,
+    }
+    const j = buildJourney('p-d', withData({ admissions: [...journeyData.admissions, older] }))!
+    const old = j.episodes.find((e) => e.id === 'old')!
+    expect(old.steps.map((s) => s.kind)).not.toContain('TransferRequested')
+    expect(j.episodes.find((e) => e.id === 'ad')!.steps.map((s) => s.kind)).toContain(
+      'TransferDelivered',
+    )
+  })
+
+  it('a transfer to the bed first offered still counts when the reservation moved to another bed', () => {
+    const moved = journeyData.admissions.map((a) => (a.id === 'ac' ? { ...a, bedId: 'b1' } : a))
+    const e = buildJourney('p-c', withData({ admissions: moved }))!.episodes[0]!
+    expect(e.steps.map((s) => s.kind)).toContain('TransferRequested')
+  })
+
+  it('a cancelled transfer is ignored and the newest live one wins', () => {
+    const newer = {
+      ...base,
+      id: 'tc2',
+      requestedAt: '2026-10-21T09:45:00.000Z',
+      slaDueAt: '2026-10-21T10:15:00.000Z',
+    }
+    const cancelled = { ...base, status: 'CANCELLED' as const }
+    const e = buildJourney('p-c', withData({ transfers: [cancelled, newer] }))!.episodes[0]!
+    expect(e.next).toMatchObject({
+      kind: 'TransferPickedUp',
+      expectedAt: '2026-10-21T10:15:00.000Z',
+    })
+  })
+
+  it('a released reservation forgets its time', () => {
+    const released = {
+      seq: 99,
+      id: '00000000-0000-4000-8000-000000000099',
+      type: 'BedReservationReleased',
+      occurredAt: '2026-10-21T09:40:00.000Z',
+      actor: 'simulator',
+      entityType: 'Bed',
+      entityId: 'b3',
+      payload: { bedRequestId: 'rc' },
+    } as unknown as (typeof journeyData.events)[number]
+    const e = buildJourney('p-c', withData({ events: [...journeyData.events, released] }))!
+      .episodes[0]!
+    expect(e.steps.find((s) => s.kind === 'BedReserved')!.at).toBeUndefined()
+  })
+
+  it('a discharge without an admission time still shows the discharge step', () => {
+    const odd = journeyData.admissions.map((a) =>
+      a.id === 'ae' ? { ...a, admittedAt: undefined } : a,
+    )
+    const e = buildJourney('p-e', withData({ admissions: odd }))!.episodes[0]!
+    expect(e.steps.at(-1)).toMatchObject({ kind: 'Discharged', state: 'done' })
+    expect(e.steps.every((s) => s.state === 'done')).toBe(true)
+  })
+
+  it('a cancelled admission with a still-open ED visit does not promise leaving the ED', () => {
+    const odd = journeyData.admissions.map((a) =>
+      a.id === 'ab' ? { ...a, status: 'CANCELLED' as const } : a,
+    )
+    const e = buildJourney('p-b', withData({ admissions: odd }))!.episodes[0]!
+    expect(e.steps.filter((s) => s.kind === 'EdLeft')).toEqual([])
+  })
+
+  it('with a unit scope only the episodes in that unit are shown', () => {
+    const scope = { unitIds: new Set(['u2']) }
+    const j = buildJourney('p-j', journeyData, scope)!
+    expect(j.episodes.map((e) => e.id)).toEqual(['aj']) // the old ED-only visit is not part of the unit
+    expect(buildJourney('p-c', journeyData, scope)!.episodes).toEqual([])
+  })
+})

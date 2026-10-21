@@ -104,14 +104,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Porter view: my queue, accept → picked up → delivered
 - [x] Simulator drives porters; transfer SLA KPIs
 
-## Phase 11: Patient Journey Tracking ("Track & Trace")
+## Phase 11: Patient Journey Tracking ("Track & Trace") (Complete)
 
 **Goal:** Amazon-style tracking for any patient.
 
-- [ ] Search by NHC or name
-- [ ] Journey timeline from events (arrival → triage → … → bed → discharge) with durations per step
-- [ ] Current location, next expected step and ETA
-- [ ] Deep links from every dashboard row to the patient's journey
+- [x] Search by NHC or name
+- [x] Journey timeline from events (arrival → triage → … → bed → discharge) with durations per step
+- [x] Current location, next expected step and ETA
+- [x] Deep links from every dashboard row to the patient's journey
 
 ## Phase 12: Control Tower Overview & Alerts
 

@@ -14,11 +14,14 @@ export function EpisodeList({
   selectedId,
   now,
   hrefFor,
+  state,
 }: {
   episodes: readonly JourneyEpisode[]
   selectedId: string
   now: string
   hrefFor: (episodeId: string) => string
+  /** Router state carried to the episode page (the search to go back to). */
+  state?: unknown
 }) {
   if (episodes.length < 2) return null
   return (
@@ -37,6 +40,7 @@ export function EpisodeList({
               <li key={episode.id} data-episode={episode.id} className="py-2">
                 <Link
                   to={hrefFor(episode.id)}
+                  state={state}
                   aria-current={selected ? 'true' : undefined}
                   aria-label={copy.open(`${label} · ${statusText(episode)}`)}
                   className={cn(

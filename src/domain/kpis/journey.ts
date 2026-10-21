@@ -130,6 +130,7 @@ type Lookups = {
   admissionsByPatient: Map<Id, Admission[]>
   requestByAdmission: Map<Id, BedRequest>
   transfersByPatient: Map<Id, TransferRequest[]>
+  /** `BedReserved` time per bed request; a released reservation is forgotten. */
   reservedAt: Map<Id, IsoDateTime>
   cancelReason: Map<Id, AdmissionCancelReason>
 }
@@ -156,8 +157,10 @@ function lookups(data: JourneyData): Lookups {
   // Events are in ascending order: the latest reservation overwrites earlier (released) ones.
   for (const e of data.events) {
     const payload = e.payload as Record<string, unknown>
-    if (e.type === 'BedReserved' && typeof payload.admissionId === 'string') {
-      reservedAt.set(payload.admissionId, e.occurredAt)
+    if (e.type === 'BedReserved' && typeof payload.bedRequestId === 'string') {
+      reservedAt.set(payload.bedRequestId, e.occurredAt)
+    } else if (e.type === 'BedReservationReleased' && typeof payload.bedRequestId === 'string') {
+      reservedAt.delete(payload.bedRequestId)
     } else if (e.type === 'AdmissionCancelled' && typeof payload.reason === 'string') {
       cancelReason.set(e.entityId, payload.reason as AdmissionCancelReason)
     }
@@ -283,7 +286,7 @@ function admissionDrafts(admission: Admission, lk: Lookups, transfers: TransferR
 
   const reserved = request?.status === 'ASSIGNED' || request?.status === 'FULFILLED'
   const reservedBed = bedLabelOf(lk, request?.assignedBedId ?? admission.bedId)
-  const reservedAt = lk.reservedAt.get(id)
+  const reservedAt = request ? lk.reservedAt.get(request.id) : undefined
   steps.push({
     id: `${id}:reserved`,
     kind: 'BedReserved',
@@ -293,14 +296,21 @@ function admissionDrafts(admission: Admission, lk: Lookups, transfers: TransferR
     done: reserved,
   })
 
-  // The admission transfer: the newest non-cancelled one towards this admission's bed.
+  // The admission transfer. Transfers carry no admission id, so match on the bed the admission
+  // had or was offered, inside the admission's own time window (from its bed request until the
+  // discharge), and take the newest that was not cancelled.
+  const beds = new Set([admission.bedId, request?.assignedBedId].filter((b): b is Id => !!b))
+  const from = request?.requestedAt ?? admission.createdAt
+  const until = admission.dischargedAt ?? '9999'
   const transfer = transfers
     .filter(
       (t) =>
         t.reason === 'ADMISSION' &&
         t.status !== 'CANCELLED' &&
-        (!admission.bedId || t.toLocation.refId === admission.bedId) &&
-        t.requestedAt >= (request?.requestedAt ?? ''),
+        t.toLocation.refId !== undefined &&
+        beds.has(t.toLocation.refId) &&
+        t.requestedAt >= from &&
+        t.requestedAt <= until,
     )
     .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt))[0]
   if (transfer) {
@@ -382,7 +392,7 @@ function admissionDrafts(admission: Admission, lk: Lookups, transfers: TransferR
       done: true,
     })
   }
-  if (admission.admittedAt) {
+  if (admission.admittedAt || admission.dischargedAt) {
     steps.push(
       admission.dischargedAt
         ? { id: `${id}:discharged`, kind: 'Discharged', at: admission.dischargedAt, done: true }
@@ -515,7 +525,12 @@ function withEdExit(ed: Draft[], admission: Draft[]): Draft[] {
   return [...rest, ...admission.slice(0, at), exit, ...admission.slice(at)]
 }
 
-function buildEpisodes(patientId: Id, data: JourneyData, lk: Lookups): JourneyEpisode[] {
+function buildEpisodes(
+  patientId: Id,
+  data: JourneyData,
+  lk: Lookups,
+  scope?: JourneyScope,
+): JourneyEpisode[] {
   const visits = lk.edByPatient.get(patientId) ?? []
   const admissions = lk.admissionsByPatient.get(patientId) ?? []
   const transfers = lk.transfersByPatient.get(patientId) ?? []
@@ -523,15 +538,26 @@ function buildEpisodes(patientId: Id, data: JourneyData, lk: Lookups): JourneyEp
   const usedVisits = new Set<Id>()
   const episodes: JourneyEpisode[] = []
 
+  const inScopeUnit = (a: Admission): boolean => {
+    const bed = a.bedId ? lk.bedById.get(a.bedId) : undefined
+    return bed !== undefined && !!scope?.unitIds.has(bed.unitId)
+  }
+
   for (const admission of admissions) {
+    // A scoped user (nurse supervisor) only sees the episodes that took place in their units.
+    if (scope && !inScopeUnit(admission)) continue
     const visit = admission.edVisitId ? visitById.get(admission.edVisitId) : undefined
     if (visit) usedVisits.add(visit.id)
     const drafts = withEdExit(
-      visit ? edDrafts(visit, true) : [],
+      visit ? edDrafts(visit, admission.status !== 'CANCELLED') : [],
       admissionDrafts(admission, lk, transfers),
     )
-    const { steps, next } = finishSteps(drafts, data.now)
     const { status, active } = admissionStatus(visit, admission)
+    // A finished episode has nothing pending, whatever the data says.
+    const { steps, next } = finishSteps(
+      drafts.filter((d) => active || d.done),
+      data.now,
+    )
     const last = steps.filter((s) => s.state === 'done').at(-1)
     const bedLabel = bedLabelOf(lk, admission.bedId)
     episodes.push({
@@ -550,7 +576,7 @@ function buildEpisodes(patientId: Id, data: JourneyData, lk: Lookups): JourneyEp
     })
   }
   for (const visit of visits) {
-    if (usedVisits.has(visit.id)) continue
+    if (usedVisits.has(visit.id) || scope) continue
     const { steps, next } = finishSteps(edDrafts(visit, false), data.now)
     const { status, active } = admissionStatus(visit, undefined)
     const last = steps.filter((s) => s.state === 'done').at(-1)
@@ -576,7 +602,11 @@ function buildEpisodes(patientId: Id, data: JourneyData, lk: Lookups): JourneyEp
 }
 
 /** The whole journey of one patient; `undefined` for an unknown id. */
-export function buildJourney(patientId: Id, data: JourneyData): Journey | undefined {
+export function buildJourney(
+  patientId: Id,
+  data: JourneyData,
+  scope?: JourneyScope,
+): Journey | undefined {
   const patient = data.patients.find((p) => p.id === patientId)
   if (!patient) return undefined
   const year = Number(zonedClock(data.now, HOSPITAL_TIME_ZONE).date.slice(0, 4))
@@ -584,7 +614,7 @@ export function buildJourney(patientId: Id, data: JourneyData): Journey | undefi
     patient,
     initials: patientInitials(patient),
     ageYears: Math.max(0, year - patient.birthYear),
-    episodes: buildEpisodes(patientId, data, lookups(data)),
+    episodes: buildEpisodes(patientId, data, lookups(data), scope),
   }
 }
 
@@ -648,7 +678,7 @@ export function searchPatients(
       a.patient.id.localeCompare(b.patient.id),
   )
   return matches.slice(0, limit).map(({ patient, lastActivityAt }) => {
-    const episode = buildEpisodes(patient.id, data, lk)[0]
+    const episode = buildEpisodes(patient.id, data, lk, scope)[0]
     return {
       patient,
       initials: patientInitials(patient),

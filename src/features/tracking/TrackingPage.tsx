@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Input } from '@/components/ui/input'
@@ -13,8 +14,10 @@ const copy = es.pages.tracking
 
 /** `/seguimiento`: one search box (NHC or name) and the matching patients with their current situation. */
 export default function TrackingPage() {
-  const [params, setParams] = useSearchParams()
-  const query = params.get('q') ?? ''
+  const location = useLocation()
+  const navigate = useNavigate()
+  // The query (a name or NHC) lives in component and router state, never in the URL.
+  const [query, setQuery] = useState<string>((location.state as { q?: string } | null)?.q ?? '')
   const search = useJourneySearch(query)
   const searching = query.trim().length >= JOURNEY_MIN_QUERY
 
@@ -29,9 +32,10 @@ export default function TrackingPage() {
           autoComplete="off"
           value={query}
           placeholder={copy.search.placeholder}
-          onChange={(event) =>
-            setParams(event.target.value ? { q: event.target.value } : {}, { replace: true })
-          }
+          onChange={(event) => {
+            setQuery(event.target.value)
+            navigate('.', { replace: true, state: { q: event.target.value } })
+          }}
         />
         <p className="text-muted-foreground text-xs">{copy.search.hint}</p>
       </div>
@@ -56,7 +60,8 @@ export default function TrackingPage() {
             {search.results.map(({ patient, initials, episode }) => (
               <li key={patient.id} data-patient={patient.id}>
                 <Link
-                  to={`/seguimiento/${patient.id}?q=${encodeURIComponent(query)}`}
+                  to={`/seguimiento/${patient.id}`}
+                  state={{ q: query }}
                   aria-label={copy.search.open(initials)}
                   className="hover:bg-accent flex flex-wrap items-center justify-between gap-2 px-3 py-3 text-sm"
                 >

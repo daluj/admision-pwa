@@ -88,7 +88,7 @@ export function useJourney(patientId: string): JourneyState {
     if (inputs.scope && !isPatientInScope(patientId, inputs.data, inputs.scope)) {
       return { status: 'notFound' }
     }
-    const journey = buildJourney(patientId, inputs.data)
+    const journey = buildJourney(patientId, inputs.data, inputs.scope)
     return journey ? { status: 'ready', journey, now: inputs.data.now } : { status: 'notFound' }
   }, [inputs, patientId])
 }

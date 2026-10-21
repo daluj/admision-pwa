@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 11 — Patient Journey Tracking ("Track & Trace")
 **Branch:** `phase-11-patient-journey`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 > Autonomous run (phases 9–12): no interview; the "Recommended" options of earlier interviews were applied. Choices are listed under **Decisions**.
 
@@ -42,6 +42,10 @@ Amazon-style tracking for one patient: find them, see where they are, what alrea
 - Search by NHC or name only; no filters.
 - Previous episodes are shown, not merged into one timeline.
 - No new dependencies, no new events, commands or schema changes.
+
+- **The search text never goes in the URL** (it can be a name or NHC): it lives in component state and is carried through router state so "Volver a la búsqueda" restores it. Episode ids and patient ids are the only things in Seguimiento URLs.
+- A nurse supervisor sees only the **episodes** that took place in a bed of their unit (not the patient's other episodes); dashboard links are hidden for them except on their own unit's bed map.
+- The admission transfer is matched by destination bed (the bed the admission had or was offered) inside the admission's own time window, because transfers carry no admission id.
 
 ## Context
 Phase 8/9/10 dashboards (row shapes), `specs/domain.md` → state machines (ED visit, Admission, Transfer), Events and payloads.

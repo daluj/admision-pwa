@@ -1,5 +1,5 @@
 import { ArrowLeft, Route } from 'lucide-react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { es } from '@/i18n/es'
@@ -16,20 +16,22 @@ export default function JourneyPage() {
   const { patientId = '' } = useParams()
   const [params] = useSearchParams()
   const state = useJourney(patientId)
-  const q = params.get('q')
-  const back = q ? `/seguimiento?q=${encodeURIComponent(q)}` : '/seguimiento'
+  const location = useLocation()
+  // Carried in router state so that "back" restores the search without putting it in the URL.
+  const q = (location.state as { q?: string } | null)?.q
 
-  const hrefFor = (episodeId: string) => {
-    const next = new URLSearchParams(params)
-    next.set('episodio', episodeId)
-    return `/seguimiento/${patientId}?${next.toString()}`
-  }
+  const hrefFor = (episodeId: string) =>
+    `/seguimiento/${patientId}?episodio=${encodeURIComponent(episodeId)}`
 
   return (
     <>
       <PageHeader title={copy.title} description={copy.description} />
       <p className="mb-4">
-        <Link to={back} className="inline-flex items-center gap-1 text-sm hover:underline">
+        <Link
+          to="/seguimiento"
+          state={q ? { q } : null}
+          className="inline-flex items-center gap-1 text-sm hover:underline"
+        >
           <ArrowLeft className="size-4" aria-hidden="true" />
           {copy.journey.back}
         </Link>
@@ -61,6 +63,7 @@ export default function JourneyPage() {
                     selectedId={episode.id}
                     now={now}
                     hrefFor={hrefFor}
+                    state={q ? { q } : null}
                   />
                 </>
               ) : (
