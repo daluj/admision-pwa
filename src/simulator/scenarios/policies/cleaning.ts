@@ -1,5 +1,6 @@
 import { finishCleaning, startCleaning } from '@/domain/commands'
 import { CLEANING_DURATION, CLEANING_START_DELAY } from '../normalDay.config'
+import { scaleRange } from '../tuning'
 import { entityInt, minutesBetween } from '../entityRandom'
 import type { MinuteContext } from '../types'
 import { sortedById, type World } from '../world'
@@ -12,14 +13,24 @@ export async function cleaning(ctx: MinuteContext, world: World): Promise<void> 
     if (bed.status === 'PENDING_CLEANING') {
       if (
         elapsed >=
-        entityInt(seed, 'clean-start', `${bed.id}:${bed.statusChangedAt}`, CLEANING_START_DELAY)
+        entityInt(
+          seed,
+          'clean-start',
+          `${bed.id}:${bed.statusChangedAt}`,
+          scaleRange(CLEANING_START_DELAY, ctx.tuning.cleaningDelayFactor),
+        )
       ) {
         await ctx.exec(startCleaning, { bedId: bed.id })
       }
     } else if (bed.status === 'CLEANING') {
       if (
         elapsed >=
-        entityInt(seed, 'clean-end', `${bed.id}:${bed.statusChangedAt}`, CLEANING_DURATION)
+        entityInt(
+          seed,
+          'clean-end',
+          `${bed.id}:${bed.statusChangedAt}`,
+          scaleRange(CLEANING_DURATION, ctx.tuning.cleaningDelayFactor),
+        )
       ) {
         await ctx.exec(finishCleaning, { bedId: bed.id })
       }

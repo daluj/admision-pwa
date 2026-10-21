@@ -1,9 +1,13 @@
 # Changelog
 
-<!-- last-commit: 7e21f2cdae648a705f955e6dfdd1a30d3653768e -->
+<!-- last-commit: 40a6c5e39925acdd3917469e3f035000c2210b7a -->
 
 ## 2026-10-21
 
+- Scenarios for the demo: "Martes normal", "Lunes de alta presión" and "Pico de gripe (plan de invierno)". Each starts the day from its own hospital state (occupancy, ED load, boarders) and bends how fast the hospital drains; same seed and scenario always give the same day
+- Ajustes: scenario selector next to the seed, current scenario shown there and in the clock tooltip
+- Time-lapse: new 1800× speed (a day in about a minute) and "Avance rápido" in Ajustes — jump to 10:00, 14:00, 20:00, 08:00 or any HH:MM; the simulation is played headlessly (cancellable, with progress), ends paused and gives the same result as watching it
+- Guided demo script (docs/demo-script.md, in Spanish) and an end-to-end test that follows it step by step
 - Alert engine: the six rules of the hospital contingency plan (ED triage target breaches, long boarding, beds pending cleaning too long, transfers not picked up in time, full units with open requests, negative bed balance) are evaluated every simulated minute; alerts are raised, escalated and resolved automatically and every change is logged
 - Alert bell and centre: the bell counts unacknowledged alerts, coloured by the worst; the centre lists open alerts (critical first, then oldest) with filters by severity and area, an Reconocer action that records who and when, a link to the area and the recently resolved ones. Each role only sees the alerts of its areas and nurse supervisors only those of their own unit
 - Hospital status level (Normal / Alerta / Crítico) in the top bar, computed from occupancy, boarding count and longest boarding, with the reasons shown on the overview

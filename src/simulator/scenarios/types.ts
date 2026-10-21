@@ -2,6 +2,7 @@ import type { DataBackend } from '@/data/ports'
 import type { Command } from '@/domain/commands'
 import type { HospitalEvent, IsoDateTime } from '@/domain/schemas'
 import type { Rng } from '@/simulator/random/prng'
+import type { ScenarioTuning } from './tuning'
 
 export type SimulationBackend = Pick<DataBackend, 'repositories' | 'events'>
 
@@ -9,6 +10,8 @@ export type SimulationBackend = Pick<DataBackend, 'repositories' | 'events'>
 export type MinuteContext = {
   backend: SimulationBackend
   seed: number
+  /** How this scenario bends the policies (the normal day when it declares none). */
+  tuning: ScenarioTuning
   /** The simulated minute being processed (whole minute, ISO UTC). Used as the event time. */
   at: IsoDateTime
   /** Minutes since the Unix epoch; `at` expressed as an integer. */
@@ -25,5 +28,6 @@ export type MinuteContext = {
 /** A scenario decides, minute by minute, what happens in the hospital. */
 export type Scenario = {
   id: string
+  tuning?: ScenarioTuning
   step: (ctx: MinuteContext) => Promise<void>
 }

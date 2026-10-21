@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
@@ -66,10 +66,31 @@ describe('DemoDataCard', () => {
     await user.type(seedInput(), '7')
     await user.click(resetButton())
     const dialog = await screen.findByRole('alertdialog', { name: copy.confirmTitle })
-    expect(dialog).toHaveTextContent(copy.confirmDescription(7))
+    expect(dialog).toHaveTextContent(copy.confirmDescription(7, es.scenarios['normal-day']!.name))
     await user.click(screen.getByRole('button', { name: copy.confirm }))
-    expect(onReset).toHaveBeenCalledWith(7)
+    expect(onReset).toHaveBeenCalledWith(7, 'normal-day')
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+  })
+
+  it('offers the three scenarios, preselects the current one and resets with the chosen one', async () => {
+    const { onReset, user } = renderCard({ currentScenario: 'high-pressure' })
+    const select = screen.getByLabelText(copy.scenarioLabel)
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((o) => o.textContent),
+    ).toEqual(['Martes normal', 'Lunes de alta presión', 'Pico de gripe (plan de invierno)'])
+    expect(select).toHaveValue('high-pressure')
+    expect(screen.getByText(copy.currentScenario).nextElementSibling).toHaveTextContent(
+      'Lunes de alta presión',
+    )
+    await user.selectOptions(select, 'winter-flu')
+    expect(screen.getByText(es.scenarios['winter-flu']!.description)).toBeInTheDocument()
+    await user.click(resetButton())
+    const dialog = await screen.findByRole('alertdialog', { name: copy.confirmTitle })
+    expect(dialog).toHaveTextContent('Pico de gripe')
+    await user.click(screen.getByRole('button', { name: copy.confirm }))
+    expect(onReset).toHaveBeenCalledWith(42, 'winter-flu')
   })
 
   it('cancel (or Escape) does nothing', async () => {
@@ -122,5 +143,40 @@ describe('DemoDataSection', () => {
     )
     const [event] = await backend.events.list()
     expect(event).toMatchObject({ seq: 1, type: 'DemoSeeded', payload: { seed: 7 } })
+  })
+
+  it('loads the chosen scenario into the simulation state', async () => {
+    const backend = createMemoryBackend({
+      clock: createFixedClock('2026-10-20T15:00:00.000Z'),
+      validateSchemas: false,
+    })
+    await ensureDemoSeeded(backend)
+    const user = userEvent.setup()
+    render(
+      <ThemeProvider>
+        <DataProvider backend={backend}>
+          <DemoDataSection />
+          <Toaster />
+        </DataProvider>
+      </ThemeProvider>,
+    )
+    await waitFor(() =>
+      expect(screen.getByText(copy.currentScenario).nextElementSibling).toHaveTextContent(
+        'Martes normal',
+      ),
+    )
+    await user.selectOptions(screen.getByLabelText(copy.scenarioLabel), 'winter-flu')
+    await user.click(resetButton())
+    await user.click(await screen.findByRole('button', { name: copy.confirm }))
+    await waitFor(async () =>
+      expect((await backend.repositories.simulationState.get('current'))!.scenarioId).toBe(
+        'winter-flu',
+      ),
+    )
+    await waitFor(() =>
+      expect(screen.getByText(copy.currentScenario).nextElementSibling).toHaveTextContent(
+        'Pico de gripe',
+      ),
+    )
   })
 })

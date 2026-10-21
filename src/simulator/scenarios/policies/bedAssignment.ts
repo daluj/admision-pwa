@@ -8,6 +8,7 @@ import {
   RESERVATION_ETA,
   RESERVE_DELAY,
 } from '../normalDay.config'
+import { scaleRange } from '../tuning'
 import { entityInt, minutesBetween } from '../entityRandom'
 import type { MinuteContext } from '../types'
 import { sortedById, type World } from '../world'
@@ -58,7 +59,15 @@ export async function bedAssignment(ctx: MinuteContext, world: World): Promise<v
   for (const request of open) {
     if (reservations >= MAX_RESERVATIONS_PER_MINUTE) break
     const waited = minutesBetween(request.requestedAt, at)
-    if (waited < entityInt(seed, 'reserve-delay', request.id, RESERVE_DELAY[request.priority])) {
+    if (
+      waited <
+      entityInt(
+        seed,
+        'reserve-delay',
+        request.id,
+        scaleRange(RESERVE_DELAY[request.priority], ctx.tuning.reserveDelayFactor),
+      )
+    ) {
       continue
     }
     const options = candidates(request, waited)

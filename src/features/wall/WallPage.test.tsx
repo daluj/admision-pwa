@@ -1,4 +1,4 @@
-import { act, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryBackend } from '@/data/adapters/memory/createMemoryBackend'
@@ -111,7 +111,7 @@ describe('wall mode', () => {
     // The key listener attaches in an effect: retry the press until the page has wired it up.
     await waitFor(
       async () => {
-        await user.keyboard('{Escape}')
+        fireEvent.keyDown(window, { key: 'Escape' })
         expect(router.state.location.pathname).toBe('/')
       },
       { timeout: 5000 },
@@ -120,7 +120,7 @@ describe('wall mode', () => {
     await screen.findByRole('heading', { level: 1, name: copy.title }, { timeout: 5000 })
     await user.click(await screen.findByRole('button', { name: copy.exit }, { timeout: 5000 }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/'), { timeout: 5000 })
-  })
+  }, 20_000)
 
   it('is only for roles that can open the overview', async () => {
     const backend = createMemoryBackend()

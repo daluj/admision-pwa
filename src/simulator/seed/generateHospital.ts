@@ -13,6 +13,8 @@ export type GenerateHospitalInput = {
   /** Simulated "now" of the snapshot (08:00 Madrid in the app). */
   anchorAt: IsoDateTime
   profile?: HospitalProfile
+  /** Scenario the run starts with (`SimulationState.scenarioId`). */
+  scenarioId?: string
 }
 
 /** Pure: same input ⇒ same snapshot. */
@@ -20,6 +22,7 @@ export function generateHospital({
   seed,
   anchorAt,
   profile = DEFAULT_PROFILE,
+  scenarioId = 'normal-day',
 }: GenerateHospitalInput): HospitalSnapshot {
   const rng = createRng(seed)
   const structure = generateStructure(profile, rng, anchorAt)
@@ -45,7 +48,7 @@ export function generateHospital({
         createdAt: anchorAt,
         updatedAt: anchorAt,
         seed,
-        scenarioId: 'normal-day',
+        scenarioId,
         speed: 60,
         running: false,
         simNow: anchorAt,

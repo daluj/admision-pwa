@@ -3,6 +3,7 @@ import { es } from '@/i18n/es'
 import { DatabaseStatusSection } from './components/DatabaseStatusSection'
 import { EventLogSection } from './components/EventLogSection'
 import { DemoDataSection } from './components/DemoDataSection'
+import { TimeLapseCard } from './components/TimeLapseCard'
 import { ThresholdsCard } from './components/ThresholdsCard'
 import { StatusTokenSwatches } from './components/StatusTokenSwatches'
 
@@ -15,6 +16,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6">
         <ThresholdsCard />
         <DemoDataSection />
+        <TimeLapseCard />
         <EventLogSection />
         <DatabaseStatusSection />
         <StatusTokenSwatches />

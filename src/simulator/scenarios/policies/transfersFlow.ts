@@ -12,6 +12,7 @@ import {
   TRANSFER_PICKUP_DELAY,
   TRANSFER_REQUEST_DELAY,
 } from '../normalDay.config'
+import { scaleRange } from '../tuning'
 import { entityInt, minutesBetween } from '../entityRandom'
 import type { MinuteContext } from '../types'
 import { sortedById, type World } from '../world'
@@ -24,6 +25,8 @@ const ACTIVE = ['REQUESTED', 'ASSIGNED', 'PICKED_UP']
  */
 export async function transfersFlow(ctx: MinuteContext, world: World): Promise<void> {
   const { seed, at } = ctx
+  const slow = (range: readonly [number, number]) =>
+    scaleRange(range, ctx.tuning.transferDelayFactor)
 
   // 1. Request a transfer for every reserved bed that has none.
   const requestsByAdmission = new Map(world.bedRequests.map((r) => [r.admissionId, r]))
@@ -35,7 +38,7 @@ export async function transfersFlow(ctx: MinuteContext, world: World): Promise<v
       (t) => t.reason === 'ADMISSION' && t.toLocation.refId === bed.id && ACTIVE.includes(t.status),
     )
     if (covered) continue
-    const wait = entityInt(seed, 'transfer-request', admission.id, TRANSFER_REQUEST_DELAY)
+    const wait = entityInt(seed, 'transfer-request', admission.id, slow(TRANSFER_REQUEST_DELAY))
     if (minutesBetween(bed.statusChangedAt, at) < wait) continue
 
     const unit = world.unitById.get(bed.unitId)
@@ -67,7 +70,7 @@ export async function transfersFlow(ctx: MinuteContext, world: World): Promise<v
       seed,
       'transfer-assign',
       transfer.id,
-      TRANSFER_ASSIGN_DELAY[transfer.priority],
+      slow(TRANSFER_ASSIGN_DELAY[transfer.priority]),
     )
     if (minutesBetween(transfer.requestedAt, at) < wait) continue
     porters.shift()
@@ -77,12 +80,12 @@ export async function transfersFlow(ctx: MinuteContext, world: World): Promise<v
   // 3. Pick up and deliver.
   for (const transfer of sortedById(world.transfers)) {
     if (transfer.status === 'ASSIGNED' && transfer.assignedAt) {
-      const wait = entityInt(seed, 'transfer-pickup', transfer.id, TRANSFER_PICKUP_DELAY)
+      const wait = entityInt(seed, 'transfer-pickup', transfer.id, slow(TRANSFER_PICKUP_DELAY))
       if (minutesBetween(transfer.assignedAt, at) >= wait) {
         await ctx.exec(pickUpTransfer, { transferId: transfer.id })
       }
     } else if (transfer.status === 'PICKED_UP' && transfer.pickedUpAt) {
-      const wait = entityInt(seed, 'transfer-deliver', transfer.id, TRANSFER_DELIVER_DELAY)
+      const wait = entityInt(seed, 'transfer-deliver', transfer.id, slow(TRANSFER_DELIVER_DELAY))
       if (minutesBetween(transfer.pickedUpAt, at) >= wait) {
         await ctx.exec(deliverTransfer, { transferId: transfer.id })
       }

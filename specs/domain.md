@@ -152,7 +152,7 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 | `AlertResolved` | Alert | — |
 | `DemoSeeded` | SimulationState (`current`) | `seed`, `profileId`, `anchorAt`, `counts` (rows per entity) |
 | `SimulationStarted` / `SimulationPaused` | SimulationState (`current`) | — |
-| `SimulationSpeedChanged` | SimulationState (`current`) | `speed` (1 \| 10 \| 60 \| 300) |
+| `SimulationSpeedChanged` | SimulationState (`current`) | `speed` (1 \| 10 \| 60 \| 300 \| 1800) |
 
 **Exception to "every state change appends an event":** the advance of `SimulationState.simNow` while the simulator runs is the clock, not a domain fact, so it is persisted as a state-only change (`advanceSimulation`). Control actions (start, pause, speed) do append events.
 

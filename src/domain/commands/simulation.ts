@@ -37,7 +37,7 @@ export const pauseSimulation: Command<Record<string, never>> = async (ctx) => {
   }
 }
 
-/** Changes the simulation speed (1×, 10×, 60×, 300×). Emits `SimulationSpeedChanged`. */
+/** Changes the simulation speed (1×, 10×, 60×, 300×, 1800×). Emits `SimulationSpeedChanged`. */
 export const setSimulationSpeed: Command<{ speed: SimulationSpeed }> = async (ctx, { speed }) => {
   if (!SIMULATION_SPEEDS.includes(speed)) {
     throw new InvalidCommandError(`Unsupported simulation speed ${String(speed)}`)

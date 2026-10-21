@@ -123,13 +123,13 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Wall mode (Modo pantalla): full-screen, auto-rotate dashboards
 - [x] Settings page for thresholds and SLA targets
 
-## Phase 13: Scenarios & Demo Mode
+## Phase 13: Scenarios & Demo Mode (Complete)
 
 **Goal:** A compelling, repeatable demo.
 
-- [ ] Scenarios: "Martes normal", "Lunes de alta presión", "Pico de gripe (plan de invierno)"
-- [ ] Time-lapse: run a full simulated day in minutes; jump to a time of day
-- [ ] Guided demo script (`docs/demo-script.md`) and a Playwright test that follows it
+- [x] Scenarios: "Martes normal", "Lunes de alta presión", "Pico de gripe (plan de invierno)"
+- [x] Time-lapse: run a full simulated day in minutes; jump to a time of day
+- [x] Guided demo script (`docs/demo-script.md`) and a Playwright test that follows it
 
 ## Phase 14: MVP Hardening
 

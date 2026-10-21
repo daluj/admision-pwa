@@ -11,9 +11,21 @@ export {
 } from './seed/seedDemo'
 export { createSimulationClock, type SimulationClock } from './clock/simulationClock'
 export { getScenario } from './scenarios/registry'
-export { normalDay, NORMAL_DAY_ID } from './scenarios/normalDay'
+export { normalDay } from './scenarios/normalDay'
+export {
+  HIGH_PRESSURE_ID,
+  isScenarioId,
+  NORMAL_DAY_ID,
+  SCENARIO_DEFINITIONS,
+  SCENARIO_IDS,
+  WINTER_FLU_ID,
+  type ScenarioId,
+} from './scenarios/definitions'
 export {
   advanceSimulationTo,
+  jumpToTimeOfDay,
+  nextTimeOfDay,
+  type JumpResult,
   createSimulationRunner,
   runAsLeader,
   runSimulation,
