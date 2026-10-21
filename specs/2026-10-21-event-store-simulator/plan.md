@@ -6,8 +6,8 @@ Every group ends with `npm run typecheck && npm run lint && npm test` green and 
 
 1. `src/domain/schemas/events.ts`: add `SimulationStarted`, `SimulationPaused`, `SimulationSpeedChanged` (`{ speed }`, entity `SimulationState`/`current`); update event-count tests and samples.
 2. `specs/domain.md`: add the 3 events (Events table + payloads), the "clock ticks are not events" exception and the simulation commands note; `backlog/postgres-schema-draft.sql`: extend the `events.type` CHECK.
-3. `src/domain/commands/types.ts`: `CommandContext` (`now`, `newId`, read accessors `get/list` per entity), `CommandInput` helpers, `IdGenerator`, `CommandRejectedError` (wraps invalid transitions with a Spanish-free technical message).
-4. `src/domain/commands/execute.ts`: `executeCommand(deps, command)` with load → build → `append(..., { expectedLastSeq })` → retry ≤ 3 on `ConcurrencyError`; `src/domain/commands/testing.ts` helper to run a command against the memory backend with a fixed clock.
+3. `src/domain/commands/types.ts`: `CommandContext` (`now`, `newId`, read accessors `get/list` per entity), `CommandInput` helpers, `IdGenerator`, reuse `InvalidCommandError` for unknown ids / invalid input (invalid transitions keep throwing `InvalidTransitionError`); commands are `async (ctx, input) => CommandResult` reading state through `ctx.repositories`.
+4. `src/domain/commands/execute.ts`: `executeCommand(deps, command)` with load → build → `append(..., { expectedLastSeq })` → retry ≤ 3 on `ConcurrencyError`; `src/test/commandHarness.ts` helper (domain must not import adapters) to run a command against the memory backend with a fixed clock and counter ids.
 5. Tests: retry on concurrency, rejected transition writes nothing, result events validate against the event schemas.
 
 ## Group 2: ED & Bed Commands
