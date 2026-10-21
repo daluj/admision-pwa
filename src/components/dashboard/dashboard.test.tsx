@@ -56,6 +56,22 @@ describe('KpiTile', () => {
   })
 })
 
+describe('KpiStrip layout', () => {
+  it('lays six tiles out as 6 → 3 → 2 and seven as 7 → 4 → 2', () => {
+    const { rerender } = withRouter(<KpiStrip label="k">{null}</KpiStrip>)
+    const strip = () => screen.getByRole('list', { name: 'k' })
+    expect(strip()).toHaveClass('grid-cols-2', 'md:grid-cols-3', 'xl:grid-cols-6')
+    rerender(
+      <MemoryRouter>
+        <KpiStrip label="k" size={7}>
+          {null}
+        </KpiStrip>
+      </MemoryRouter>,
+    )
+    expect(strip()).toHaveClass('grid-cols-2', 'md:grid-cols-4', '2xl:grid-cols-7')
+  })
+})
+
 describe('StatusBadge', () => {
   it.each(BED_STATUSES)('%s shows the Spanish label with an icon', (status) => {
     render(<StatusBadge kind="bed" status={status} />)

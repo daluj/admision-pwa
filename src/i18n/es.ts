@@ -106,6 +106,12 @@ export const es = {
           label: 'Altas previstas hoy',
           context: (done: number) => (done === 1 ? '1 ya realizada' : `${done} ya realizadas`),
         },
+        turnaround: {
+          label: 'Rotación de cama',
+          context: (count: number) => (count === 1 ? '1 cama hoy' : `${count} camas hoy`),
+          none: 'sin datos todavía',
+          target: (minutes: number) => `objetivo ≤ ${minutes} min`,
+        },
         outliers: {
           label: 'Pacientes ectópicos',
           context: (units: number) =>

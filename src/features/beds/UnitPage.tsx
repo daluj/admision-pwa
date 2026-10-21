@@ -12,6 +12,7 @@ import { BedLegend } from './components/BedLegend'
 import { BedMap } from './components/BedMap'
 import { CensusKpis } from './components/CensusKpis'
 import { useCensus } from './useCensus'
+import { useTurnaround } from './useTurnaround'
 
 const copy = es.pages.beds
 
@@ -81,6 +82,8 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
     .join(' — ')
 
   const unitCensus = data?.census.units[0]
+  const bedIds = useMemo(() => new Set(unitCensus?.beds.map((v) => v.bed.id) ?? []), [unitCensus])
+  const turnaround = useTurnaround(bedIds)
 
   return (
     <>
@@ -106,7 +109,7 @@ function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {
         <EmptyState icon={BedDouble} title={copy.emptyTitle} description={copy.emptyDescription} />
       ) : (
         <>
-          <CensusKpis kpis={unitCensus.kpis} />
+          <CensusKpis kpis={unitCensus.kpis} turnaround={turnaround} />
           <BedLegend />
           <BedMap views={unitCensus.beds} now={data.now} specialtyNames={specialtyNames} />
         </>

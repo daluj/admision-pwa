@@ -15,6 +15,7 @@ import { CensusExceptions } from './components/CensusExceptions'
 import { CensusKpis } from './components/CensusKpis'
 import { UnitGrid } from './components/UnitGrid'
 import { useBedFilters } from './useBedFilters'
+import { useTurnaround } from './useTurnaround'
 import { useCensus } from './useCensus'
 
 const copy = es.pages.beds
@@ -70,6 +71,11 @@ function Census({ userId }: { userId: string }) {
     () => new Map((specialties ?? []).map((s) => [s.code, s.name])),
     [specialties],
   )
+  const bedIds = useMemo(
+    () => new Set(data?.census.units.flatMap((u) => u.beds.map((v) => v.bed.id)) ?? []),
+    [data],
+  )
+  const turnaround = useTurnaround(bedIds)
   const exceptions = useMemo(() => (data ? censusExceptions(data.census, data.now) : []), [data])
 
   const empty = data && data.census.units.length === 0 && !hasActiveFilters(filters)
@@ -86,7 +92,7 @@ function Census({ userId }: { userId: string }) {
       ) : (
         <>
           <BedFilters filters={filters} options={options} onChange={setFilters} />
-          <CensusKpis kpis={data.census.hospital} />
+          <CensusKpis kpis={data.census.hospital} turnaround={turnaround} />
           <CensusExceptions exceptions={exceptions} specialtyNames={specialtyNames} />
           <UnitGrid units={data.census.units} />
         </>

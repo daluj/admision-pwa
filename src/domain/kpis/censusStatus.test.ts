@@ -6,6 +6,7 @@ import {
   occupancyStatus,
   outliersStatus,
   pendingCleaningStatus,
+  turnaroundStatus,
 } from './censusStatus'
 
 const kpis = (
@@ -55,5 +56,16 @@ describe('tile statuses', () => {
     expect(outliersStatus(kpis({ OCCUPIED: 100 }, { outliers: 5 }))).toBe('neutral')
     expect(outliersStatus(kpis({ OCCUPIED: 100 }, { outliers: 6 }))).toBe('warn')
     expect(outliersStatus(kpis({}, { outliers: 3 }))).toBe('neutral')
+  })
+
+  it.each([
+    [null, 'neutral'],
+    [0, 'ok'],
+    [89 * 60_000, 'ok'],
+    [90 * 60_000, 'warn'],
+    [149 * 60_000, 'warn'],
+    [150 * 60_000, 'critical'],
+  ])('turnaround %s ms is %s', (ms, status) => {
+    expect(turnaroundStatus(ms)).toBe(status)
   })
 })
