@@ -657,3 +657,8 @@ export function searchPatients(
     }
   })
 }
+
+/** Whether a scoped user (nurse supervisor) may open this patient's journey. */
+export function isPatientInScope(patientId: Id, data: JourneyData, scope: JourneyScope): boolean {
+  return inScope(patientId, scope, lookups(data))
+}
