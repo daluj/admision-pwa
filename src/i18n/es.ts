@@ -127,6 +127,11 @@ export const es = {
         all: 'Todos',
         clear: 'Quitar filtros',
       },
+      noUnit: {
+        title: 'Sin unidad asignada',
+        description:
+          'Su usuario no tiene una unidad asignada, así que no puede ver ninguna. Pida a un administrador que se la asigne.',
+      },
       unit: {
         back: 'Todas las unidades',
         notFoundTitle: 'Unidad no encontrada',

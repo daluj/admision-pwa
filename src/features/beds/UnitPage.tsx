@@ -19,13 +19,26 @@ const copy = es.pages.beds
 export default function UnitPage() {
   const { unitCode = '' } = useParams()
   const units = useUnits()
-  const scopeUnitId = useUnitScope()
+  const scope = useUnitScope()
 
   if (!units) return <p className="text-muted-foreground text-sm">{copy.unit.loading}</p>
 
-  if (scopeUnitId) {
-    const own = units.find((unit) => unit.id === scopeUnitId)
-    if (own && own.code !== unitCode) return <Navigate to={`/camas/${own.code}`} replace />
+  // Fails closed: a supervisor only ever sees their own unit, and nothing without one.
+  if (scope.restricted) {
+    const own = units.find((unit) => unit.id === scope.unitId)
+    if (!own) {
+      return (
+        <>
+          <PageHeader title={copy.title} />
+          <EmptyState
+            icon={BedDouble}
+            title={copy.noUnit.title}
+            description={copy.noUnit.description}
+          />
+        </>
+      )
+    }
+    if (own.code !== unitCode) return <Navigate to={`/camas/${own.code}`} replace />
   }
 
   const unit = units.find((candidate) => candidate.code === unitCode)
@@ -45,7 +58,7 @@ export default function UnitPage() {
       </>
     )
   }
-  return <UnitView unit={unit} scoped={scopeUnitId !== null} />
+  return <UnitView unit={unit} scoped={scope.restricted} />
 }
 
 function UnitView({ unit, scoped }: { unit: Unit; scoped: boolean }) {

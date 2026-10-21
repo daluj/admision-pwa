@@ -22,16 +22,30 @@ const copy = es.pages.beds
 /** `/camas`: the hospital census. Nurse supervisors go straight to their own unit. */
 export default function BedsPage() {
   const session = useSession()
-  const scopeUnitId = useUnitScope()
+  const scope = useUnitScope()
   const units = useUnits()
 
-  if (scopeUnitId) {
-    const own = units?.find((unit) => unit.id === scopeUnitId)
+  if (scope.restricted) {
+    if (!units) return <p className="text-muted-foreground text-sm">{copy.grid.loading}</p>
+    const own = units.find((unit) => unit.id === scope.unitId)
     if (own) return <Navigate to={`/camas/${own.code}`} replace />
-    return <p className="text-muted-foreground text-sm">{copy.grid.loading}</p>
+    return <NoUnit />
   }
   if (session.status !== 'authenticated') return null
   return <Census userId={session.user.id} />
+}
+
+function NoUnit() {
+  return (
+    <>
+      <PageHeader title={copy.title} />
+      <EmptyState
+        icon={BedDouble}
+        title={copy.noUnit.title}
+        description={copy.noUnit.description}
+      />
+    </>
+  )
 }
 
 function Census({ userId }: { userId: string }) {

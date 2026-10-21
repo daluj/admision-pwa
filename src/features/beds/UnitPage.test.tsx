@@ -4,6 +4,7 @@ import { createMemoryBackend } from '@/data/adapters/memory/createMemoryBackend'
 import type { Role } from '@/domain/schemas'
 import { es } from '@/i18n/es'
 import { seedCensus } from '@/test/censusFixture'
+import { writeSession } from '@/features/auth/sessionStorage'
 import { renderApp, TEST_UNIT, TEST_USERS } from '@/test/renderApp'
 
 const copy = es.pages.beds
@@ -117,5 +118,36 @@ describe('roles and unit scope', () => {
   it('still keeps the porter out of Camas', async () => {
     const { router } = await open('/camas/UCI', 'PORTER')
     await waitFor(() => expect(router.state.location.pathname).toBe('/traslados'))
+  })
+
+  describe.each([
+    ['has no unit', undefined],
+    ['has a unit that no longer exists', 'ghost-unit'],
+  ])('a nurse supervisor who %s', (_name, unitId) => {
+    const orphan = {
+      ...TEST_USERS.NURSE_SUPERVISOR,
+      id: 'usr-orphan',
+      username: 'orphan',
+      unitId,
+    }
+
+    async function openAs(path: string) {
+      const backend = createMemoryBackend()
+      await seedCensus(backend)
+      await backend.events.append([], [{ entity: 'user', op: 'put', record: orphan }])
+      writeSession(orphan.id)
+      return renderApp(path, backend, { as: null })
+    }
+
+    it.each(['/camas', '/camas/UCI', '/camas/CAR-5N'])(
+      'sees nothing at %s (fails closed)',
+      async (path) => {
+        const { router } = await openAs(path)
+        expect(await screen.findByText(copy.noUnit.title)).toBeInTheDocument()
+        expect(screen.queryByRole('list', { name: copy.kpis.label })).not.toBeInTheDocument()
+        expect(screen.queryByRole('region', { name: unit.mapTitle })).not.toBeInTheDocument()
+        expect(router.state.location.pathname).toBe(path)
+      },
+    )
   })
 })
