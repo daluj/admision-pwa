@@ -1,9 +1,18 @@
 # Changelog
 
-<!-- last-commit: 58f51bf35574c3db2bd50cd786fd1ba650582d05 -->
+<!-- last-commit: 04cfb7a109dfc43f10543c6bc15916d2249e152e -->
+
+## 2026-10-21
+
+- Synthetic hospital seed validated and released (Phase 3)
 
 ## 2026-10-20
 
+- The app now opens on a realistic, fictitious hospital at 08:00 today (Madrid time): ~600 beds at 85 % occupancy across 20 units, inpatients with expected discharges, ~40 ED patients by Manchester level (8 waiting for a ward bed), scheduled admissions, porters and users — loaded automatically on first launch
+- Same seed, same hospital: names, ids and states are reproducible for repeatable demos; only the dates follow the current day
+- Ajustes → "Datos de demostración": choose a seed and "Restablecer demo" (with confirmation) to rebuild the hospital; every open tab updates live
+- Each reset is recorded as a single "DemoSeeded" event, and two tabs opening at once can never seed twice
+- The hospital's structure is described in one data file, ready to be replaced with the real hospital's figures
 - Local database in the browser (IndexedDB) for the whole hospital model — services, units, beds, patients, ED visits, admissions, bed requests, transfers, porters, users, alerts and simulator state — plus an append-only event log; everything works offline
 - Every change is recorded as an event and saved together with the resulting state, all or nothing
 - Hospital rules built in: valid status changes for beds, ED visits, admissions and transfers (e.g. a bed must be cleaned before it is free again)
