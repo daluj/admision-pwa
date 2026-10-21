@@ -32,6 +32,32 @@ export function OrderSheet({
   onCloseAutoFocus,
   busy = false,
 }: OrderSheetProps) {
+  return (
+    <Sheet open={row !== null} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" className="sm:max-w-md" onCloseAutoFocus={onCloseAutoFocus}>
+        {/* Keyed by patient: an error shown for one patient never carries over to the next. */}
+        {row && (
+          <Body
+            key={row.admission.id}
+            row={row}
+            unavailable={unavailable}
+            onConfirm={onConfirm}
+            onClose={onClose}
+            busy={busy}
+          />
+        )}
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function Body({
+  row,
+  unavailable,
+  onConfirm,
+  onClose,
+  busy,
+}: Omit<OrderSheetProps, 'row'> & { row: WorklistRow; busy: boolean; unavailable: boolean }) {
   const [error, setError] = useState<string | null>(null)
   const confirm = async () => {
     setError(null)
@@ -40,44 +66,38 @@ export function OrderSheet({
     else setError(result.message)
   }
   return (
-    <Sheet open={row !== null} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="sm:max-w-md" onCloseAutoFocus={onCloseAutoFocus}>
-        {row && (
-          <>
-            <SheetHeader>
-              <SheetTitle>{copy.title}</SheetTitle>
-              <SheetDescription>
-                {copy.description(`${row.bed.label} · ${row.initials}`)}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex-1 px-4 text-sm">
-              {unavailable ? (
-                <p role="alert" className="text-status-critical font-medium">
-                  {copy.gone}
-                </p>
-              ) : (
-                <p>{copy.body}</p>
-              )}
-              {error && (
-                <p role="alert" className="text-status-critical mt-3 font-medium">
-                  {error}
-                </p>
-              )}
-            </div>
-            <SheetFooter>
-              {unavailable ? (
-                <Button variant="outline" onClick={onClose}>
-                  {copy.close}
-                </Button>
-              ) : (
-                <Button onClick={confirm} disabled={busy}>
-                  {busy ? copy.working : copy.confirm}
-                </Button>
-              )}
-            </SheetFooter>
-          </>
+    <>
+      <SheetHeader>
+        <SheetTitle>{copy.title}</SheetTitle>
+        <SheetDescription>
+          {copy.description(`${row.bed.label} · ${row.initials}`)}
+        </SheetDescription>
+      </SheetHeader>
+      <div className="flex-1 px-4 text-sm">
+        {unavailable ? (
+          <p role="alert" className="text-status-critical font-medium">
+            {copy.gone}
+          </p>
+        ) : (
+          <p>{copy.body}</p>
         )}
-      </SheetContent>
-    </Sheet>
+        {error && (
+          <p role="alert" className="text-status-critical mt-3 font-medium">
+            {error}
+          </p>
+        )}
+      </div>
+      <SheetFooter>
+        {unavailable ? (
+          <Button variant="outline" onClick={onClose}>
+            {copy.close}
+          </Button>
+        ) : (
+          <Button onClick={confirm} disabled={busy}>
+            {busy ? copy.working : copy.confirm}
+          </Button>
+        )}
+      </SheetFooter>
+    </>
   )
 }

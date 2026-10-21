@@ -59,9 +59,12 @@ export async function discharges(
       if (minutesBetween(at, expected) > lead || !inHours(local, ORDER_HOURS)) continue
       actions++
       if (entityChance(seed, `slip:${expected}`, admission.id, DISCHARGE_SLIP_SHARE)) {
+        // A day later — and still ahead of now, however overdue it already was.
+        let next = addMinutes(expected, 1440)
+        while (Date.parse(next) <= Date.parse(at)) next = addMinutes(next, 1440)
         await ctx.exec(setExpectedDischarge, {
           admissionId: admission.id,
-          expectedDischargeAt: addMinutes(expected, 1440),
+          expectedDischargeAt: next,
         })
       } else {
         await ctx.exec(orderDischarge, { admissionId: admission.id })

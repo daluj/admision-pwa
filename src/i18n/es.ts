@@ -451,7 +451,7 @@ export const es = {
           'Camas libres ahora más altas previstas pendientes, menos pacientes que necesitan cama.',
         available: 'Camas libres ahora',
         expectedRemaining: 'Altas previstas pendientes hoy',
-        boarding: 'Pendientes de ingreso (Urgencias)',
+        boarding: 'Pendientes de ingreso sin cama (Urgencias)',
         scheduledPending: 'Programados pendientes',
         result: 'Balance previsto',
         deficit: (value: number) =>

@@ -101,6 +101,18 @@ describe('computeAdmissions: bed balance', () => {
     })
   })
 
+  it('does not count a boarder twice once their bed is reserved (that bed is no longer free)', () => {
+    const withBed = admissionsInput.admissions.map((a) => ({ ...a }))
+    withBed.push({
+      ...admissionsInput.admissions.find((a) => a.id === 'i1')!,
+      id: 'board-adm',
+      status: 'BED_ASSIGNED',
+      edVisitId: 'v1',
+      bedId: 'b3',
+    })
+    expect(compute({ admissions: withBed }).balance.boarding).toBe(1) // v1 has its bed; only v2 still needs one
+  })
+
   it('has a unit-level variant for a nurse supervisor (own beds, own specialties)', () => {
     const scope = { unitIds: new Set(['u1']), specialtyCodes: new Set(['CAR']) }
     expect(compute({ scope }).balance).toEqual({

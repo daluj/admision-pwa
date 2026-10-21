@@ -319,9 +319,13 @@ export function computeAdmissions(input: AdmissionsInput): Admissions {
     if (admission.edVisitId && admission.status !== 'CANCELLED')
       admissionByVisit.set(admission.edVisitId, admission)
   }
+  // Boarders that already hold a reserved bed are not counted again: that bed is no longer free.
   const boarding = edVisits.filter((visit) => {
     if (visit.phase !== 'ADMIT_DECISION') return false
-    const code = visit.targetSpecialtyCode ?? admissionByVisit.get(visit.id)?.specialtyCode
+    const admission = admissionByVisit.get(visit.id)
+    if (admission && ['BED_ASSIGNED', 'IN_TRANSFER', 'ADMITTED'].includes(admission.status))
+      return false
+    const code = visit.targetSpecialtyCode ?? admission?.specialtyCode
     return !scope || (code !== undefined && scope.specialtyCodes.has(code))
   }).length
   const availableBeds = scopedBeds.filter((b) => b.status === 'AVAILABLE').length

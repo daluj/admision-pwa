@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 9 — Admissions & Discharges
 **Branch:** `phase-9-admissions-discharges`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 > Interview skipped on request (autonomous run, phases 9–12): the options marked "Recommended" in earlier interviews were applied. Every such choice is listed under **Decisions**.
 
@@ -27,7 +27,7 @@ Plan the day's bed balance. `/ingresos-altas` follows the dashboard order: KPI s
 
 **3. Scheduled admissions of the day** — table: time, patient initials, specialty, status `Pendiente` (not arrived), `Llegado · esperando cama`, `Cama reservada`, `Ingresado`, `Cancelado` (with reason "sin cama / paciente / clínico / otro" from the event), sorted by scheduled time. Counts per status above the table.
 
-**4. Bed balance forecast** (card): `camas libres ahora + altas previstas pendientes hoy − (pacientes pendientes de ingreso + programados pendientes)`, shown as a breakdown (four numbers) and a result with status and the deficit warning text. Pending expected discharges = expected today and still `ADMITTED`/`DISCHARGE_ORDERED`.
+**4. Bed balance forecast** (card): `camas libres ahora + altas previstas pendientes hoy − (pacientes pendientes de ingreso sin cama reservada + programados pendientes)`, shown as a breakdown (four numbers) and a result with status and the deficit warning text. Pending expected discharges = expected today and still `ADMITTED`/`DISCHARGE_ORDERED`.
 
 **5. Discharges per unit** — table: unit, expected today, done, pending (still in bed), orders issued, % before 12:00, sorted by pending desc. Hospital totals row.
 

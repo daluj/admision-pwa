@@ -42,6 +42,16 @@ export function DischargeWorklist({ rows, now, canAct, onEdit, onOrder }: Discha
               id={`worklist-tab-${id}`}
               aria-selected={tab === id}
               aria-controls="worklist-panel"
+              tabIndex={tab === id ? 0 : -1}
+              onKeyDown={(event) => {
+                const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+                if (step === 0) return
+                event.preventDefault()
+                const next = TABS[(TABS.indexOf(id) + step + TABS.length) % TABS.length]!
+                setTab(next)
+                setLimit(WORKLIST_PAGE_SIZE)
+                document.getElementById(`worklist-tab-${next}`)?.focus()
+              }}
               onClick={() => {
                 setTab(id)
                 setLimit(WORKLIST_PAGE_SIZE)

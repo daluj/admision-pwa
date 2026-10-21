@@ -81,4 +81,17 @@ describe('DischargeWorklist', () => {
     show({ rows: [] })
     expect(screen.getByText(copy.empty)).toBeInTheDocument()
   })
+
+  it('is a real tab widget: roving tabindex and arrow keys move between tabs', async () => {
+    const user = userEvent.setup()
+    show()
+    const tabs = screen.getAllByRole('tab')
+    expect(tabs.map((t) => t.getAttribute('tabindex'))).toEqual(['0', '-1', '-1', '-1'])
+    tabs[0]!.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('tab', { selected: true })).toHaveTextContent(copy.tabs.ordered)
+    expect(screen.getByRole('tab', { selected: true })).toHaveFocus()
+    await user.keyboard('{ArrowLeft}{ArrowLeft}')
+    expect(screen.getByRole('tab', { selected: true })).toHaveTextContent(copy.tabs.none) // wraps around
+  })
 })
