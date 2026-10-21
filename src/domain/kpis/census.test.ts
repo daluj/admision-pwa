@@ -268,6 +268,25 @@ describe('censusExceptions', () => {
     })
   })
 
+  it.each([
+    [59, false, undefined],
+    [61, true, 'warn'],
+    [120, true, 'warn'],
+    [121, true, 'critical'],
+  ])('a bed pending cleaning for %i min → exception %s (%s)', (minutes, raised, severity) => {
+    const dirty = [bed('D1', 'u-ward', 'PENDING_CLEANING', { statusChangedAt: iso(-minutes / 60) })]
+    const found = censusExceptions(census({ beds: dirty, admissions: [] }), NOW).filter(
+      (e) => e.kind === 'cleaningLong',
+    )
+    expect(found.length).toBe(raised ? 1 : 0)
+    if (raised) expect(found[0]).toMatchObject({ severity, bedLabel: 'D1', unitCode: 'CAR-5N' })
+  })
+
+  it('a bed being cleaned (not waiting) is not a cleaning exception', () => {
+    const cleaning = [bed('C1', 'u-ward', 'CLEANING', { statusChangedAt: iso(-5) })]
+    expect(censusExceptions(census({ beds: cleaning, admissions: [] }), NOW)).toEqual([])
+  })
+
   it('orders equally severe exceptions oldest first', () => {
     const blocked = (id: string, hoursAgo: number) =>
       bed(id, 'u-ward', 'BLOCKED', { blockedReason: 'x', statusChangedAt: iso(-hoursAgo) })

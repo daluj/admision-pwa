@@ -1,10 +1,11 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { createMemoryBackend } from '@/data/adapters/memory/createMemoryBackend'
 import { sampleEntities } from '@/domain/schemas/fixtures'
+import type { NewHospitalEvent } from '@/domain/schemas'
 import { es } from '@/i18n/es'
-import { seedCensus } from '@/test/censusFixture'
+import { CENSUS_NOW, seedCensus } from '@/test/censusFixture'
 import { renderApp, TEST_USERS } from '@/test/renderApp'
 
 const copy = es.pages.beds
@@ -22,6 +23,27 @@ const tile = (label: string) =>
     .getByText(label)
     .closest('li')!
 
+const turnaroundEvents = (finishedAt: string, dischargedAt: string): NewHospitalEvent[] => [
+  {
+    id: '00000000-0000-4000-8000-0000000000a1',
+    type: 'PatientDischarged',
+    occurredAt: dischargedAt,
+    actor: 'simulator',
+    entityType: 'Admission',
+    entityId: 'd1',
+    payload: { bedId: 'A4' },
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000000a2',
+    type: 'BedCleaningFinished',
+    occurredAt: finishedAt,
+    actor: 'simulator',
+    entityType: 'Bed',
+    entityId: 'A4',
+    payload: {},
+  },
+]
+
 describe('BedsPage (census)', () => {
   it('shows the six KPIs of the fixture', async () => {
     await openCensus()
@@ -37,6 +59,72 @@ describe('BedsPage (census)', () => {
       `2${copy.kpis.expectedDischarges.context(1)}`,
     )
     expect(tile(copy.kpis.outliers.label)).toHaveTextContent(`1${copy.kpis.outliers.context(1)}`)
+  })
+
+  it("shows the bed turnaround: no data at first, then the median of today's cleanings", async () => {
+    const backend = await openCensus()
+    const turnaround = tile(copy.kpis.turnaround.label)
+    expect(turnaround).toHaveTextContent('—')
+    expect(turnaround).toHaveTextContent(copy.kpis.turnaround.none)
+    expect(turnaround).toHaveTextContent(copy.kpis.turnaround.target(90))
+
+    // Discharged 08:30Z, cleaned 10:00Z: 1 h 30 min (warn at the 90 min target).
+    await act(() =>
+      backend.events.append(
+        turnaroundEvents('2026-10-21T10:00:00.000Z', '2026-10-21T08:30:00.000Z'),
+        [],
+      ),
+    )
+    await waitFor(() => expect(turnaround).toHaveTextContent('1 h 30 min'))
+    expect(turnaround).toHaveTextContent(copy.kpis.turnaround.context(1))
+    expect(turnaround).toHaveAttribute('data-status', 'warn')
+  })
+
+  it('a quick turnaround is ok and the strip has seven tiles', async () => {
+    const backend = await openCensus()
+    expect(
+      within(screen.getByRole('list', { name: copy.kpis.label })).getAllByRole('listitem'),
+    ).toHaveLength(7)
+    await act(() =>
+      backend.events.append(
+        turnaroundEvents('2026-10-21T09:00:00.000Z', '2026-10-21T08:15:00.000Z'),
+        [],
+      ),
+    )
+    const turnaround = tile(copy.kpis.turnaround.label)
+    await waitFor(() => expect(turnaround).toHaveTextContent('45 min'))
+    expect(turnaround).toHaveAttribute('data-status', 'ok')
+  })
+
+  it('raises a pending-cleaning exception after an hour, critical after two', async () => {
+    const backend = createMemoryBackend()
+    await seedCensus(backend)
+    const dirty = (id: string, minutesAgo: number) => ({
+      entity: 'bed' as const,
+      op: 'put' as const,
+      record: {
+        ...sampleEntities.bed,
+        id,
+        unitId: 'u-ward',
+        label: id,
+        status: 'PENDING_CLEANING' as const,
+        statusChangedAt: new Date(Date.parse(CENSUS_NOW) - minutesAgo * 60_000).toISOString(),
+      },
+    })
+    await backend.events.append([], [dirty('D1', 80), dirty('D2', 130), dirty('D3', 30)])
+    renderApp('/camas', backend)
+    expect(
+      await screen.findByText(copy.exceptions.cleaningLong('D1', '1 h 20 min')),
+    ).toBeInTheDocument()
+    expect(screen.getByText(copy.exceptions.cleaningLong('D2', '2 h 10 min'))).toBeInTheDocument()
+    expect(screen.queryByText(copy.exceptions.cleaningLong('D3', '30 min'))).not.toBeInTheDocument()
+    const rows = screen.getAllByRole('listitem').filter((li) => li.hasAttribute('data-severity'))
+    const d2 = rows.find((li) => li.textContent?.includes('D2'))!
+    expect(d2).toHaveAttribute('data-severity', 'critical')
+    expect(rows.find((li) => li.textContent?.includes('D1'))).toHaveAttribute(
+      'data-severity',
+      'warn',
+    )
   })
 
   it('lists exceptions and one card per unit with beds, linking to the bed map', async () => {

@@ -68,14 +68,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Bed map per unit (status colours, patient initials, LOS, expected discharge)
 - [x] Filters by building, unit type, specialty; live updates
 
-## Phase 7: Bed Management — Actions & Turnaround
+## Phase 7: Bed Management — Actions & Turnaround (Complete)
 
 **Goal:** Operate beds from the dashboard.
 
-- [ ] Open bed requests list sorted by priority and wait time
-- [ ] Reserve/assign a bed to a request (with suggestions: matching specialty, isolation)
-- [ ] Block/unblock beds; mark cleaning started/finished
-- [ ] Bed turnaround KPI and "pending cleaning > 60 min" exceptions
+- [x] Open bed requests list sorted by priority and wait time
+- [x] Reserve/assign a bed to a request (with suggestions: matching specialty, isolation)
+- [x] Block/unblock beds; mark cleaning started/finished
+- [x] Bed turnaround KPI and "pending cleaning > 60 min" exceptions
 
 ## Phase 8: Emergency Department Dashboard
 

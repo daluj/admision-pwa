@@ -4,6 +4,8 @@ import type { DataBackendInfo, TableCounts } from '@/data/ports'
 import type {
   Admission,
   Bed,
+  BedRequest,
+  EdVisit,
   HospitalEvent,
   Id,
   IsoDateTime,
@@ -46,6 +48,16 @@ export function usePatients(): Patient[] | undefined {
 export function useAdmissions(): Admission[] | undefined {
   const { repositories } = useDataBackend()
   return useSubscribable(useMemo(() => repositories.admission.observeList(), [repositories]))
+}
+
+export function useBedRequests(): BedRequest[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.bedRequest.observeList(), [repositories]))
+}
+
+export function useEdVisits(): EdVisit[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.edVisit.observeList(), [repositories]))
 }
 
 export function useUsers(): User[] | undefined {

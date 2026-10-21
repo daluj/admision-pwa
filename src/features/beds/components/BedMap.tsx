@@ -23,9 +23,10 @@ type BedMapProps = {
   now: string
   /** Specialty code → full name. */
   specialtyNames: ReadonlyMap<string, string>
+  onSelect?: ((bedId: string) => void) | undefined
 }
 
-export function BedMap({ views, now, specialtyNames }: BedMapProps) {
+export function BedMap({ views, now, specialtyNames, onSelect }: BedMapProps) {
   return (
     <section aria-labelledby="bed-map-title">
       <h2 id="bed-map-title" className="mb-3 text-lg font-semibold">
@@ -41,6 +42,7 @@ export function BedMap({ views, now, specialtyNames }: BedMapProps) {
                   key={view.bed.id}
                   view={view}
                   now={now}
+                  onSelect={onSelect}
                   specialtyName={
                     view.specialtyCode ? specialtyNames.get(view.specialtyCode) : undefined
                   }

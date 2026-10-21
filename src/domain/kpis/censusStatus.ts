@@ -27,3 +27,12 @@ export function outliersStatus(kpis: CensusKpis): TileStatus {
     ? 'warn'
     : 'neutral'
 }
+
+/** Bed turnaround: ok under the target, warn from 90 min, critical from 150 min, neutral without data. */
+export function turnaroundStatus(medianMs: number | null): TileStatus {
+  if (medianMs === null) return 'neutral'
+  const minutes = medianMs / 60_000
+  if (minutes >= CENSUS_THRESHOLDS.turnaroundCriticalMin) return 'critical'
+  if (minutes >= CENSUS_THRESHOLDS.turnaroundWarnMin) return 'warn'
+  return 'ok'
+}

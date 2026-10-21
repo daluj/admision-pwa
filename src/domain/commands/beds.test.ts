@@ -173,6 +173,20 @@ describe('releaseBedReservation', () => {
     expect(await h.backend.repositories.porter.get('por-1')).toMatchObject({ status: 'AVAILABLE' })
   })
 
+  it('rejects a release meant for a reservation the bed no longer holds', async () => {
+    const b = await reserved()
+    const before = await h.backend.events.lastSeq()
+    await expect(
+      h.run(releaseBedReservation, { bedId: 'bed-1', expectedAdmissionId: 'some-other-admission' }),
+    ).rejects.toThrow(InvalidCommandError)
+    expect(await h.backend.events.lastSeq()).toBe(before)
+    expect(await bed('bed-1')).toMatchObject({ status: 'RESERVED', admissionId: b.admissionId })
+
+    // The reservation it was looking at: released as usual.
+    await h.run(releaseBedReservation, { bedId: 'bed-1', expectedAdmissionId: b.admissionId })
+    expect(await bed('bed-1')).toMatchObject({ status: 'AVAILABLE' })
+  })
+
   it('rejects a bed that is not reserved', async () => {
     await expect(h.run(releaseBedReservation, { bedId: 'bed-1' })).rejects.toThrow(
       InvalidTransitionError,

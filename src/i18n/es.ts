@@ -106,6 +106,12 @@ export const es = {
           label: 'Altas previstas hoy',
           context: (done: number) => (done === 1 ? '1 ya realizada' : `${done} ya realizadas`),
         },
+        turnaround: {
+          label: 'Rotación de cama',
+          context: (count: number) => (count === 1 ? '1 cama hoy' : `${count} camas hoy`),
+          none: 'sin datos todavía',
+          target: (minutes: number) => `objetivo ≤ ${minutes} min`,
+        },
         outliers: {
           label: 'Pacientes ectópicos',
           context: (units: number) =>
@@ -114,6 +120,8 @@ export const es = {
       },
       exceptions: {
         blockedLong: (bed: string, age: string) => `Cama ${bed} bloqueada desde hace ${age}`,
+        cleaningLong: (bed: string, age: string) =>
+          `Cama ${bed} pendiente de limpieza desde hace ${age}`,
         reason: (reason: string) => `Motivo: ${reason}`,
         unitFull: (unit: string, pct: number) => `${unit} al ${pct} % de ocupación`,
         outlier: (initials: string, unit: string) => `${initials} ectópico en ${unit}`,
@@ -126,6 +134,89 @@ export const es = {
         specialty: 'Servicio',
         all: 'Todos',
         clear: 'Quitar filtros',
+      },
+      requests: {
+        title: 'Solicitudes de cama',
+        counts: (open: number, assigned: number) =>
+          `${open === 1 ? '1 abierta' : `${open} abiertas`} · ${assigned} con cama reservada`,
+        empty: 'No hay solicitudes de cama abiertas.',
+        priority: (priority: string) => `Prioridad ${priority.slice(1)}`,
+        sourceEd: (triage?: number) => (triage ? `Urgencias · triaje ${triage}` : 'Urgencias'),
+        sourceScheduled: 'Programado',
+        isolation: 'Aislamiento',
+        waiting: 'Espera',
+        assign: 'Asignar cama',
+        assignFor: (initials: string) => (initials ? `Asignar cama a ${initials}` : 'Asignar cama'),
+        list: 'Solicitudes abiertas',
+      },
+      bedSheet: {
+        title: (bed: string) => `Cama ${bed}`,
+        readOnly: 'Solo lectura: su rol no puede modificar esta cama.',
+        occupied: 'Cama ocupada: no hay acciones disponibles.',
+        patient: (initials: string) => `Paciente ${initials}`,
+        actions: 'Acciones',
+        block: {
+          title: 'Bloquear cama',
+          reason: 'Motivo del bloqueo',
+          presets: 'Motivos habituales',
+          preset: 'Elegir un motivo…',
+          submit: 'Bloquear cama',
+          required: 'Indique el motivo del bloqueo.',
+        },
+        release: {
+          title: 'Liberar reserva',
+          reason: 'Motivo (opcional)',
+          submit: 'Liberar reserva',
+        },
+        startCleaning: 'Iniciar limpieza',
+        finishCleaning: 'Terminar limpieza',
+        unblock: 'Desbloquear cama',
+        working: 'Procesando…',
+        blockReasons: [
+          'Avería de la cama',
+          'Obras en la habitación',
+          'Aislamiento ambiental',
+          'Falta de personal de enfermería',
+          'Revisión de mantenimiento',
+        ],
+      },
+      assignSheet: {
+        title: 'Asignar cama',
+        description: (who: string, specialty: string, unitType: string) =>
+          `${who ? `${who} · ` : ''}${specialty} · ${unitType}`,
+        suggested: 'Camas sugeridas',
+        all: 'Camas libres compatibles',
+        none: 'No hay camas libres compatibles ahora mismo.',
+        showAll: (count: number) => `Ver todas las camas libres compatibles (${count})`,
+        showLess: 'Ver solo las sugeridas',
+        tags: {
+          SPECIALTY: 'Mismo servicio',
+          OUTLIER: 'Ectópico',
+          ISOLATION: 'Aislamiento',
+        },
+        reserve: 'Reservar cama',
+        reserving: 'Reservando…',
+        close: 'Cerrar',
+        selectHint: 'Elija una cama para reservarla.',
+        dismiss: 'Entendido',
+        gone: 'Esa solicitud ya no está abierta: otra persona o la simulación la ha atendido.',
+        bedTaken: 'La cama elegida ya no está libre. Elija otra.',
+      },
+      actions: {
+        toast: {
+          reserve: (bed: string, initials: string) =>
+            initials ? `Cama ${bed} reservada para ${initials}` : `Cama ${bed} reservada`,
+          release: (bed: string) => `Cama ${bed}: reserva liberada`,
+          block: (bed: string) => `Cama ${bed} bloqueada`,
+          unblock: (bed: string) => `Cama ${bed} desbloqueada`,
+          startCleaning: (bed: string) => `Cama ${bed}: limpieza iniciada`,
+          finishCleaning: (bed: string) => `Cama ${bed}: limpieza terminada, disponible`,
+        },
+        errors: {
+          forbidden: 'No tiene permiso para esta acción.',
+          stale: 'Esa cama o solicitud ya no está disponible.',
+          failed: 'No se pudo completar la acción. Inténtelo de nuevo.',
+        },
       },
       noUnit: {
         title: 'Sin unidad asignada',
