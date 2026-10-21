@@ -177,10 +177,11 @@ Calculators are pure functions in `src/domain/kpis/`, taking entities + `now` an
 - **ED LOS** (median, hours); **LWBS** count today.
 
 ### Admissions & Discharges
-- **Admissions today** split `URGENT` / `SCHEDULED`; scheduled pending arrival.
-- **Discharges today** done vs expected; **% discharges before 12:00**.
-- **Bed balance forecast** = available beds now + expected discharges remaining today − (boarding patients + scheduled admissions pending today). Negative → deficit warning.
-- **Cancelled scheduled admissions due to no bed** (today).
+- **Admissions today** (`admittedAt` on the local day) split `URGENT` / `SCHEDULED`; **scheduled pending arrival** = scheduled for today and still `SCHEDULED` (arrived ones are `AWAITING_BED` onwards).
+- **Discharges today** done (`dischargedAt` today) vs expected (`expectedDischargeAt` today); **% discharges before 12:00** = completed today before 12:00 (Europe/Madrid) ÷ completed today; objective ≥ 30 % (warn ≥ 15 %).
+- **Bed balance forecast** = available beds now + expected discharges remaining today (expected today, still in bed) − (boarding patients **without a reserved bed** + scheduled admissions pending today) — a boarder whose bed is already reserved is not counted twice, because that bed is no longer free. Negative → deficit warning (`BED_BALANCE_NEGATIVE`: warn < 0, critical < −10). Unit-level variant for nurse supervisors: the unit's free beds and pending discharges, minus scheduled and boarding patients bound for the unit's specialties.
+- **Cancelled scheduled admissions due to no bed** (today): `AdmissionCancelled` events with reason `NO_BED` (the reason lives in the event, not on the admission).
+- **Expected-discharge rules**: only `ADMITTED` patients can have their expected discharge set or edited (future time, at most 7 days ahead); `ordering` the discharge moves them to `DISCHARGE_ORDERED`.
 
 ### Transfers
 - **Open requests** by status; **median time to pickup**; **% within SLA** (default SLA: URGENT 10 min, NORMAL 30 min to pickup); **porters available / busy**.
@@ -207,7 +208,7 @@ Alerts are raised and resolved automatically by an evaluator that runs on every 
 |---|---|---|
 | `ADMISSIONS_HEAD` | Jefe/a de Admisión | Everything; settings; simulator controls |
 | `BED_MANAGER` | Gestor/a de camas | Beds, admissions, transfers; reserve/assign/release/block/unblock beds and cleaning |
-| `NURSE_SUPERVISOR` | Supervisor/a de enfermería | Own unit's beds and incoming patients; set expected discharges; start/finish cleaning on their own unit (no reserve/block) |
+| `NURSE_SUPERVISOR` | Supervisor/a de enfermería | Own unit's beds and incoming patients; set expected discharges and order discharges for their own unit; start/finish cleaning on their own unit (no reserve/block) |
 | `ED_COORDINATOR` | Coordinación de Urgencias | ED dashboard, boarding, bed requests |
 | `PORTER` | Celador/a | Own transfer queue: accept, pick up, deliver |
 | `MANAGEMENT` | Dirección | Overview and all dashboards, read-only |

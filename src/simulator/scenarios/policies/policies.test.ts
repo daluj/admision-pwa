@@ -421,6 +421,20 @@ describe('discharges', () => {
     }
   })
 
+  it('a slipped discharge that was already overdue moves to a future time (the command refuses the past)', async () => {
+    const h = await inpatients(40, () => ({ expectedDischargeAt: iso(-3 * 1440) })) // three days overdue
+    const { vi } = await import('vitest')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await h.play(policies(discharges), 6 * 60)
+    for (const e of await h.events('ExpectedDischargeSet')) {
+      expect(
+        (e.payload as { expectedDischargeAt: string }).expectedDischargeAt > e.occurredAt,
+      ).toBe(true)
+    }
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
   it('discharges after the order delay, only in daytime hours', async () => {
     const h = await createScenarioHarness('2026-10-21T20:00:00.000Z') // 22:00 Madrid
     await h.put(

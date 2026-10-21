@@ -86,14 +86,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Boarding list with time since admit decision and bed request status
 - [x] Waiting time vs target chart (last 24 h)
 
-## Phase 9: Admissions & Discharges
+## Phase 9: Admissions & Discharges (Complete)
 
 **Goal:** Plan the day's bed balance.
 
-- [ ] Scheduled admissions of the day (pending / arrived / cancelled)
-- [ ] Expected vs completed discharges, % before 12:00, per unit
-- [ ] Nurse supervisor can set/edit expected discharge and order discharge
-- [ ] Bed balance forecast for today with deficit warning
+- [x] Scheduled admissions of the day (pending / arrived / cancelled)
+- [x] Expected vs completed discharges, % before 12:00, per unit
+- [x] Nurse supervisor can set/edit expected discharge and order discharge
+- [x] Bed balance forecast for today with deficit warning
 
 ## Phase 10: Internal Transfers — Dispatch
 

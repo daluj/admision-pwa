@@ -1,9 +1,13 @@
 # Changelog
 
-<!-- last-commit: 15c962c2800f7aa128c0eb555d9fb86b7cdec705 -->
+<!-- last-commit: d7ae9f7271d552f3cb0d6af211df4d4e496913d2 -->
 
 ## 2026-10-21
 
+- Ingresos y altas page: six live indicators (admissions today, scheduled still pending, discharges done vs expected, % of discharges before 12:00, bed balance, scheduled admissions cancelled for lack of a bed) and a "Necesita atención" list for bed-balance deficits, scheduled patients waiting too long for a bed and discharge orders that were not carried out
+- The day's scheduled admissions with their state (pending, arrived, bed reserved, admitted, cancelled with the reason), discharges per unit, and a bed-balance forecast for today with its breakdown and a deficit warning
+- Discharge worklist (today, ordered, coming days, no date): the head of admissions and nurse supervisors (own unit only) can set or edit the expected discharge and order the discharge; management and bed managers see it read-only. Each action is logged under the name of the person who made it
+- Expected discharges must be in the future and at most 7 days ahead; a nurse supervisor without a unit sees nothing
 - Urgencias dashboard: six live indicators (patients present, waiting for triage, waiting for a physician, pending admission, longest wait for a bed, % seen within target) and a "Necesita atención" list for patients waiting longer than their Manchester target and for boarders over 4 h (critical over 8 h)
 - ED board in four columns — Llegada, Triado, En atención, Pendiente de ingreso — with each patient's Manchester level as colour and number, initials, complaint, area and time in the phase; names and NHC only in the tooltip
 - Boarding list with the time since the admit decision and the bed request state (no bed, bed reserved, on its way), longest wait first; the head can jump to Camas to assign a bed

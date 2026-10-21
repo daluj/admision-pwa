@@ -21,6 +21,9 @@ import {
   type CommandContext,
 } from './types'
 
+/** An expected discharge can be set at most this many days ahead (`specs/domain.md`). */
+export const ADMISSION_MAX_DAYS_AHEAD = 7
+
 async function requireSpecialty(ctx: CommandContext, code: Code) {
   const specialties = await ctx.repositories.specialty.list()
   if (!specialties.some((s) => s.code === code)) {
@@ -172,6 +175,16 @@ export const setExpectedDischarge: Command<SetExpectedDischargeInput> = async (c
   const admission = await requireEntity(ctx, 'admission', input.admissionId)
   if (admission.status !== 'ADMITTED') {
     throw new InvalidCommandError(`Admission ${admission.id} is ${admission.status}, not ADMITTED`)
+  }
+  const expectedMs = Date.parse(input.expectedDischargeAt)
+  const nowMs = Date.parse(ctx.now)
+  if (expectedMs <= nowMs) {
+    throw new InvalidCommandError('The expected discharge must be in the future')
+  }
+  if (expectedMs - nowMs > ADMISSION_MAX_DAYS_AHEAD * 24 * 60 * 60_000) {
+    throw new InvalidCommandError(
+      `The expected discharge is more than ${ADMISSION_MAX_DAYS_AHEAD} days ahead`,
+    )
   }
   return {
     events: [

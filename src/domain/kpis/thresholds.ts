@@ -45,3 +45,21 @@ export const ED_THRESHOLDS = {
   withinTargetObjective: 0.85,
   withinTargetWarn: 0.7,
 } as const
+
+/** Admissions & discharges thresholds (defaults; configurable in Settings from Phase 12). */
+export const ADMISSION_THRESHOLDS = {
+  /** Local minute of the day that counts as "noon" for "discharged before 12:00". */
+  noonMinuteOfDay: 12 * 60,
+  /** Share of the day's discharges completed before noon: objective / warning floor. */
+  beforeNoonObjective: 0.3,
+  beforeNoonWarn: 0.15,
+  /** Bed balance: warning below 0, critical below this (`BED_BALANCE_NEGATIVE`). */
+  balanceCritical: -10,
+  /** A scheduled patient waiting for a bed this long after their time: warn / critical (minutes). */
+  scheduledLateWarnMin: 120,
+  scheduledLateCriticalMin: 180,
+  /** A discharge ordered this long ago and still in bed (minutes). */
+  orderedStuckMin: 180,
+  /** An expected discharge can be set at most this many days ahead. */
+  maxDaysAhead: 7,
+} as const

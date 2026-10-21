@@ -85,3 +85,23 @@ export const BED_STATUS_ACTIONS: Record<BedStatus, readonly BedAction[]> = {
   CLEANING: ['finishCleaning', 'block'],
   BLOCKED: ['unblock'],
 }
+
+/** What a person can do about a patient's discharge (each maps to a domain command). */
+export const DISCHARGE_ACTIONS = ['setExpected', 'order'] as const
+export type DischargeAction = (typeof DISCHARGE_ACTIONS)[number]
+
+/**
+ * Who may set/edit the expected discharge or order the discharge (`specs/domain.md` → Roles):
+ * the head of admissions anywhere; a nurse supervisor in their own unit only (fails closed
+ * without a unit); everyone else is read-only.
+ */
+export function canActOnDischarge(
+  role: Role,
+  _action: DischargeAction,
+  scope: { unitId: string; userUnitId?: string | null | undefined },
+): boolean {
+  if (role === 'ADMISSIONS_HEAD') return true
+  if (role === 'NURSE_SUPERVISOR')
+    return scope.userUnitId != null && scope.userUnitId === scope.unitId
+  return false
+}

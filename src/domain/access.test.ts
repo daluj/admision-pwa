@@ -5,6 +5,8 @@ import {
   BED_STATUS_ACTIONS,
   canAccess,
   canActOnBed,
+  canActOnDischarge,
+  DISCHARGE_ACTIONS,
   homeFor,
   ROLE_AREAS,
   ROLE_HOME,
@@ -95,4 +97,35 @@ describe('canActOnBed', () => {
       BLOCKED: ['unblock'],
     })
   })
+})
+
+describe('canActOnDischarge', () => {
+  const own = { unitId: 'u1', userUnitId: 'u1' }
+  const other = { unitId: 'u2', userUnitId: 'u1' }
+
+  it('the head may act anywhere', () => {
+    for (const action of DISCHARGE_ACTIONS) {
+      expect(canActOnDischarge('ADMISSIONS_HEAD', action, own)).toBe(true)
+      expect(canActOnDischarge('ADMISSIONS_HEAD', action, other)).toBe(true)
+    }
+  })
+
+  it('a nurse supervisor only in their own unit, and never without a unit', () => {
+    for (const action of DISCHARGE_ACTIONS) {
+      expect(canActOnDischarge('NURSE_SUPERVISOR', action, own)).toBe(true)
+      expect(canActOnDischarge('NURSE_SUPERVISOR', action, other)).toBe(false)
+      expect(canActOnDischarge('NURSE_SUPERVISOR', action, { unitId: 'u1' })).toBe(false)
+      expect(
+        canActOnDischarge('NURSE_SUPERVISOR', action, { unitId: 'u1', userUnitId: null }),
+      ).toBe(false)
+    }
+  })
+
+  it.each(['BED_MANAGER', 'ED_COORDINATOR', 'MANAGEMENT', 'PORTER'] as const)(
+    '%s is read-only',
+    (role) => {
+      for (const action of DISCHARGE_ACTIONS)
+        expect(canActOnDischarge(role, action, own)).toBe(false)
+    },
+  )
 })
