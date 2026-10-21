@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { EntityBase, IsoDateTime } from './common'
 
-export const SIMULATION_SPEEDS = [1, 10, 60, 300] as const
+export const SIMULATION_SPEEDS = [1, 10, 60, 300, 1800] as const
 export const SimulationSpeed = z.literal(SIMULATION_SPEEDS)
 export type SimulationSpeed = z.infer<typeof SimulationSpeed>
 

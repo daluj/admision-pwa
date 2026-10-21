@@ -1,5 +1,6 @@
 export { advanceSimulationTo, SimulationNotSeededError } from './advance'
 export { runAsLeader, SIMULATOR_LOCK_NAME, type LockManagerLike } from './leader'
+export { jumpToTimeOfDay, nextTimeOfDay, type JumpOptions, type JumpResult } from './jump'
 export { processMinute } from './minute'
 export { createSimulationRunner, type SimulationRunner } from './runner'
 export { runSimulation } from './runSimulation'

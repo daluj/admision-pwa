@@ -23,6 +23,9 @@ export {
 } from './scenarios/definitions'
 export {
   advanceSimulationTo,
+  jumpToTimeOfDay,
+  nextTimeOfDay,
+  type JumpResult,
   createSimulationRunner,
   runAsLeader,
   runSimulation,
