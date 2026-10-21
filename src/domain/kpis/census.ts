@@ -82,34 +82,51 @@ const bedOrder = (a: Bed, b: Bed) => a.label.localeCompare(b.label, 'es', { nume
 const isOutlier = (unit: Unit, admission: Admission) =>
   unit.type === 'WARD' && !unit.specialtyCodes.includes(admission.specialtyCode)
 
-function kpisFor(
-  beds: readonly BedView[],
+type DischargeTally = { expectedToday: number; dischargedToday: number }
+
+/**
+ * One pass over the admissions: per unit, how many have their expected discharge today and how
+ * many were discharged today. Each instant is converted to a local date at most once (that is the
+ * expensive part), however many units there are.
+ */
+function dischargeTallies(
   admissions: readonly Admission[],
-  bedUnit: ReadonlyMap<string, Unit>,
+  bedUnitId: ReadonlyMap<string, string>,
   today: string,
-): CensusKpis {
+): Map<string, DischargeTally> {
+  const tallies = new Map<string, DischargeTally>()
+  const isToday = (iso: string) => zonedClock(iso, HOSPITAL_TIME_ZONE).date === today
+  for (const admission of admissions) {
+    const unitId = admission.bedId ? bedUnitId.get(admission.bedId) : undefined
+    if (!unitId) continue
+    const discharged = admission.status === 'DISCHARGED'
+    const expected =
+      (IN_BED.includes(admission.status) || discharged) &&
+      admission.expectedDischargeAt !== undefined &&
+      isToday(admission.expectedDischargeAt)
+    const done =
+      discharged && admission.dischargedAt !== undefined && isToday(admission.dischargedAt)
+    if (!expected && !done) continue
+    const tally = tallies.get(unitId) ?? { expectedToday: 0, dischargedToday: 0 }
+    if (expected) tally.expectedToday++
+    if (done) tally.dischargedToday++
+    tallies.set(unitId, tally)
+  }
+  return tallies
+}
+
+function kpisFor(beds: readonly BedView[], tally: readonly DischargeTally[]): CensusKpis {
   const counts = bedCounts(beds.map((v) => v.bed))
   const inBed = beds.filter((v) => v.bed.status === 'OCCUPIED')
   const outliers = inBed.filter((v) => v.outlier)
-  const scoped = admissions.filter((a) => a.bedId && bedUnit.has(a.bedId))
   return {
     counts,
     occupancy: occupancyOf(counts),
     inpatients: inBed.length,
     outliers: outliers.length,
     outlierUnits: new Set(outliers.map((v) => v.unit.id)).size,
-    expectedToday: scoped.filter(
-      (a) =>
-        (IN_BED.includes(a.status) || a.status === 'DISCHARGED') &&
-        a.expectedDischargeAt !== undefined &&
-        zonedClock(a.expectedDischargeAt, HOSPITAL_TIME_ZONE).date === today,
-    ).length,
-    dischargedToday: scoped.filter(
-      (a) =>
-        a.status === 'DISCHARGED' &&
-        a.dischargedAt !== undefined &&
-        zonedClock(a.dischargedAt, HOSPITAL_TIME_ZONE).date === today,
-    ).length,
+    expectedToday: tally.reduce((sum, t) => sum + t.expectedToday, 0),
+    dischargedToday: tally.reduce((sum, t) => sum + t.dischargedToday, 0),
   }
 }
 
@@ -126,11 +143,11 @@ export function computeCensus({ beds, units, admissions, patients, now }: Census
   const nowMs = Date.parse(now)
 
   const views: BedView[] = []
-  const bedUnit = new Map<string, Unit>()
+  const bedUnitId = new Map<string, string>()
   for (const bed of [...beds].sort(bedOrder)) {
     const unit = unitById.get(bed.unitId)
     if (!unit) continue
-    bedUnit.set(bed.id, unit)
+    bedUnitId.set(bed.id, unit.id)
     const admission = bed.admissionId ? admissionById.get(bed.admissionId) : undefined
     const patient = bed.patientId ? patientById.get(bed.patientId) : undefined
     const occupied = bed.status === 'OCCUPIED' && admission !== undefined
@@ -164,15 +181,17 @@ export function computeCensus({ beds, units, admissions, patients, now }: Census
   const byUnit = new Map<string, BedView[]>()
   for (const view of views) byUnit.set(view.unit.id, [...(byUnit.get(view.unit.id) ?? []), view])
 
+  const tallies = dischargeTallies(admissions, bedUnitId, today)
+  const noTally: DischargeTally = { expectedToday: 0, dischargedToday: 0 }
+
   const unitCensus: UnitCensus[] = [...byUnit.entries()]
     .map(([unitId, unitBeds]) => {
       const unit = unitById.get(unitId)!
-      const scopedUnits = new Map(unitBeds.map((v) => [v.bed.id, unit]))
-      return { unit, beds: unitBeds, kpis: kpisFor(unitBeds, admissions, scopedUnits, today) }
+      return { unit, beds: unitBeds, kpis: kpisFor(unitBeds, [tallies.get(unitId) ?? noTally]) }
     })
     .sort((a, b) => unitOrder(a.unit, b.unit))
 
-  return { hospital: kpisFor(views, admissions, bedUnit, today), units: unitCensus }
+  return { hospital: kpisFor(views, [...tallies.values()]), units: unitCensus }
 }
 
 export type ExceptionSeverity = 'critical' | 'warn' | 'info'

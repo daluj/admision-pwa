@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Admission, Bed, Patient, Unit } from '@/domain/schemas'
 import { sampleEntities } from '@/domain/schemas/fixtures'
 import { bedCounts, censusExceptions, computeCensus, occupancyOf } from './census'
@@ -213,6 +213,40 @@ describe('expected discharges and the local day', () => {
     expect(at('2026-10-24T22:00:00.000Z', now)).toBe(1) // 00:00 Madrid (UTC+2)
     expect(at('2026-10-25T22:59:00.000Z', now)).toBe(1) // 23:59 Madrid (UTC+1)
     expect(at('2026-10-25T23:00:00.000Z', now)).toBe(0)
+  })
+})
+
+describe('computeCensus cost', () => {
+  it('converts each admission instant to a local date at most once, however many units there are', () => {
+    const manyUnits = Array.from({ length: 20 }, (_, i): Unit => ({
+      ...ward,
+      id: `u${i}`,
+      code: `U${i}`,
+      name: `U${i}`,
+    }))
+    const manyBeds = manyUnits.flatMap((u, i) =>
+      Array.from({ length: 10 }, (_, j) =>
+        bed(`b${i}-${j}`, u.id, 'OCCUPIED', { patientId: 'p1', admissionId: `x${i}-${j}` }),
+      ),
+    )
+    const manyAdmissions = manyBeds.map((b) =>
+      admission(b.admissionId!, 'p1', {
+        bedId: b.id,
+        admittedAt: iso(-10),
+        expectedDischargeAt: iso(3),
+      }),
+    )
+    const spy = vi.spyOn(Intl.DateTimeFormat.prototype, 'formatToParts')
+    computeCensus({
+      beds: manyBeds,
+      units: manyUnits,
+      admissions: manyAdmissions,
+      patients,
+      now: NOW,
+    })
+    // One call per admission (+ one for "today"); the old per-unit passes made ~21× as many.
+    expect(spy.mock.calls.length).toBeLessThanOrEqual(manyAdmissions.length + 5)
+    spy.mockRestore()
   })
 })
 
