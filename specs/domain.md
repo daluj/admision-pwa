@@ -161,11 +161,11 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 Calculators are pure functions in `src/domain/kpis/`, taking entities + `now` and returning numbers; unit-tested with fixtures.
 
 ### Beds
-- **Occupancy %** = occupied ÷ operational beds (hospital, per unit, per specialty).
-- **Beds by status** (count per status).
-- **Expected discharges today** (with `expectedDischargeAt` today) and **completed discharges today**.
+- **Occupancy %** = occupied ÷ operational beds (hospital, per unit, per specialty). *Operational* = not `BLOCKED`; *occupied* = status `OCCUPIED` (reserved beds are not occupied yet).
+- **Beds by status** (count per status). *Libres* = `AVAILABLE`; *pendientes de limpieza* = `PENDING_CLEANING` (beds being cleaned, `CLEANING`, are shown separately).
+- **Expected discharges today** (admissions with `expectedDischargeAt` on the local day, whether already discharged or not) and **completed discharges today** (`dischargedAt` on the local day). "Today" is the local day in `Europe/Madrid` of the simulated time.
 - **Bed turnaround (median, min)** = `BedCleaningFinished.occurredAt − PatientDischarged.occurredAt`.
-- **Outlier patients** count.
+- **Outlier patients** count = inpatients (`ADMITTED` / `DISCHARGE_ORDERED`) in a `WARD` unit whose `specialtyCodes` do not include the admission's specialty (ICU and intermediate units never count).
 - **Average LOS** of current inpatients (days).
 
 ### Emergency Department
