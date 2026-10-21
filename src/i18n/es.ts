@@ -83,6 +83,38 @@ export const es = {
     slides: 'Pantallas',
     loading: 'Cargando pantalla…',
   },
+  scenarios: {
+    'normal-day': {
+      name: 'Martes normal',
+      description: 'Un día laborable típico: ocupación del 85 % y urgencias con la carga habitual.',
+    },
+    'high-pressure': {
+      name: 'Lunes de alta presión',
+      description: 'Arranca con el hospital al 93 % y urgencias cargadas; todo drena más despacio.',
+    },
+    'winter-flu': {
+      name: 'Pico de gripe (plan de invierno)',
+      description:
+        'Urgencias desbordadas y plantas casi llenas: el escenario que activa el plan de invierno.',
+    },
+  } as Record<string, { name: string; description: string }>,
+  timelapse: {
+    title: 'Avance rápido',
+    description:
+      'Reproduce la simulación hasta una hora del día sin esperar. Se pausa al llegar y el resultado es el mismo que si se hubiera visto en directo.',
+    timeLabel: 'Avanzar hasta',
+    go: 'Avanzar',
+    cancel: 'Cancelar',
+    presets: 'Atajos',
+    progress: (percent: number, at: string) => `Avanzando… ${percent} % · ${at}`,
+    done: (at: string) => `Simulación en pausa a las ${at}`,
+    cancelled: (at: string) => `Avance cancelado a las ${at}`,
+    failed: 'No se pudo avanzar la simulación',
+    invalid: 'Introduzca una hora válida (HH:MM).',
+    notSeeded: 'Genere primero el hospital de demostración.',
+    unknownScenario: 'El escenario de esta demo ya no existe. Restablezca la demo.',
+    progressLabel: 'Avance de la simulación',
+  },
   alerts: {
     centre: {
       title: 'Centro de alertas',
@@ -987,6 +1019,8 @@ export const es = {
         description:
           'El hospital simulado se genera a partir de una semilla: la misma semilla produce siempre el mismo hospital.',
         currentSeed: 'Semilla actual',
+        currentScenario: 'Escenario actual',
+        scenarioLabel: 'Escenario',
         startedAt: 'Hora simulada de inicio',
         seedLabel: 'Semilla',
         seedHint: 'Número entero entre 0 y 999999.',
@@ -994,11 +1028,12 @@ export const es = {
         reset: 'Restablecer demo',
         resetting: 'Restableciendo…',
         confirmTitle: '¿Restablecer la demo?',
-        confirmDescription: (seed: number) =>
-          `Se borrarán todos los datos locales y el registro de eventos y se generará de nuevo el hospital con la semilla ${seed}.`,
+        confirmDescription: (seed: number, scenario: string) =>
+          `Se borrarán todos los datos locales y el registro de eventos y se generará de nuevo el hospital con la semilla ${seed} y el escenario «${scenario}».`,
         cancel: 'Cancelar',
         confirm: 'Restablecer',
         success: (seed: number) => `Demo restablecida con la semilla ${seed}`,
+        unknownScenario: 'Personalizado',
         failure: 'No se pudo restablecer la demo',
         notSeeded: 'Sin generar',
       },

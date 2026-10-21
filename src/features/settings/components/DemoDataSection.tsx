@@ -14,10 +14,10 @@ export function DemoDataSection() {
   const state = useSimulationState()
   const [busy, setBusy] = useState(false)
 
-  const onReset = async (seed: number) => {
+  const onReset = async (seed: number, scenarioId: string) => {
     setBusy(true)
     try {
-      await resetDemo(backend, seed)
+      await resetDemo(backend, seed, undefined, scenarioId)
       toast.success(copy.success(seed))
     } catch (error) {
       console.error(error)
@@ -31,9 +31,10 @@ export function DemoDataSection() {
     <DemoDataCard
       currentSeed={state === undefined ? undefined : (state?.seed ?? null)}
       startedAt={state === undefined ? undefined : (state?.startedAt ?? null)}
+      currentScenario={state === undefined ? undefined : (state?.scenarioId ?? null)}
       fallbackSeed={DEFAULT_SEED}
       busy={busy}
-      onReset={(seed) => void onReset(seed)}
+      onReset={(seed, scenarioId) => void onReset(seed, scenarioId)}
     />
   )
 }

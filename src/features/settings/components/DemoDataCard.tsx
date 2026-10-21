@@ -15,24 +15,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { es } from '@/i18n/es'
+import { SCENARIO_IDS } from '@/simulator'
 import { formatDateTime } from '@/lib/time'
 
 const copy = es.pages.settings.demo
+const scenariosCopy = es.scenarios
 
 export const SEED_PATTERN = /^\d{1,6}$/
 
 type DemoDataCardProps = {
   /** Seed of the loaded demo; `null` when not seeded, `undefined` while loading. */
   currentSeed: number | null | undefined
+  /** Scenario of the loaded demo (`SimulationState.scenarioId`). */
+  currentScenario?: string | null | undefined
   startedAt: string | null | undefined
   fallbackSeed: number
   busy: boolean
-  onReset: (seed: number) => void
+  onReset: (seed: number, scenarioId: string) => void
 }
 
 /** Presentational: current demo seed/start, seed field and the confirmed "Restablecer demo" action. */
 export function DemoDataCard({
   currentSeed,
+  currentScenario,
   startedAt,
   fallbackSeed,
   busy,
@@ -44,11 +49,17 @@ export function DemoDataCard({
   const [draft, setDraft] = useState<string | null>(null)
   const [showError, setShowError] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [scenarioDraft, setScenarioDraft] = useState<string | null>(null)
+  const scenarioId = useId()
   const resetButtonRef = useRef<HTMLButtonElement>(null)
 
   const value = draft ?? String(currentSeed ?? fallbackSeed)
   const valid = SEED_PATTERN.test(value)
   const seed = Number(value)
+  const known = (id: string | null | undefined): id is string =>
+    id != null && (SCENARIO_IDS as readonly string[]).includes(id)
+  const scenario = scenarioDraft ?? (known(currentScenario) ? currentScenario : SCENARIO_IDS[0])
+  const scenarioName = scenariosCopy[scenario]?.name ?? copy.unknownScenario
 
   const requestReset = () => {
     if (!valid) {
@@ -60,7 +71,8 @@ export function DemoDataCard({
 
   const confirm = () => {
     setDraft(null)
-    onReset(seed)
+    setScenarioDraft(null)
+    onReset(seed, scenario)
   }
 
   return (
@@ -81,6 +93,16 @@ export function DemoDataCard({
             </dd>
           </div>
           <div className="flex items-baseline justify-between gap-4 py-1.5">
+            <dt className="text-muted-foreground text-sm">{copy.currentScenario}</dt>
+            <dd className="text-sm font-medium">
+              {currentScenario === undefined
+                ? '…'
+                : currentScenario
+                  ? (scenariosCopy[currentScenario]?.name ?? copy.unknownScenario)
+                  : copy.notSeeded}
+            </dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-4 py-1.5">
             <dt className="text-muted-foreground text-sm">{copy.startedAt}</dt>
             <dd className="text-sm font-medium tabular-nums">
               {startedAt ? formatDateTime(startedAt) : '—'}
@@ -95,7 +117,23 @@ export function DemoDataCard({
             requestReset()
           }}
         >
-          <Label htmlFor={inputId}>{copy.seedLabel}</Label>
+          <Label htmlFor={scenarioId}>{copy.scenarioLabel}</Label>
+          <select
+            id={scenarioId}
+            className="border-input bg-background h-9 rounded-md border px-2 text-sm"
+            value={scenario}
+            onChange={(event) => setScenarioDraft(event.target.value)}
+          >
+            {SCENARIO_IDS.map((id) => (
+              <option key={id} value={id}>
+                {scenariosCopy[id]?.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-muted-foreground text-xs">{scenariosCopy[scenario]?.description}</p>
+          <Label htmlFor={inputId} className="mt-2">
+            {copy.seedLabel}
+          </Label>
           <div className="flex flex-wrap gap-2">
             <Input
               id={inputId}
@@ -137,7 +175,9 @@ export function DemoDataCard({
         >
           <AlertDialogHeader>
             <AlertDialogTitle>{copy.confirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{copy.confirmDescription(seed)}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {copy.confirmDescription(seed, scenarioName)}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{copy.cancel}</AlertDialogCancel>

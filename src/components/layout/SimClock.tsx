@@ -14,12 +14,22 @@ const hourFormatter = new Intl.DateTimeFormat('es-ES', {
 export function SimClock() {
   const state = useSimulationState()
   const simNow = state?.simNow
+  const scenario = state?.scenarioId
   const time = simNow ? hourFormatter.format(Date.parse(simNow)) : es.topBar.clock.unknown
 
   return (
     <div
       className="text-muted-foreground flex items-center gap-1.5 text-sm"
-      title={simNow ? `${es.topBar.clock.label}: ${formatDateTime(simNow)}` : es.topBar.clock.label}
+      title={
+        simNow
+          ? [
+              `${es.topBar.clock.label}: ${formatDateTime(simNow)}`,
+              scenario && es.scenarios[scenario]?.name,
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          : es.topBar.clock.label
+      }
     >
       <Clock className="size-4" aria-hidden="true" />
       <span className="sr-only">{es.topBar.clock.label}: </span>
