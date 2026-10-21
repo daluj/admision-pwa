@@ -9,7 +9,7 @@ import {
   setExpectedDischarge,
 } from './admissions'
 import { admitPatient, reserveBed } from './beds'
-import { assignTransfer, requestTransfer } from './transfers'
+import { assignTransfer } from './transfers'
 import { InvalidCommandError } from './types'
 
 let h: CommandHarness
@@ -127,7 +127,11 @@ describe('cancelAdmission', () => {
     const { admissionId, requestId } = await awaitingBed()
     await h.run(reserveBed, { bedRequestId: requestId, bedId: 'bed-1' })
     const events = await h.run(cancelAdmission, { admissionId, reason: 'NO_BED' })
-    expect(events.map((e) => e.type)).toEqual(['AdmissionCancelled', 'BedReservationReleased'])
+    expect(events.map((e) => e.type)).toEqual([
+      'AdmissionCancelled',
+      'BedReservationReleased',
+      'TransferCancelled', // the transfer created with the reservation
+    ])
     const bed = await h.backend.repositories.bed.get('bed-1')
     expect(bed).toMatchObject({ status: 'AVAILABLE' })
     expect(bed?.admissionId).toBeUndefined()
@@ -135,18 +139,11 @@ describe('cancelAdmission', () => {
     expect(admission?.bedId).toBeUndefined()
   })
 
-  it('cancels the pending transfer to the reserved bed and frees the porter', async () => {
+  it('cancels the pending transfer created with the reservation and frees the porter', async () => {
     const { admissionId, requestId } = await awaitingBed()
-    await h.run(reserveBed, { bedRequestId: requestId, bedId: 'bed-1' })
-    const admission = (await h.backend.repositories.admission.get(admissionId))!
-    const [requested] = await h.run(requestTransfer, {
-      patientId: admission.patientId,
-      fromLocation: { kind: 'OTHER', label: 'Admisión' },
-      toLocation: { kind: 'BED', refId: 'bed-1', label: 'bed-1' },
-      reason: 'ADMISSION',
-      priority: 'NORMAL',
-    })
-    await h.run(assignTransfer, { transferId: requested!.entityId, porterId: 'por-1' })
+    const reserved = await h.run(reserveBed, { bedRequestId: requestId, bedId: 'bed-1' })
+    const transferId = reserved.find((e) => e.type === 'TransferRequested')!.entityId
+    await h.run(assignTransfer, { transferId, porterId: 'por-1' })
     expect(await h.backend.repositories.porter.get('por-1')).toMatchObject({ status: 'BUSY' })
 
     const events = await h.run(cancelAdmission, { admissionId, reason: 'PATIENT' })
@@ -155,7 +152,7 @@ describe('cancelAdmission', () => {
       'BedReservationReleased',
       'TransferCancelled',
     ])
-    expect(await h.backend.repositories.transferRequest.get(requested!.entityId)).toMatchObject({
+    expect(await h.backend.repositories.transferRequest.get(transferId)).toMatchObject({
       status: 'CANCELLED',
     })
     expect(await h.backend.repositories.porter.get('por-1')).toMatchObject({ status: 'AVAILABLE' })

@@ -43,7 +43,7 @@ All entities have `id: string`, `createdAt`, `updatedAt` (ISO UTC). Patient data
 | **BedRequest** | `admissionId`, `requestedAt`, `priority` (`P1` urgent \| `P2` \| `P3`), `requiredUnitType`, `preferredSpecialtyCode`, `isolationRequired`, `status` (`OPEN` \| `ASSIGNED` \| `FULFILLED` \| `CANCELLED`), `assignedBedId?`, `etaAt?` |
 | **TransferRequest** | `patientId`, `fromLocation`, `toLocation`, `reason` (`ADMISSION` \| `INTER_UNIT` \| `TEST` \| `SURGERY` \| `RETURN`), `priority` (`URGENT` \| `NORMAL`), `requestedAt`, `status` (see state machine), `porterId?`, `assignedAt?`, `pickedUpAt?`, `deliveredAt?`, `slaDueAt` |
 | **Porter** | `name`, `shift` (`MORNING` \| `AFTERNOON` \| `NIGHT`), `status` (`AVAILABLE` \| `BUSY` \| `OFF_SHIFT`) |
-| **User** (simulated) | `username`, `displayName`, `role`, `unitId?` (for nurse supervisors) |
+| **User** (simulated) | `username`, `displayName`, `role`, `unitId?` (for nurse supervisors), `porterId?` (links a porter login to its `Porter`) |
 | **HospitalEvent** | `id` (UUID), `seq` (monotonic, gap-free, assigned by the event store), `type`, `occurredAt`, `actor` (`userId` \| `"simulator"`), `entityType`, `entityId`, `payload` (typed per event, see Event payloads) |
 | **Alert** | `ruleId`, `severity` (`INFO` \| `WARNING` \| `CRITICAL`), `entityType`, `entityId`, `message`, `raisedAt`, `acknowledgedAt?`, `acknowledgedBy?`, `resolvedAt?` |
 | **SimulationState** | singleton (`id: "current"`): `seed`, `scenarioId`, `speed`, `running`, `simNow` (simulated clock), `startedAt` |

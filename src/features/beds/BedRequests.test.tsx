@@ -131,6 +131,10 @@ describe('assigning a bed', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     const events = await backend.events.list()
     expect(events.at(-1)).toMatchObject({
+      type: 'TransferRequested',
+      actor: TEST_USERS.ADMISSIONS_HEAD.id,
+    })
+    expect(events.at(-2)).toMatchObject({
       type: 'BedReserved',
       entityId: 'A8',
       actor: TEST_USERS.ADMISSIONS_HEAD.id,

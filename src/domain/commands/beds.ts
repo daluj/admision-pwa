@@ -1,18 +1,9 @@
-import type { Admission, Bed, BedRequest, Id, IsoDateTime } from '@/domain/schemas'
+import type { Admission, Bed, BedRequest, Id, IsoDateTime, TransferRequest } from '@/domain/schemas'
 import { admissionMachine, bedMachine } from '@/domain/state-machines'
 import { cancelPendingBedTransfers } from './transferCleanup'
-import {
-  buildEvent,
-  InvalidCommandError,
-  putChange,
-  requireEntity,
-  type Command,
-  type CommandContext,
-} from './types'
-
-async function unitTypeOf(ctx: CommandContext, bed: Bed) {
-  return (await requireEntity(ctx, 'unit', bed.unitId)).type
-}
+import { TRANSFER_SLA_MINUTES } from './transfers'
+import { addMinutes } from '@/lib/time'
+import { buildEvent, InvalidCommandError, putChange, requireEntity, type Command } from './types'
 
 export type ReserveBedInput = { bedRequestId: Id; bedId: Id; etaAt?: IsoDateTime }
 
@@ -30,7 +21,8 @@ export const reserveBed: Command<ReserveBedInput> = async (ctx, input) => {
   const admission = await requireEntity(ctx, 'admission', request.admissionId)
 
   const status = bedMachine.next(bed.status, 'reserve')
-  if ((await unitTypeOf(ctx, bed)) !== request.requiredUnitType) {
+  const unit = await requireEntity(ctx, 'unit', bed.unitId)
+  if (unit.type !== request.requiredUnitType) {
     throw new InvalidCommandError(`Bed ${bed.label} is not in a ${request.requiredUnitType} unit`)
   }
   if (request.isolationRequired && !bed.isolation) {
@@ -52,6 +44,24 @@ export const reserveBed: Command<ReserveBedInput> = async (ctx, input) => {
     ...(input.etaAt ? { etaAt: input.etaAt } : {}),
   }
   const nextAdmission: Admission = { ...admission, status: admissionStatus, bedId: bed.id }
+
+  // Reserving a bed creates the transfer that takes the patient there (dispatch picks it up).
+  const priority = request.priority === 'P1' ? 'URGENT' : 'NORMAL'
+  const transfer: TransferRequest = {
+    id: ctx.newId(),
+    createdAt: ctx.now,
+    updatedAt: ctx.now,
+    patientId: admission.patientId,
+    fromLocation: admission.edVisitId
+      ? { kind: 'ED', label: 'Urgencias' }
+      : { kind: 'OTHER', label: 'Admisión' },
+    toLocation: { kind: 'BED', refId: bed.id, label: `${unit.name} ${bed.label}`.trim() },
+    reason: 'ADMISSION',
+    priority,
+    requestedAt: ctx.now,
+    status: 'REQUESTED',
+    slaDueAt: addMinutes(ctx.now, TRANSFER_SLA_MINUTES[priority]),
+  }
   return {
     events: [
       buildEvent(ctx, 'BedReserved', bed.id, {
@@ -59,11 +69,20 @@ export const reserveBed: Command<ReserveBedInput> = async (ctx, input) => {
         admissionId: admission.id,
         ...(input.etaAt ? { etaAt: input.etaAt } : {}),
       }),
+      buildEvent(ctx, 'TransferRequested', transfer.id, {
+        patientId: transfer.patientId,
+        fromLocation: transfer.fromLocation,
+        toLocation: transfer.toLocation,
+        reason: transfer.reason,
+        priority: transfer.priority,
+        slaDueAt: transfer.slaDueAt,
+      }),
     ],
     changes: [
       putChange(ctx, 'bed', nextBed),
       putChange(ctx, 'bedRequest', nextRequest),
       putChange(ctx, 'admission', nextAdmission),
+      putChange(ctx, 'transferRequest', transfer),
     ],
   }
 }

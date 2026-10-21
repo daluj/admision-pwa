@@ -116,12 +116,11 @@ describe('useBedActions', () => {
       initials: 'M. G. R.',
     })
     expect(result).toEqual({ ok: true })
-    expect(await lastEvent(backend)).toMatchObject({
-      type: 'BedReserved',
-      actor: 'usr-head',
-      occurredAt: NOW,
-      entityId: 'b-free',
-    })
+    // Reserving also creates the transfer, in the same transaction and by the same user.
+    const events = await backend.events.list()
+    expect(events.map((e) => e.type)).toEqual(['BedReserved', 'TransferRequested'])
+    expect(events[0]).toMatchObject({ actor: 'usr-head', occurredAt: NOW, entityId: 'b-free' })
+    expect(events[1]).toMatchObject({ actor: 'usr-head', entityType: 'TransferRequest' })
     expect(await backend.repositories.bedRequest.get('r1')).toMatchObject({
       status: 'ASSIGNED',
       etaAt: '2026-10-21T08:30:00.000Z',

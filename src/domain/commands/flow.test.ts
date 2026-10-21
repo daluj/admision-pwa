@@ -14,7 +14,7 @@ import {
   startEdAssessment,
   triageEdPatient,
 } from './ed'
-import { assignTransfer, deliverTransfer, pickUpTransfer, requestTransfer } from './transfers'
+import { assignTransfer, deliverTransfer, pickUpTransfer } from './transfers'
 
 describe('full patient flow on the seeded hospital', () => {
   it('ED arrival → … → discharge → cleaning keeps every link consistent', async () => {
@@ -59,20 +59,14 @@ describe('full patient flow on the seeded hospital', () => {
     await run(reserveBed, { bedRequestId: request.id, bedId: free.id })
     await step(10)
 
-    const patientId = (await backend.repositories.edVisit.get(edVisitId))!.patientId
-    const [transfer] = await run(requestTransfer, {
-      patientId,
-      fromLocation: { kind: 'ED', label: 'Urgencias' },
-      toLocation: { kind: 'BED', refId: free.id, label: free.label },
-      reason: 'ADMISSION',
-      priority: 'URGENT',
-    })
+    // Reserving the bed created the transfer: dispatch only has to assign, pick up and deliver it.
+    const transfer = (await backend.events.list()).findLast((e) => e.type === 'TransferRequested')!
     const porter = state.porter.find((p) => p.status === 'AVAILABLE')!
-    await run(assignTransfer, { transferId: transfer!.entityId, porterId: porter.id })
+    await run(assignTransfer, { transferId: transfer.entityId, porterId: porter.id })
     await step(5)
-    await run(pickUpTransfer, { transferId: transfer!.entityId })
+    await run(pickUpTransfer, { transferId: transfer.entityId })
     await step(10)
-    await run(deliverTransfer, { transferId: transfer!.entityId })
+    await run(deliverTransfer, { transferId: transfer.entityId })
     await run(admitPatient, { admissionId: request.admissionId })
     await run(registerEdDeparture, { edVisitId, outcome: 'ADMITTED' })
     await step(60 * 24)
@@ -95,7 +89,7 @@ describe('full patient flow on the seeded hospital', () => {
       'AdmissionDecided',
       'BedRequested',
       'BedReserved',
-      'TransferRequested',
+      'TransferRequested', // created together with the reservation
       'TransferAssigned',
       'TransferPickedUp',
       'TransferDelivered',
