@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { AREA_IDS, canAccess, homeFor, ROLE_AREAS, ROLE_HOME, type AreaId } from './access'
+import {
+  AREA_IDS,
+  BED_ACTIONS,
+  BED_STATUS_ACTIONS,
+  canAccess,
+  canActOnBed,
+  homeFor,
+  ROLE_AREAS,
+  ROLE_HOME,
+  type AreaId,
+} from './access'
 import { ROLES, type Role } from './schemas/user'
 
 // Home path → area, mirrors components/layout/nav.ts.
@@ -40,5 +50,49 @@ describe('role access', () => {
 
   it('only the head of admissions reaches settings', () => {
     expect(ROLES.filter((role) => canAccess(role, 'settings'))).toEqual(['ADMISSIONS_HEAD'])
+  })
+})
+
+describe('canActOnBed', () => {
+  const own = { unitId: 'u1', userUnitId: 'u1' }
+  const other = { unitId: 'u2', userUnitId: 'u1' }
+
+  it.each(['ADMISSIONS_HEAD', 'BED_MANAGER'] as const)('%s may do everything anywhere', (role) => {
+    for (const action of BED_ACTIONS) {
+      expect(canActOnBed(role, action, own)).toBe(true)
+      expect(canActOnBed(role, action, other)).toBe(true)
+    }
+  })
+
+  it('a nurse supervisor may only clean, and only in their own unit', () => {
+    for (const action of BED_ACTIONS) {
+      const clean = action === 'startCleaning' || action === 'finishCleaning'
+      expect(canActOnBed('NURSE_SUPERVISOR', action, own)).toBe(clean)
+      expect(canActOnBed('NURSE_SUPERVISOR', action, other)).toBe(false)
+    }
+  })
+
+  it('a nurse supervisor without a unit can do nothing (fails closed)', () => {
+    for (const action of BED_ACTIONS) {
+      expect(canActOnBed('NURSE_SUPERVISOR', action, { unitId: 'u1' })).toBe(false)
+      expect(canActOnBed('NURSE_SUPERVISOR', action, { unitId: 'u1', userUnitId: null })).toBe(
+        false,
+      )
+    }
+  })
+
+  it.each(['ED_COORDINATOR', 'MANAGEMENT', 'PORTER'] as const)('%s is read-only', (role) => {
+    for (const action of BED_ACTIONS) expect(canActOnBed(role, action, own)).toBe(false)
+  })
+
+  it('maps each bed status to the actions that make sense', () => {
+    expect(BED_STATUS_ACTIONS).toEqual({
+      AVAILABLE: ['block'],
+      RESERVED: ['release'],
+      OCCUPIED: [],
+      PENDING_CLEANING: ['startCleaning', 'block'],
+      CLEANING: ['finishCleaning', 'block'],
+      BLOCKED: ['unblock'],
+    })
   })
 })

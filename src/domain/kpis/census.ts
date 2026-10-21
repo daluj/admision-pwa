@@ -217,6 +217,14 @@ export type CensusException =
     }
   | {
       id: string
+      kind: 'cleaningLong'
+      severity: 'critical' | 'warn'
+      unitCode: string
+      bedLabel: string
+      ageMs: number
+    }
+  | {
+      id: string
       kind: 'outlier'
       severity: 'info'
       unitCode: string
@@ -258,6 +266,20 @@ export function censusExceptions(census: Census, now: IsoDateTime): CensusExcept
             unitCode: unit.code,
             bedLabel: bed.label,
             reason: bed.blockedReason ?? '',
+            ageMs,
+          })
+        }
+      }
+      if (bed.status === 'PENDING_CLEANING') {
+        const ageMs = nowMs - Date.parse(bed.statusChangedAt)
+        if (ageMs > CENSUS_THRESHOLDS.cleaningLongWarnMin * 60_000) {
+          out.push({
+            id: `cleaning:${bed.id}`,
+            kind: 'cleaningLong',
+            severity:
+              ageMs > CENSUS_THRESHOLDS.cleaningLongCriticalMin * 60_000 ? 'critical' : 'warn',
+            unitCode: unit.code,
+            bedLabel: bed.label,
             ageMs,
           })
         }

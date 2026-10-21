@@ -20,6 +20,14 @@ function toItem(
         ageMs: exception.ageMs,
         href,
       }
+    case 'cleaningLong':
+      return {
+        id: exception.id,
+        severity: exception.severity,
+        title: copy.cleaningLong(exception.bedLabel, formatDuration(exception.ageMs)),
+        ageMs: exception.ageMs,
+        href,
+      }
     case 'unitFull':
       return {
         id: exception.id,

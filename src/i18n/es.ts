@@ -114,6 +114,8 @@ export const es = {
       },
       exceptions: {
         blockedLong: (bed: string, age: string) => `Cama ${bed} bloqueada desde hace ${age}`,
+        cleaningLong: (bed: string, age: string) =>
+          `Cama ${bed} pendiente de limpieza desde hace ${age}`,
         reason: (reason: string) => `Motivo: ${reason}`,
         unitFull: (unit: string, pct: number) => `${unit} al ${pct} % de ocupación`,
         outlier: (initials: string, unit: string) => `${initials} ectópico en ${unit}`,

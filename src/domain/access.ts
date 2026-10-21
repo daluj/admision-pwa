@@ -1,3 +1,4 @@
+import type { BedStatus } from './schemas/bed'
 import type { Role } from './schemas/user'
 
 export const AREA_IDS = [
@@ -39,4 +40,48 @@ export function canAccess(role: Role, area: AreaId): boolean {
 
 export function homeFor(role: Role): string {
   return ROLE_HOME[role]
+}
+
+/** What a person can do to a bed from the dashboard (each maps to a domain command). */
+export const BED_ACTIONS = [
+  'reserve',
+  'release',
+  'block',
+  'unblock',
+  'startCleaning',
+  'finishCleaning',
+] as const
+export type BedAction = (typeof BED_ACTIONS)[number]
+
+const NURSE_BED_ACTIONS: readonly BedAction[] = ['startCleaning', 'finishCleaning']
+
+/**
+ * Who may act on a bed (`specs/domain.md` → Roles). Bed managers and the head: everything.
+ * Nurse supervisors: cleaning on their own unit only. Everyone else: read-only.
+ * Fails closed: a supervisor without a unit can do nothing.
+ */
+export function canActOnBed(
+  role: Role,
+  action: BedAction,
+  scope: { unitId: string; userUnitId?: string | null | undefined },
+): boolean {
+  if (role === 'ADMISSIONS_HEAD' || role === 'BED_MANAGER') return true
+  if (role === 'NURSE_SUPERVISOR') {
+    return (
+      NURSE_BED_ACTIONS.includes(action) &&
+      scope.userUnitId != null &&
+      scope.userUnitId === scope.unitId
+    )
+  }
+  return false
+}
+
+/** Actions that make sense for a bed in each status (the bed state machine decides the rest). */
+export const BED_STATUS_ACTIONS: Record<BedStatus, readonly BedAction[]> = {
+  AVAILABLE: ['block'],
+  RESERVED: ['release'],
+  OCCUPIED: [],
+  PENDING_CLEANING: ['startCleaning', 'block'],
+  CLEANING: ['finishCleaning', 'block'],
+  BLOCKED: ['unblock'],
 }

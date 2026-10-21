@@ -164,7 +164,7 @@ Calculators are pure functions in `src/domain/kpis/`, taking entities + `now` an
 - **Occupancy %** = occupied ÷ operational beds (hospital, per unit, per specialty). *Operational* = not `BLOCKED`; *occupied* = status `OCCUPIED` (reserved beds are not occupied yet).
 - **Beds by status** (count per status). *Libres* = `AVAILABLE`; *pendientes de limpieza* = `PENDING_CLEANING` (beds being cleaned, `CLEANING`, are shown separately).
 - **Expected discharges today** (admissions with `expectedDischargeAt` on the local day, whether already discharged or not) and **completed discharges today** (`dischargedAt` on the local day). "Today" is the local day in `Europe/Madrid` of the simulated time.
-- **Bed turnaround (median, min)** = `BedCleaningFinished.occurredAt − PatientDischarged.occurredAt`.
+- **Bed turnaround (median, min)** = `BedCleaningFinished.occurredAt − PatientDischarged.occurredAt` for the same bed. Dashboards show the **median of the cleanings finished today** (local day of the simulated time, beds in scope), derived from the event log; target ≤ 90 min (warn ≥ 90, critical ≥ 150). Cleanings whose discharge is not in the loaded events are ignored.
 - **Outlier patients** count = inpatients (`ADMITTED` / `DISCHARGE_ORDERED`) in a `WARD` unit whose `specialtyCodes` do not include the admission's specialty (ICU and intermediate units never count).
 - **Average LOS** of current inpatients (days).
 
@@ -193,7 +193,7 @@ Calculators are pure functions in `src/domain/kpis/`, taking entities + `now` an
 |---|---|---|
 | `ED_TRIAGE_TARGET_BREACH` | Patient waiting for physician beyond their triage level target | WARNING (L3–5) / CRITICAL (L1–2) |
 | `BOARDING_LONG` | Boarding > 4 h (WARNING), > 8 h (CRITICAL) | WARNING / CRITICAL |
-| `BED_PENDING_CLEANING_LONG` | Bed in PENDING_CLEANING > 60 min | WARNING |
+| `BED_PENDING_CLEANING_LONG` | Bed in PENDING_CLEANING > 60 min | WARNING (the dashboard exception also turns CRITICAL > 120 min) |
 | `TRANSFER_SLA_BREACH` | Transfer not picked up by `slaDueAt` | WARNING (NORMAL) / CRITICAL (URGENT) |
 | `UNIT_FULL` | Unit occupancy 100% with open bed requests for its specialty | WARNING |
 | `BED_BALANCE_NEGATIVE` | Bed balance forecast < 0 | WARNING; < −10 CRITICAL |
@@ -205,8 +205,8 @@ Alerts are raised and resolved automatically by an evaluator that runs on every 
 | Role | UI label | Sees / can do |
 |---|---|---|
 | `ADMISSIONS_HEAD` | Jefe/a de Admisión | Everything; settings; simulator controls |
-| `BED_MANAGER` | Gestor/a de camas | Beds, admissions, transfers; reserve/assign/block beds |
-| `NURSE_SUPERVISOR` | Supervisor/a de enfermería | Own unit's beds and incoming patients; set expected discharges; cleaning status |
+| `BED_MANAGER` | Gestor/a de camas | Beds, admissions, transfers; reserve/assign/release/block/unblock beds and cleaning |
+| `NURSE_SUPERVISOR` | Supervisor/a de enfermería | Own unit's beds and incoming patients; set expected discharges; start/finish cleaning on their own unit (no reserve/block) |
 | `ED_COORDINATOR` | Coordinación de Urgencias | ED dashboard, boarding, bed requests |
 | `PORTER` | Celador/a | Own transfer queue: accept, pick up, deliver |
 | `MANAGEMENT` | Dirección | Overview and all dashboards, read-only |

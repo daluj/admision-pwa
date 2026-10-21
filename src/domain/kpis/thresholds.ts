@@ -10,4 +10,18 @@ export const CENSUS_THRESHOLDS = {
   pendingCleaningWarnShare: 0.05,
   /** Outlier inpatients above this share of inpatients ⇒ warning. */
   outlierWarnShare: 0.05,
+  /** Bed turnaround (median minutes, discharge → cleaned): warn / critical. */
+  turnaroundWarnMin: 90,
+  turnaroundCriticalMin: 150,
+  /** Beds waiting for cleaning: warn / critical (minutes). */
+  cleaningLongWarnMin: 60,
+  cleaningLongCriticalMin: 120,
+  /** Open bed request wait: amber / red (minutes). */
+  requestWaitWarnMin: 60,
+  requestWaitCriticalMin: 120,
+  /** ETA given to a reservation made from the dashboard (minutes). */
+  reservationEtaMin: 30,
 } as const
+
+/** Specialties whose patients are never placed as outliers (age/sex-specific care), nor their wards used for outliers. */
+export const OUTLIER_EXCLUDED_SPECIALTIES: readonly string[] = ['PED', 'GOB', 'PSQ']
