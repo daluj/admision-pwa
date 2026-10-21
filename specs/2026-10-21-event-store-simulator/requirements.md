@@ -55,7 +55,7 @@ Stateless policies evaluated each simulated minute against the current database 
 
 **5. UI**
 - **Top bar:** `SimClock` shows live simulated time; for `ADMISSIONS_HEAD` only, `SimulationControls` (Play/Pause + speed select 1×/10×/60×/300×). Others see the clock read-only. Roles use `useSession().user.role`.
-- **Ajustes → "Registro de eventos"** (`ADMISSIONS_HEAD`, the whole Ajustes page already is): table of the latest events (seq, simulated time, type, entity, actor, short payload) with filters by event type (multi-select), entity type and time window (last 1 h / 6 h / 24 h / all), "cargar más" pagination (50 per page), live-updating at the top; accessible table; empty state.
+- **Ajustes → "Registro de eventos"** (`ADMISSIONS_HEAD`, the whole Ajustes page already is): table of the latest events (seq, simulated time, type, entity, actor, short payload) with filters by event type, entity type and time window (single-select each) (last 1 h / 6 h / 24 h / all), "cargar más" pagination (50 per page), live-updating at the top; accessible table; empty state.
 
 **6. Determinism test** — `runSimulation` twice on fresh memory backends with the same seed/scenario/duration (e.g. 6 simulated hours from the seeded 08:00) ⇒ deep-equal event sequences (type, occurredAt, entityId, payload, id) and identical final tables. Also: result is identical when the same duration is run in different tick sizes.
 
