@@ -45,7 +45,8 @@ test('a unit opens its bed map with a tile per bed and the legend', async ({ pag
   await expect(page).toHaveURL(/\/camas\/[^/]+$/)
 
   const map = page.getByRole('region', { name: 'Mapa de camas' })
-  expect(await map.getByRole('button').count()).toBeGreaterThanOrEqual(10)
+  await expect(map.getByRole('button').first()).toBeVisible()
+  await expect.poll(() => map.getByRole('button').count()).toBeGreaterThanOrEqual(10)
   await expect(page.getByRole('list', { name: 'Leyenda' }).getByRole('listitem')).toHaveCount(6)
   await expect(map.locator('[data-status="OCCUPIED"]').first()).toContainText(/Estancia/)
 
