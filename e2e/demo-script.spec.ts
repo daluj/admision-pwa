@@ -38,7 +38,7 @@ test('the guided demo script works end to end', async ({ page }) => {
   await test.step('2. the alert centre lists alerts and one can be acknowledged', async () => {
     const bell = page.getByRole('button', { name: /^Alertas:/, includeHidden: true })
     await expect(bell).toHaveAttribute('aria-label', /alertas? sin reconocer/, { timeout: 30_000 })
-    const before = Number((await bell.innerText()).trim())
+    const before = Number(await bell.locator('[data-count]').getAttribute('data-count'))
     await bell.click()
     const centre = page.getByRole('dialog', { name: 'Centro de alertas' })
     await expect(
@@ -48,7 +48,9 @@ test('the guided demo script works end to end', async ({ page }) => {
       .getByRole('button', { name: /^Reconocer alerta/ })
       .first()
       .click()
-    await expect(bell).not.toHaveText(String(before), { timeout: 10_000 })
+    await expect(bell.locator('[data-count]')).not.toHaveAttribute('data-count', String(before), {
+      timeout: 10_000,
+    })
     await page.keyboard.press('Escape')
   })
 

@@ -25,7 +25,11 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="gap-1.5 px-2" aria-label={es.topBar.user.menu}>
+        <Button
+          variant="ghost"
+          className="gap-1.5 px-2"
+          aria-label={`${es.topBar.user.menu}: ${user.displayName}`}
+        >
           <CircleUser className="size-4" aria-hidden="true" />
           <span className="hidden max-w-40 truncate text-sm font-medium sm:inline">
             {user.displayName}

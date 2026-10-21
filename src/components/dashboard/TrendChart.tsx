@@ -80,7 +80,11 @@ export function TrendChart({
       </figcaption>
       <div aria-hidden="true" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 640, height }}>
-          <LineChart data={[...points]} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+          <LineChart
+            accessibilityLayer={false}
+            data={[...points]}
+            margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+          >
             <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="label"

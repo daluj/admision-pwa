@@ -97,7 +97,7 @@ describe('alert bell', () => {
   it('counts unacknowledged open alerts, coloured by the worst, with the same text in its name', async () => {
     await open()
     await waitFor(() => expect(bell()).toHaveAccessibleName(/2 alertas sin reconocer \(crítica\)/))
-    expect(bell().querySelector('[data-severity="CRITICAL"]')).toHaveTextContent('2')
+    expect(bell().querySelector('[data-severity="CRITICAL"]')).toHaveAttribute('data-count', '2')
   })
 
   it('shows 0 and the empty text when the user sees no alert (a supervisor of another unit)', async () => {
