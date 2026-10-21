@@ -539,6 +539,21 @@ export const es = {
       description: 'Solicitudes de traslado entre unidades y asignación de celadores.',
       emptyTitle: 'No hay traslados en curso',
       emptyDescription: 'Las solicitudes de traslado y su estado se mostrarán en esta cola.',
+      actions: {
+        toast: {
+          create: (label: string) => `Traslado solicitado · ${label}`,
+          assign: (label: string) => `Celador asignado · ${label}`,
+          accept: (label: string) => `Traslado aceptado · ${label}`,
+          cancel: (label: string) => `Traslado cancelado · ${label}`,
+          pickUp: (label: string) => `Paciente recogido · ${label}`,
+          deliver: (label: string) => `Paciente entregado · ${label}`,
+        },
+        errors: {
+          forbidden: 'No tiene permiso para esta acción.',
+          stale: 'El traslado ya no está en esa situación. Actualizando…',
+          failed: 'No se pudo completar la acción. Inténtelo de nuevo.',
+        },
+      },
     },
     tracking: {
       title: 'Seguimiento de pacientes',

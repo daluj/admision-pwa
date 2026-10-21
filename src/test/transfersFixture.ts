@@ -56,7 +56,8 @@ const transfer = (id: string, extra: Partial<TransferRequest>): TransferRequest 
   id,
   patientId: patient(id),
   fromLocation: { kind: 'ED', label: 'Urgencias' },
-  toLocation: { kind: 'BED', refId: `bed-${id}`, label: `Planta 1 ${id}` },
+  // Not a BED: picking up must not need a real bed and admission behind it.
+  toLocation: { kind: 'OTHER', label: `Planta 1 ${id}` },
   reason: 'ADMISSION',
   priority: 'NORMAL',
   requestedAt: ago(10),
