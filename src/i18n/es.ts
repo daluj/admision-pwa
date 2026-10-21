@@ -65,6 +65,14 @@ export const es = {
         'Los indicadores principales aparecerán aquí cuando se cargue el hospital simulado.',
     },
     beds: {
+      status: {
+        AVAILABLE: 'Libre',
+        RESERVED: 'Reservada',
+        OCCUPIED: 'Ocupada',
+        PENDING_CLEANING: 'Pendiente de limpieza',
+        CLEANING: 'En limpieza',
+        BLOCKED: 'Bloqueada',
+      },
       title: 'Gestión de camas',
       description: 'Mapa de camas por unidad: libres, reservadas, ocupadas, limpieza y bloqueos.',
       emptyTitle: 'No hay camas registradas',
@@ -299,6 +307,28 @@ export const es = {
     speedOption: (speed: number) => `${speed}×`,
     speedChanged: (speed: number) => `Velocidad ${speed}×`,
     failed: 'No se pudo cambiar la simulación',
+  },
+  dashboard: {
+    status: {
+      ok: 'Correcto',
+      warn: 'Atención',
+      critical: 'Crítico',
+      info: 'Informativo',
+      neutral: '',
+    },
+    exceptions: {
+      title: 'Necesita atención',
+      empty: 'Nada requiere atención ahora mismo.',
+      showAll: (total: number) => `Ver todas (${total})`,
+      showLess: 'Ver menos',
+    },
+    duration: {
+      lessThanMinute: '<1 min',
+      minutes: (m: number) => `${m} min`,
+      hoursMinutes: (h: number, m: number) => (m === 0 ? `${h} h` : `${h} h ${m} min`),
+      daysHours: (d: number, h: number) => (h === 0 ? `${d} d` : `${d} d ${h} h`),
+    },
+    day: { today: 'hoy', tomorrow: 'mañana', yesterday: 'ayer' },
   },
   roles: {
     ADMISSIONS_HEAD: 'Jefe/a de Admisión',
