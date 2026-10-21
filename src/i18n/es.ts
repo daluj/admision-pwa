@@ -506,6 +506,8 @@ export const es = {
         time: 'Hora (24 h)',
         save: 'Guardar alta prevista',
         saving: 'Guardando…',
+        gone: 'Este paciente ya no puede cambiar su alta prevista (ha cambiado de situación).',
+        close: 'Cerrar',
         invalid: {
           required: 'Indique la hora.',
           past: 'La hora debe ser posterior a la hora actual.',
@@ -517,6 +519,8 @@ export const es = {
         body: 'El paciente pasa a «Alta ordenada». La cama quedará pendiente de limpieza cuando salga.',
         confirm: 'Ordenar alta',
         working: 'Procesando…',
+        gone: 'Este paciente ya no está pendiente de que se ordene su alta.',
+        close: 'Cerrar',
       },
       actions: {
         toast: {
