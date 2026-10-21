@@ -3,6 +3,7 @@ import { useDataBackend } from '@/data/dataContext'
 import type { DataBackendInfo, TableCounts } from '@/data/ports'
 import type {
   Admission,
+  Alert,
   Bed,
   BedRequest,
   EdVisit,
@@ -107,4 +108,9 @@ export function usePorters(): Porter[] | undefined {
 export function useTransferRequests(): TransferRequest[] | undefined {
   const { repositories } = useDataBackend()
   return useSubscribable(useMemo(() => repositories.transferRequest.observeList(), [repositories]))
+}
+
+export function useAlerts(): Alert[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.alert.observeList(), [repositories]))
 }
