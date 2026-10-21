@@ -333,6 +333,7 @@ export const es = {
           ADMIT_DECISION: 'Pendiente de ingreso',
         },
         empty: 'Sin pacientes',
+        noTriage: 'Sin triar',
         areas: {
           BOXES: 'Boxes',
           OBSERVATION: 'Observación',

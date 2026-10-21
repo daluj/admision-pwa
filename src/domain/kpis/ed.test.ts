@@ -187,6 +187,8 @@ describe('computeEd: columns', () => {
         .flat()
         .find((c) => c.visit.id === id)!
     expect(card('v2').waitMs).toBe(40 * 60_000) // since arrival
+    expect(card('v2').since).toBe(ago(40))
+    expect(card('v8').since).toBe(ago(300))
     expect(card('v3')).toMatchObject({
       waitMs: 25 * 60_000,
       targetMs: 10 * 60_000,

@@ -30,6 +30,8 @@ export type EdCard = {
   mrn: string
   area: EdArea
   chiefComplaint: string
+  /** When the current phase started (ISO UTC). */
+  since: IsoDateTime
   /** Time in the current phase. */
   waitMs: number
   /** Manchester target (TRIAGED patients only). */
@@ -167,7 +169,8 @@ export function computeEd(input: EdInput): Ed {
     present++
     if (visit.area === 'WAITING_ROOM') inWaitingRoom++
     const patient = patientById.get(visit.patientId)
-    const waitMs = Math.max(0, nowMs - Date.parse(phaseStart(visit)))
+    const since = phaseStart(visit)
+    const waitMs = Math.max(0, nowMs - Date.parse(since))
     const targetMs =
       visit.phase === 'TRIAGED' && visit.triageLevel ? targetMsOf(visit.triageLevel) : undefined
     columns[visit.phase as BoardPhase].push({
@@ -178,6 +181,7 @@ export function computeEd(input: EdInput): Ed {
       mrn: patient?.mrn ?? '',
       area: visit.area,
       chiefComplaint: visit.chiefComplaint,
+      since,
       waitMs,
       ...(targetMs !== undefined ? { targetMs } : {}),
       overTarget: targetMs !== undefined && waitMs > targetMs,
