@@ -46,7 +46,9 @@ describe('route guards', () => {
   it.each(ROLES)('%s can open its home page', async (role) => {
     const { router } = renderApp(ROLE_HOME[role], undefined, { as: role })
     await screen.findByRole('heading', { level: 1 })
-    expect(router.state.location.pathname).toBe(ROLE_HOME[role])
+    // Nurse supervisors have no hospital census: Camas sends them to their own unit.
+    const expected = role === 'NURSE_SUPERVISOR' ? '/camas/TST-1' : ROLE_HOME[role]
+    expect(router.state.location.pathname).toBe(expected)
   })
 
   it('shows the 404 page only to authenticated users', async () => {
