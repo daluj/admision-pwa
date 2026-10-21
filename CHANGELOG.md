@@ -1,9 +1,14 @@
 # Changelog
 
-<!-- last-commit: 40a6c5e39925acdd3917469e3f035000c2210b7a -->
+<!-- last-commit: 64d866f225c1f044af632e05e84b21323d4edd76 -->
 
 ## 2026-10-21
 
+- Performance: every component now shares one live query per table (before, the top bar, overview, alert engine and each page re-read the same tables independently on every change); measured with ~600 beds and 7 simulated days, every dashboard calculator runs in under 50 ms (`npm run perf`)
+- Resilience: a page that crashes now shows a Spanish message with Reintentar / Volver al inicio inside the layout (sidebar and top bar keep working); a global fallback covers crashes outside pages; every page was checked against an empty database
+- Accessibility pass with axe on every page of every role in light and dark, plus the login page and the alert/bed sheets: zero WCAG A/AA violations (fixed chart focus traps, accessible names of the user menu and the alert bell); keyboard flows (skip link, alert centre, sheets, wall mode) and reduced motion covered by tests; the alert centre returns focus to the bell
+- Offline and install: end-to-end checks that every route opens offline and that the manifest and icons are valid, plus `docs/install-and-offline.md` (desktop and iPad Safari checks still to be done by hand)
+- README with demo instructions and `docs/known-limitations.md`
 - Scenarios for the demo: "Martes normal", "Lunes de alta presión" and "Pico de gripe (plan de invierno)". Each starts the day from its own hospital state (occupancy, ED load, boarders) and bends how fast the hospital drains; same seed and scenario always give the same day
 - Ajustes: scenario selector next to the seed, current scenario shown there and in the clock tooltip
 - Time-lapse: new 1800× speed (a ceiling: a laptop plays a simulated day in a few minutes) and "Avance rápido" in Ajustes — jump to 10:00, 14:00, 20:00, 08:00 or any HH:MM; the simulation is played headlessly (cancellable, with progress), ends paused and gives the same result as watching it
