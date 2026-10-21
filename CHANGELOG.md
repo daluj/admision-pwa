@@ -1,9 +1,15 @@
 # Changelog
 
-<!-- last-commit: b22093acc975b25c24a5634c4a111568fdbc41f8 -->
+<!-- last-commit: 7e21f2cdae648a705f955e6dfdd1a30d3653768e -->
 
 ## 2026-10-21
 
+- Alert engine: the six rules of the hospital contingency plan (ED triage target breaches, long boarding, beds pending cleaning too long, transfers not picked up in time, full units with open requests, negative bed balance) are evaluated every simulated minute; alerts are raised, escalated and resolved automatically and every change is logged
+- Alert bell and centre: the bell counts unacknowledged alerts, coloured by the worst; the centre lists open alerts (critical first, then oldest) with filters by severity and area, an Reconocer action that records who and when, a link to the area and the recently resolved ones. Each role only sees the alerts of its areas and nurse supervisors only those of their own unit
+- Hospital status level (Normal / Alerta / Crítico) in the top bar, computed from occupancy, boarding count and longest boarding, with the reasons shown on the overview
+- Control tower overview: status level, headline KPIs of beds, admissions, Urgencias, transfers and alerts (each linking to its dashboard), the open alerts as the attention list, and 24-hour charts (ED % seen within target, admissions and discharges per hour)
+- Modo pantalla (/pantalla): full-screen dark wall display that rotates through the dashboards the role can open every N seconds, with pause, previous/next, full screen and Esc to exit
+- Ajustes: thresholds card (status level limits, long-boarding hours, cleaning minutes, bed-balance limit, wall rotation seconds) with validation and restore defaults, shared across browser tabs
 - Seguimiento de pacientes: search by NHC or name (accent- and case-insensitive) and an Amazon-style journey per patient — current location and situation, the next expected step with its ETA when the data has one, and a timeline from Urgencias arrival to discharge with the time each step took
 - Journeys cover scheduled and urgent admissions, cancelled admissions with their reason, transfers (requested, picked up, delivered) and earlier episodes of the same patient
 - Every dashboard row that identifies a patient (ED board and boarding list, bed sheet, bed requests, transfer queue, scheduled admissions, discharge worklist) links to the journey for roles that can open Seguimiento
