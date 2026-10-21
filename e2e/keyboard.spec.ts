@@ -81,7 +81,7 @@ test('reduced motion: nothing loops forever while the page is idle', async ({ pa
   await loginAs(page, 'Jefe/a de Admisión')
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await page.waitForTimeout(500)
+  await page.waitForLoadState('networkidle')
   // Finite transitions (hover, focus) are fine; infinite keyframe animations (spinners, pulses)
   // must not run on an idle page.
   const looping = await page.evaluate(() =>

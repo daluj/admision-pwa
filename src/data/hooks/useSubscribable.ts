@@ -23,6 +23,9 @@ function createStore<T>(source: Subscribable<T>): Store<T> {
   return {
     subscribe: (listener) => {
       listeners.add(listener)
+      // A new subscription starts clean: a failure (or a value) from an earlier life must not
+      // be shown again, or a retry after an error would throw the same cached error forever.
+      if (!upstream) snapshot = INITIAL
       upstream ??= source.subscribe(
         (value) => publish({ value, failure: null }),
         (error) => publish({ value: snapshot.value, failure: { error } }),
@@ -32,6 +35,7 @@ function createStore<T>(source: Subscribable<T>): Store<T> {
         if (listeners.size === 0 && upstream) {
           upstream()
           upstream = null
+          snapshot = INITIAL
         }
       }
     },
@@ -50,6 +54,7 @@ function storeFor<T>(source: Subscribable<T>): Store<T> {
   return store
 }
 
+// One entry per (owner, key); keys are bounded in practice (tables, units, a few event windows).
 const sources = new WeakMap<object, Map<string, Subscribable<unknown>>>()
 
 /**
