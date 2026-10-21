@@ -81,6 +81,7 @@ UI labels: Llegada, Triado, En atención, Pendiente de ingreso, Fuera de Urgenci
 SCHEDULED ─▶ AWAITING_BED ─▶ BED_ASSIGNED ─▶ IN_TRANSFER ─▶ ADMITTED ─▶ DISCHARGE_ORDERED ─▶ DISCHARGED
 (URGENT admissions start at AWAITING_BED)
 SCHEDULED | AWAITING_BED | BED_ASSIGNED ─▶ CANCELLED
+BED_ASSIGNED ─▶ AWAITING_BED   (reservation released)
 ```
 
 ### TransferRequest ("order tracking")

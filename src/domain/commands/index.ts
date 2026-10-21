@@ -1,3 +1,5 @@
+export * from './beds'
+export * from './ed'
 export * from './execute'
 export * from './resetDemo'
 export * from './types'

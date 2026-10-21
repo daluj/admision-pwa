@@ -26,6 +26,7 @@ const BED_EDGES: Edge[] = [
 const ADMISSION_EDGES: Edge[] = [
   ['SCHEDULED', 'requestBed', 'AWAITING_BED'],
   ['AWAITING_BED', 'assignBed', 'BED_ASSIGNED'],
+  ['BED_ASSIGNED', 'releaseBed', 'AWAITING_BED'],
   ['BED_ASSIGNED', 'startTransfer', 'IN_TRANSFER'],
   ['IN_TRANSFER', 'admit', 'ADMITTED'],
   ['ADMITTED', 'orderDischarge', 'DISCHARGE_ORDERED'],
