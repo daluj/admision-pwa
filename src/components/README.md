@@ -12,3 +12,5 @@ Shared UI used across features.
 **Must not import:** Dexie, `src/data/adapters/`, `src/features/`.
 
 All visible text comes from `src/i18n/es.ts`.
+
+`dashboard/` (Phase 6): shared dashboard widgets — `KpiStrip`/`KpiTile`, `ExceptionList`, `StatusBadge`, `DurationText`. Presentational only: plain props, no data hooks. Status is always colour **and** icon/text.
