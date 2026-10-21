@@ -112,7 +112,7 @@ describe('wall mode', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
     router.navigate('/pantalla')
     await screen.findByRole('heading', { level: 1, name: copy.title })
-    await user.click(screen.getByRole('button', { name: copy.exit }))
+    await user.click(await screen.findByRole('button', { name: copy.exit }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
 
