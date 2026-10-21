@@ -1,9 +1,17 @@
 # Changelog
 
-<!-- last-commit: c25331856632ce74b67d19ba997a7f807a469891 -->
+<!-- last-commit: cd0b2d7448e5f2f4e1682edb1f526dbe21e55474 -->
 
 ## 2026-10-21
 
+- The hospital comes alive: a simulated clock with play/pause and speeds 1×, 10×, 60× and 300× in the top bar (Jefe/a de Admisión only; every role sees the live time, also on phones)
+- "Normal day" scenario: ED arrivals by hour of day, triage and assessment against Manchester targets, admission decisions, bed reservations, porter transfers, scheduled admissions, expected discharges, cleaning and occasional bed blocks — all through the same validated commands a real system would use
+- Every change is recorded as an event together with the state it causes; the simulated time survives reloads and a second tab follows it live; only one tab runs the simulation
+- Same seed, same day: the event sequence is identical whatever the speed
+- Ajustes → "Registro de eventos": live log of every event in Spanish, with filters by type, entity and period, and "Cargar más"
+- Cancelling an admission or releasing a bed also cancels its pending transfer and frees the porter
+- Start, pause and speed changes are logged under the name of the user who made them
+- Restablecer demo stops the simulation and returns the clock to 08:00
 - Simulated login: pick a fictitious user per role (clearly labelled "Acceso simulado — sin contraseña"); nurse supervisors also choose their unit
 - Each role sees only its areas: Jefe/a de Admisión everything, Dirección everything except Ajustes, Celador/a only Traslados, and so on; opening a forbidden page redirects to the role's home with a notice
 - User menu in the top bar shows name, role and unit, with "Cerrar sesión"; the session survives a reload
