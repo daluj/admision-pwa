@@ -1,6 +1,8 @@
 import type { Alert, Id, IsoDateTime } from '@/domain/schemas'
 import type { AlertCandidate } from './rules'
 
+const RANK = { INFO: 0, WARNING: 1, CRITICAL: 2 } as const
+
 export const alertKey = (alert: Pick<Alert, 'ruleId' | 'entityId'>): string =>
   `${alert.ruleId}:${alert.entityId}`
 
@@ -34,6 +36,10 @@ export function diffAlerts(
     const existing = openByKey.get(c.key)
     if (existing && existing.severity === c.severity) continue
     if (existing) resolve.push(existing)
+    // A de-escalation (e.g. critical → warning) is not news: the acknowledgement carries over.
+    // An escalation starts unacknowledged so the bell lights up again.
+    const keepsAck =
+      existing?.acknowledgedAt !== undefined && RANK[c.severity] < RANK[existing.severity]
     raise.push({
       id: ctx.newId(),
       createdAt: ctx.now,
@@ -45,6 +51,9 @@ export function diffAlerts(
       message: c.message,
       params: c.params,
       raisedAt: ctx.now,
+      ...(keepsAck
+        ? { acknowledgedAt: existing!.acknowledgedAt!, acknowledgedBy: existing!.acknowledgedBy! }
+        : {}),
     })
   }
   for (const [key, alert] of openByKey) if (!seen.has(key)) resolve.push(alert)

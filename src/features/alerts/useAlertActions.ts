@@ -1,7 +1,12 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import { useDataBackend } from '@/data/dataContext'
-import { acknowledgeAlert, executeCommand, InvalidCommandError } from '@/domain/commands'
+import {
+  acknowledgeAlert,
+  AlertForbiddenError,
+  executeCommand,
+  InvalidCommandError,
+} from '@/domain/commands'
 import { canAcknowledgeAlert } from '@/domain/access'
 import type { Id } from '@/domain/schemas'
 import { useSession } from '@/features/auth/useSession'
@@ -42,6 +47,7 @@ export function useAlertActions() {
         toast.success(copy.toast)
         return { ok: true }
       } catch (error) {
+        if (error instanceof AlertForbiddenError) return failure('forbidden')
         if (error instanceof InvalidCommandError) return failure('stale')
         console.error(error)
         return failure('failed')

@@ -7,6 +7,8 @@ import { ALERT_CONFIG_STORAGE_KEY, readAlertConfig } from './alertConfigStore'
 
 export const ALERT_LOCK_NAME = 'torre-control-alerts'
 export const ALERT_POLL_MS = 2000
+/** The UI computes the status level and overview at the start of the simulated minute; alerts use the same instant. */
+const minuteOf = (simNow: string) => `${simNow.slice(0, 16)}:00.000Z`
 
 /**
  * Keeps the alerts up to date: in exactly one tab (its own Web Lock), every couple of seconds it
@@ -34,11 +36,16 @@ export function AlertEvaluatorHost() {
             const before = await signature(state.simNow)
             if (before === lastKey) return
             await runAlertEvaluation(
-              { backend, clock: { now: () => state.simNow }, newId: () => crypto.randomUUID() },
+              {
+                backend,
+                clock: { now: () => minuteOf(state.simNow) },
+                newId: () => crypto.randomUUID(),
+              },
               readAlertConfig(),
             )
-            // Our own events moved the log: remember the state after them as handled.
-            lastKey = await signature(state.simNow)
+            // Remember the state we read BEFORE evaluating: events that landed meanwhile (the
+            // simulator, our own) are picked up by the next poll instead of being skipped.
+            lastKey = before
           } catch (error) {
             console.error('[alerts]', error)
           } finally {

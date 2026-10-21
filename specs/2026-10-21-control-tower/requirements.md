@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 12 — Control Tower Overview & Alerts
 **Branch:** `phase-12-control-tower`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 > Autonomous run (phases 9–12): no interview; the "Recommended" options of earlier interviews were applied. Choices are listed under **Decisions**.
 
@@ -46,6 +46,11 @@ One screen for the whole hospital, an alert engine that watches the rules in `sp
 - Hospital-level alerts use `entityType: SimulationState`, `entityId: current`.
 - Thresholds in `localStorage`, not the database: no Dexie bump, no new entity; documented limitation until Phase 17.
 - Wall mode renders the existing pages inside the wall layout (no duplicate dashboards).
+- "Top exceptions" on the Overview are the open alerts (critical first, oldest first, max 10): the alert engine already reuses the dashboards' calculators, so there is one list, not two.
+- Acknowledging is a domain rule, not a button: `acknowledgeAlert` checks the actor's role (`canAcknowledgeAlert`) and the alert's scope (`visibleAlerts`) and raises `AlertForbiddenError`.
+- A de-escalation (critical → warning) keeps the acknowledgement of the alert it replaces; an escalation starts unacknowledged so the bell lights up again.
+- The UI (status level, overview) and the evaluator all use the start of the simulated minute as "now", so they cannot disagree by up to a minute.
+- Known limitation: the top-bar status level recomputes the census and ED KPIs on every data change on every page (memoised by simulated minute, not by collection); revisit with indexes/selectors in Phase 14 (performance).
 - No new dependencies.
 
 ## Context

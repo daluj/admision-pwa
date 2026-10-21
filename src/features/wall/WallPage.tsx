@@ -67,6 +67,7 @@ export default function WallPage() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return // browser shortcuts stay the browser's
       const target = event.target as HTMLElement | null
       if (target && /^(input|select|textarea)$/i.test(target.tagName)) return
       switch (event.key) {

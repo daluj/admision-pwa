@@ -1,7 +1,16 @@
-import { alertCandidates, diffAlerts, type AlertConfig } from '@/domain/alerts'
+import { canAcknowledgeAlert } from '@/domain/access'
+import { alertCandidates, diffAlerts, visibleAlerts, type AlertConfig } from '@/domain/alerts'
 import type { Id } from '@/domain/schemas'
 import { executeCommand, type ExecuteDeps } from './execute'
 import { buildEvent, InvalidCommandError, putChange, requireEntity, type Command } from './types'
+
+/** The actor may not acknowledge this alert (their role, or it is outside their unit). */
+export class AlertForbiddenError extends InvalidCommandError {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AlertForbiddenError'
+  }
+}
 
 /** Nothing to raise or resolve: the evaluation is a no-op and writes nothing. */
 export class NoAlertChangesError extends InvalidCommandError {
@@ -101,7 +110,17 @@ export async function runAlertEvaluation(
 export const acknowledgeAlert: Command<{ alertId: Id }> = async (ctx, { alertId }) => {
   if (ctx.actor === 'simulator')
     throw new InvalidCommandError('Only a user can acknowledge an alert')
-  const alert = await requireEntity(ctx, 'alert', alertId)
+  const [alert, user] = await Promise.all([
+    requireEntity(ctx, 'alert', alertId),
+    ctx.repositories.user.get(ctx.actor),
+  ])
+  // Permission is a domain rule, not only a button: role first, then the alert's own scope.
+  if (!user || !canAcknowledgeAlert(user.role)) {
+    throw new AlertForbiddenError(`User ${ctx.actor} may not acknowledge alerts`)
+  }
+  if (visibleAlerts([alert], user).length === 0) {
+    throw new AlertForbiddenError(`Alert ${alertId} is not visible to ${ctx.actor}`)
+  }
   if (alert.resolvedAt) throw new InvalidCommandError(`Alert ${alertId} is already resolved`)
   if (alert.acknowledgedAt)
     throw new InvalidCommandError(`Alert ${alertId} is already acknowledged`)

@@ -1,8 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import type { Change } from '@/data/ports'
 import { DEFAULT_ALERT_CONFIG } from '@/domain/alerts'
+import type { Role } from '@/domain/schemas'
+import { sampleEntities } from '@/domain/schemas/fixtures'
 import { createCommandHarness, type CommandHarness } from '@/test/commandHarness'
 import { ALERT_NOW, seedAlerts } from '@/test/alertsFixture'
-import { acknowledgeAlert, evaluateAlerts, NoAlertChangesError, runAlertEvaluation } from './alerts'
+import {
+  acknowledgeAlert,
+  AlertForbiddenError,
+  evaluateAlerts,
+  NoAlertChangesError,
+  runAlertEvaluation,
+} from './alerts'
 import { InvalidCommandError } from './types'
 
 let h: CommandHarness
@@ -10,9 +19,28 @@ const types = async (since = 0) =>
   (await h.backend.events.list()).filter((e) => e.seq > since).map((e) => e.type)
 const open = async () => (await h.backend.repositories.alert.list()).filter((a) => !a.resolvedAt)
 
+const user = (id: string, role: Role, unitId?: string): Change => ({
+  entity: 'user',
+  op: 'put',
+  record: {
+    ...sampleEntities.user,
+    id,
+    username: id,
+    displayName: id,
+    role,
+    ...(unitId ? { unitId } : {}),
+  },
+})
+
 beforeEach(async () => {
   h = createCommandHarness({ start: ALERT_NOW })
-  await seedAlerts(h.backend)
+  await seedAlerts(h.backend, [
+    user('usr-1', 'ADMISSIONS_HEAD'),
+    user('usr-2', 'BED_MANAGER'),
+    user('usr-porter', 'PORTER'),
+    user('usr-sup-u1', 'NURSE_SUPERVISOR', 'u1'),
+    user('usr-sup-none', 'NURSE_SUPERVISOR'),
+  ])
 })
 
 describe('evaluateAlerts', () => {
@@ -124,7 +152,7 @@ describe('acknowledgeAlert', () => {
     )
     await executeCommand(withUser('usr-1'), acknowledgeAlert, { alertId: alert.id })
     await expect(
-      executeCommand(withUser('usr-2'), acknowledgeAlert, { alertId: alert.id }),
+      executeCommand(withUser('usr-1'), acknowledgeAlert, { alertId: alert.id }),
     ).rejects.toThrow(/already acknowledged/)
     await expect(
       executeCommand(withUser('usr-1'), acknowledgeAlert, { alertId: 'nope' }),
@@ -137,5 +165,29 @@ describe('acknowledgeAlert', () => {
     await expect(
       executeCommand(withUser('usr-1'), acknowledgeAlert, { alertId: other.id }),
     ).rejects.toThrow(/already resolved/)
+  })
+
+  it('is a domain rule: porters, unknown users and out-of-scope supervisors are refused', async () => {
+    await h.run(evaluateAlerts, { config: DEFAULT_ALERT_CONFIG })
+    const { executeCommand } = await import('./execute')
+    const cleaning = (await open()).find((a) => a.entityId === 'bc1')!
+    const ed = (await open()).find((a) => a.ruleId === 'BOARDING_LONG')!
+    const as = (id: string) => withUser(id)
+    await expect(
+      executeCommand(as('usr-porter'), acknowledgeAlert, { alertId: cleaning.id }),
+    ).rejects.toBeInstanceOf(AlertForbiddenError)
+    await expect(
+      executeCommand(as('ghost'), acknowledgeAlert, { alertId: cleaning.id }),
+    ).rejects.toBeInstanceOf(AlertForbiddenError)
+    await expect(
+      executeCommand(as('usr-sup-u1'), acknowledgeAlert, { alertId: ed.id }),
+    ).rejects.toBeInstanceOf(AlertForbiddenError)
+    await expect(
+      executeCommand(as('usr-sup-none'), acknowledgeAlert, { alertId: cleaning.id }),
+    ).rejects.toBeInstanceOf(AlertForbiddenError)
+    await executeCommand(as('usr-sup-u1'), acknowledgeAlert, { alertId: cleaning.id })
+    expect((await h.backend.repositories.alert.get(cleaning.id))!.acknowledgedBy).toBe('usr-sup-u1')
+    const sla = (await open()).find((a) => a.ruleId === 'TRANSFER_SLA_BREACH')!
+    await executeCommand(as('usr-2'), acknowledgeAlert, { alertId: sla.id })
   })
 })

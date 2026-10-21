@@ -128,8 +128,7 @@ export const es = {
         `Traslado de ${p.initials} a ${p.to} sin recoger fuera de plazo`,
       UNIT_FULL: (p: { unitName: string; requests: number }) =>
         `${p.unitName} sin camas libres y ${p.requests} ${p.requests === 1 ? 'solicitud abierta' : 'solicitudes abiertas'}`,
-      BED_BALANCE_NEGATIVE: (p: { value: number }) =>
-        `Previsión de camas negativa para hoy (${p.value})`,
+      BED_BALANCE_NEGATIVE: () => 'Previsión de camas negativa para hoy',
     },
     status: {
       occupancy: (pct: number) => `Ocupación del ${pct} %`,

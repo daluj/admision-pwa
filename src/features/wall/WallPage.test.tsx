@@ -108,12 +108,18 @@ describe('wall mode', () => {
   it('Escape and the exit button go back to the application', async () => {
     const user = userEvent.setup()
     const { router } = await open()
-    await user.keyboard('{Escape}')
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    // The key listener attaches in an effect: retry the press until the page has wired it up.
+    await waitFor(
+      async () => {
+        await user.keyboard('{Escape}')
+        expect(router.state.location.pathname).toBe('/')
+      },
+      { timeout: 5000 },
+    )
     router.navigate('/pantalla')
-    await screen.findByRole('heading', { level: 1, name: copy.title })
-    await user.click(await screen.findByRole('button', { name: copy.exit }))
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await screen.findByRole('heading', { level: 1, name: copy.title }, { timeout: 5000 })
+    await user.click(await screen.findByRole('button', { name: copy.exit }, { timeout: 5000 }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'), { timeout: 5000 })
   })
 
   it('is only for roles that can open the overview', async () => {

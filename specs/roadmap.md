@@ -113,15 +113,15 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Current location, next expected step and ETA
 - [x] Deep links from every dashboard row to the patient's journey
 
-## Phase 12: Control Tower Overview & Alerts
+## Phase 12: Control Tower Overview & Alerts (Complete)
 
 **Goal:** One screen for the whole hospital.
 
-- [ ] Alert engine evaluating rules from `specs/domain.md` on each event batch
-- [ ] Alert bell + alert centre (acknowledge, filter by severity/area)
-- [ ] Overview: hospital status level, KPIs from all areas, top exceptions, 24 h trends
-- [ ] Wall mode (Modo pantalla): full-screen, auto-rotate dashboards
-- [ ] Settings page for thresholds and SLA targets
+- [x] Alert engine evaluating rules from `specs/domain.md` on each event batch
+- [x] Alert bell + alert centre (acknowledge, filter by severity/area)
+- [x] Overview: hospital status level, KPIs from all areas, top exceptions, 24 h trends
+- [x] Wall mode (Modo pantalla): full-screen, auto-rotate dashboards
+- [x] Settings page for thresholds and SLA targets
 
 ## Phase 13: Scenarios & Demo Mode
 

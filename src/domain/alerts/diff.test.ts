@@ -84,4 +84,20 @@ describe('diffAlerts', () => {
     const { raise } = diffAlerts([], [cand('v1'), cand('v1')], ctx)
     expect(raise).toHaveLength(1)
   })
+
+  it('a de-escalation keeps the acknowledgement; an escalation starts unacknowledged', () => {
+    const ack = { acknowledgedAt: NOW, acknowledgedBy: 'usr-1' }
+    const down = diffAlerts(
+      [open('v1', { severity: 'CRITICAL', ...ack })],
+      [cand('v1', 'WARNING')],
+      ctx,
+    )
+    expect(down.raise[0]).toMatchObject(ack)
+    const up = diffAlerts(
+      [open('v1', { severity: 'WARNING', ...ack })],
+      [cand('v1', 'CRITICAL')],
+      ctx,
+    )
+    expect(up.raise[0]!.acknowledgedAt).toBeUndefined()
+  })
 })
