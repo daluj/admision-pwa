@@ -122,6 +122,85 @@ export const es = {
       emptyTitle: 'Aún no hay datos del hospital',
       emptyDescription:
         'Los indicadores principales aparecerán aquí cuando se cargue el hospital simulado.',
+      loading: 'Cargando la torre de control…',
+      wall: 'Modo pantalla',
+      status: {
+        title: 'Nivel del hospital',
+        levels: {
+          NORMAL: 'El hospital funciona con normalidad.',
+          ALERT: 'El hospital está en situación de alerta.',
+          CRITICAL: 'El hospital está en situación crítica.',
+        },
+      },
+      beds: {
+        label: 'Camas e ingresos',
+        occupancy: {
+          label: 'Ocupación',
+          context: (occupied: number, operational: number) =>
+            `${occupied} de ${operational} camas operativas`,
+        },
+        free: {
+          label: 'Camas libres',
+          context: (reserved: number, cleaning: number) =>
+            `${reserved} reservadas · ${cleaning} por limpiar`,
+        },
+        flow: {
+          label: 'Ingresos / altas hoy',
+          context: (expected: number) => `${expected} altas previstas hoy`,
+        },
+        balance: { label: 'Balance de camas', context: 'Previsión de hoy' },
+      },
+      flow: {
+        label: 'Urgencias, traslados y alertas',
+        ed: {
+          label: 'Pacientes en Urgencias',
+          context: (waiting: number) => `${waiting} esperando al médico`,
+        },
+        boarding: {
+          label: 'Pendientes de ingreso',
+          context: (longest: string) => `Espera máxima ${longest}`,
+          none: 'Nadie esperando cama',
+        },
+        transfers: {
+          label: 'Traslados abiertos',
+          context: (unassigned: number) => `${unassigned} sin asignar`,
+        },
+        sla: {
+          label: 'Recogidas dentro de SLA',
+          none: 'Sin recogidas hoy',
+          context: (within: number, total: number) => `${within} de ${total} hoy`,
+        },
+        alerts: {
+          label: 'Alertas sin reconocer',
+          context: (open: number) => `${open} abiertas en total`,
+        },
+      },
+      alertsCard: {
+        title: 'Necesita atención',
+        description:
+          'Las alertas abiertas más graves y antiguas. El centro de alertas está en la campana.',
+        empty: 'No hay alertas abiertas.',
+        more: (n: number) => `y ${n} más en el centro de alertas`,
+        acknowledged: 'Reconocida',
+      },
+      charts: {
+        title: 'Últimas 24 horas',
+        loading: 'Cargando gráficos…',
+        admitted: {
+          title: 'Ingresos por hora',
+          description: 'Pacientes ingresados en planta en cada hora de reloj.',
+          seriesName: 'Ingresos',
+        },
+        discharged: {
+          title: 'Altas por hora',
+          description: 'Altas completadas en cada hora de reloj.',
+          seriesName: 'Altas',
+        },
+        partial: 'hora en curso',
+        count: (n: number) => `${n}`,
+        hour: 'Hora',
+        value: 'Pacientes',
+      },
     },
     beds: {
       status: {

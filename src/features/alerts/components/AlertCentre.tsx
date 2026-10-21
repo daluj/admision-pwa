@@ -16,6 +16,7 @@ import type { Alert, AlertSeverity } from '@/domain/schemas'
 import { es } from '@/i18n/es'
 import { formatDuration, formatRelativeDay } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { alertText } from '../alertText'
 import { useAlertActions } from '../useAlertActions'
 
 const copy = es.alerts.centre
@@ -26,13 +27,6 @@ const SEVERITY_STYLE: Record<AlertSeverity, string> = {
   INFO: 'text-status-info',
 }
 const SEVERITIES: readonly AlertSeverity[] = ['CRITICAL', 'WARNING']
-
-/** The Spanish text of an alert, built from its rule and params. */
-export function alertText(alert: Alert): string {
-  const rules = es.alerts.rules as Record<string, ((p: never) => string) | undefined>
-  const build = rules[alert.ruleId]
-  return build ? build((alert.params ?? {}) as never) : alert.message
-}
 
 const pathOf = (area: AlertArea) => NAV_ITEMS.find((item) => item.id === area)?.path ?? '/'
 
