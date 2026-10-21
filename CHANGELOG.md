@@ -1,9 +1,15 @@
 # Changelog
 
-<!-- last-commit: 1a21df32cf8b80830fc7972bd63255e842019556 -->
+<!-- last-commit: 15c962c2800f7aa128c0eb555d9fb86b7cdec705 -->
 
 ## 2026-10-21
 
+- Urgencias dashboard: six live indicators (patients present, waiting for triage, waiting for a physician, pending admission, longest wait for a bed, % seen within target) and a "Necesita atención" list for patients waiting longer than their Manchester target and for boarders over 4 h (critical over 8 h)
+- ED board in four columns — Llegada, Triado, En atención, Pendiente de ingreso — with each patient's Manchester level as colour and number, initials, complaint, area and time in the phase; names and NHC only in the tooltip
+- Boarding list with the time since the admit decision and the bed request state (no bed, bed reserved, on its way), longest wait first; the head can jump to Camas to assign a bed
+- Chart of the % of patients seen within their target, hour by hour over the last 24 hours, with the 85 % objective line and a table for screen readers
+- Late waits now show an icon and a text alternative as well as colour; every ED threshold means "over" (exactly at the limit is not late yet)
+- New shared widgets: Manchester triage badge and a trend chart (Recharts)
 - Bed requests on Camas: a "Solicitudes de cama" list with every open request (most urgent first, then longest wait), showing patient initials, where it comes from, the specialty, unit type, isolation and how long it has waited
 - "Asignar cama" opens a side sheet with ranked suggestions — same specialty first, outlier beds after (never for Pediatría, Ginecología y Obstetricia or Psiquiatría), isolation beds only when needed — and reserves the chosen bed with a confirmation message
 - Every bed on a unit's map opens a sheet with the actions that fit its state: block (with a reason), release a reservation, start or finish cleaning, unblock
