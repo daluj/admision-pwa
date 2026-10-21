@@ -941,6 +941,48 @@ export const es = {
     settings: {
       title: 'Ajustes',
       description: 'Preferencias de la aplicación, simulador y datos de demostración.',
+      thresholds: {
+        title: 'Umbrales y alertas',
+        description:
+          'Valores con los que se calcula el nivel del hospital y se generan las alertas. Se guardan en este navegador y se aplican en todas las pestañas. Los indicadores de cada panel mantienen sus umbrales por defecto.',
+        groups: {
+          status: 'Nivel del hospital',
+          rules: 'Reglas de alerta',
+          wall: 'Modo pantalla',
+        },
+        fields: {
+          occupancyAlert: 'Ocupación para nivel Alerta',
+          occupancyCritical: 'Ocupación para nivel Crítico',
+          boardingCountAlert: 'Pendientes de ingreso para Alerta (más de)',
+          boardingCountCritical: 'Pendientes de ingreso para Crítico (más de)',
+          boardingStatusAlertHours: 'Espera máxima de ingreso para Alerta (más de)',
+          boardingStatusCriticalHours: 'Espera máxima de ingreso para Crítico (más de)',
+          boardingLongWarnHours: 'Alerta de ingreso largo: aviso (más de)',
+          boardingLongCriticalHours: 'Alerta de ingreso largo: crítica (más de)',
+          pendingCleaningWarnMin: 'Cama pendiente de limpieza: aviso (más de)',
+          pendingCleaningCriticalMin: 'Cama pendiente de limpieza: crítica (más de)',
+          balanceCritical: 'Balance de camas: crítico (por debajo de)',
+          wallRotationSec: 'Segundos en cada pantalla',
+        },
+        units: {
+          percent: '%',
+          hours: 'h',
+          minutes: 'min',
+          patients: 'pacientes',
+          beds: 'camas',
+          seconds: 's',
+        },
+        errors: {
+          range: (min: number, max: number) => `Debe estar entre ${min} y ${max}.`,
+          order: 'Debe ser mayor que el valor anterior.',
+          number: 'Introduzca un número.',
+        },
+        save: 'Guardar umbrales',
+        reset: 'Restablecer valores por defecto',
+        saved: 'Umbrales guardados',
+        restored: 'Umbrales restablecidos',
+        invalid: 'Revise los campos marcados.',
+      },
       demo: {
         title: 'Datos de demostración',
         description:

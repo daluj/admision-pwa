@@ -11,6 +11,13 @@ const PAGES = [
   { label: 'Ajustes', path: '/ajustes', title: 'Ajustes' },
 ] as const
 
+/** A fresh demo: the log was wiped (seed event + the first alerts only), not carrying old activity. */
+async function expectFreshLog(page: Page) {
+  await expect
+    .poll(async () => Number(await db(page, 'Eventos registrados').textContent()))
+    .toBeLessThan(60)
+}
+
 test('navigates through every sidebar item', async ({ page }) => {
   await loginAs(page, 'Jefe/a de Admisión')
   await expect(page.getByText('Entorno de demostración — datos ficticios')).toBeVisible()
@@ -97,7 +104,7 @@ test('first launch seeds the demo hospital; Ajustes shows the database status', 
   await page.goto('/ajustes')
   await expect(db(page, 'Origen de datos')).toHaveText('IndexedDB')
   await expect(db(page, 'Versión del esquema')).toHaveText('1')
-  await expect(db(page, 'Eventos registrados')).toHaveText('1')
+  await expectFreshLog(page)
   await expect(db(page, 'Camas')).toHaveText('600')
   await expect(db(page, 'Unidades')).toHaveText('20')
   await expect(cardValue(page, 'Datos de demostración', 'Semilla actual')).toHaveText('42')
@@ -110,7 +117,7 @@ test('first launch seeds the demo hospital; Ajustes shows the database status', 
   // Reload does not seed again.
   await page.reload()
   await expect(db(page, 'Camas')).toHaveText('600')
-  await expect(db(page, 'Eventos registrados')).toHaveText('1')
+  await expectFreshLog(page)
 
   await expect
     .poll(() =>
@@ -154,7 +161,7 @@ test('"Restablecer demo" reseeds, signs out and updates every open tab', async (
   await other.goto('/ajustes')
   await expect(cardValue(page, 'Datos de demostración', 'Semilla actual')).toHaveText('7')
   await expect(cardValue(other, 'Datos de demostración', 'Semilla actual')).toHaveText('7')
-  await expect(db(other, 'Eventos registrados')).toHaveText('1')
+  await expectFreshLog(other)
   // Counts are fixed by the profile (same for every seed); the content differs.
   await expect(db(other, 'Camas')).toHaveText('600')
 
@@ -162,6 +169,6 @@ test('"Restablecer demo" reseeds, signs out and updates every open tab', async (
   await expect(page).toHaveURL(/\/login$/)
   await loginAs(page, 'Jefe/a de Admisión')
   await other.goto('/ajustes')
-  await expect(db(other, 'Eventos registrados')).toHaveText('1')
+  await expectFreshLog(other)
   await expect(cardValue(other, 'Datos de demostración', 'Semilla actual')).toHaveText('42')
 })

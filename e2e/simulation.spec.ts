@@ -100,7 +100,9 @@ test('"Restablecer demo" stops the simulation and returns the clock to 08:00', a
   await expect(clock(page)).toHaveText('08:00')
   await expect(controls(page).getByRole('button', { name: 'Iniciar simulación' })).toBeVisible()
   await page.goto('/ajustes')
-  await expect(
-    page.getByRole('table', { name: 'Registro de eventos' }).locator('tbody tr'),
-  ).toHaveCount(1)
+  // The log was wiped: the seed is there, the earlier simulation events are not (the alert engine
+  // may already have added its first alerts).
+  const table = page.getByRole('table', { name: 'Registro de eventos' })
+  await expect(table.getByText('Demo restablecida')).toBeVisible()
+  await expect(table.getByText('Simulación iniciada')).toHaveCount(0)
 })

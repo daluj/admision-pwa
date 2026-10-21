@@ -101,3 +101,20 @@ describe('Visión general', () => {
     expect(screen.getByRole('list', { name: copy.beds.label })).toBeInTheDocument()
   })
 })
+
+describe('Visión general: thresholds from Ajustes', () => {
+  it('the status level follows the saved thresholds', async () => {
+    const { writeAlertConfig } = await import('@/features/alerts/alertConfigStore')
+    const { DEFAULT_ALERT_CONFIG: defaults } = await import('@/domain/alerts')
+    // 3 boarders: over the lowered "more than 1 / more than 2" limits ⇒ critical.
+    writeAlertConfig({ ...defaults, boardingCountAlert: 1, boardingCountCritical: 2 })
+    await open()
+    const card = screen
+      .getByRole('heading', { level: 2, name: copy.status.title })
+      .closest('[data-slot="card"]')!
+    expect(card).toHaveAttribute('data-level', 'CRITICAL')
+    expect(
+      within(card as HTMLElement).getByText(es.alerts.status.boardingCount(3)),
+    ).toBeInTheDocument()
+  })
+})
