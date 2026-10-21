@@ -60,6 +60,29 @@ export const es = {
     dark: 'Oscuro',
     system: 'Sistema',
   },
+  wall: {
+    title: 'Modo pantalla',
+    link: 'Modo pantalla',
+    exit: 'Salir del modo pantalla',
+    pause: 'Pausar la rotación',
+    play: 'Reanudar la rotación',
+    next: 'Pantalla siguiente',
+    previous: 'Pantalla anterior',
+    fullscreen: 'Pantalla completa',
+    exitFullscreen: 'Salir de pantalla completa',
+    slide: (n: number, total: number, label: string) => `${label} (${n} de ${total})`,
+    pending: (n: number) =>
+      n === 0
+        ? 'Sin alertas pendientes'
+        : n === 1
+          ? '1 alerta sin reconocer'
+          : `${n} alertas sin reconocer`,
+    rotating: (seconds: number) => `Cambia cada ${seconds} s`,
+    paused: 'Rotación en pausa',
+    keys: 'Teclas: ← → cambiar · espacio pausar · F pantalla completa · Esc salir',
+    slides: 'Pantallas',
+    loading: 'Cargando pantalla…',
+  },
   alerts: {
     centre: {
       title: 'Centro de alertas',
