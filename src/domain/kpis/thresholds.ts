@@ -25,3 +25,23 @@ export const CENSUS_THRESHOLDS = {
 
 /** Specialties whose patients are never placed as outliers (age/sex-specific care), nor their wards used for outliers. */
 export const OUTLIER_EXCLUDED_SPECIALTIES: readonly string[] = ['PED', 'GOB', 'PSQ']
+
+/** Emergency Department thresholds (defaults; configurable in Settings from Phase 12). */
+export const ED_THRESHOLDS = {
+  /** Manchester target, triage → physician, in minutes. */
+  physicianTargetMinutes: { 1: 0, 2: 10, 3: 60, 4: 120, 5: 240 },
+  /** A triaged patient is "critically late" at this multiple of their target. */
+  targetCriticalFactor: 1.5,
+  /** Waiting for triage: amber / red when the oldest has waited this long (minutes). */
+  triageWaitWarnMin: 15,
+  triageWaitCriticalMin: 30,
+  /** Boarding count (hospital status level). */
+  boardingCountWarn: 10,
+  boardingCountCritical: 20,
+  /** Boarding time (`BOARDING_LONG` alert rule), in minutes. */
+  boardingLongWarnMin: 240,
+  boardingLongCriticalMin: 480,
+  /** Share of L2–L5 patients seen within target: objective / warning floor. */
+  withinTargetObjective: 0.85,
+  withinTargetWarn: 0.7,
+} as const

@@ -14,3 +14,5 @@ Shared UI used across features.
 All visible text comes from `src/i18n/es.ts`.
 
 `dashboard/` (Phase 6): shared dashboard widgets — `KpiStrip`/`KpiTile`, `ExceptionList`, `StatusBadge`, `DurationText`. Presentational only: plain props, no data hooks. Status is always colour **and** icon/text.
+
+Phase 8 added `TriageBadge` (Manchester colour + number) and `TrendChart` (Recharts line chart with a reference line, gaps for missing data and a visually hidden table). In tests `ResponsiveContainer` is replaced with a fixed size (`src/test/setup.ts`) because jsdom has no layout.

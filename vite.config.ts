@@ -62,6 +62,11 @@ export default defineConfig({
               test: /node_modules[\\/](react|react-dom|react-router|scheduler)[\\/]/,
             },
             { name: 'vendor-data', test: /node_modules[\\/](dexie|zod)[\\/]/ },
+            // Recharts and its dependencies in their own chunk (keeps every chunk under 500 kB).
+            {
+              name: 'vendor-charts',
+              test: /node_modules[\\/](recharts|victory-vendor|d3-[^\\/]+|internmap|decimal\.js-light|@reduxjs|react-redux|redux|reselect|immer)[\\/]/,
+            },
             { name: 'vendor-ui', test: /node_modules[\\/]/ },
           ],
         },

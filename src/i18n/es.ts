@@ -273,6 +273,106 @@ export const es = {
         'Pacientes en Urgencias por nivel de triaje, tiempos de espera y decisiones de ingreso.',
       emptyTitle: 'No hay pacientes en Urgencias',
       emptyDescription: 'El tablero de Urgencias aparecerá cuando lleguen pacientes simulados.',
+      loading: 'Cargando Urgencias…',
+      kpis: {
+        label: 'Indicadores de Urgencias',
+        present: {
+          label: 'Pacientes presentes',
+          context: (boxes: number, waitingRoom: number) =>
+            `${boxes} en boxes · ${waitingRoom} en sala de espera`,
+        },
+        waitingTriage: {
+          label: 'Esperando triaje',
+          context: (oldest: string | null) =>
+            oldest ? `espera máx. ${oldest}` : 'nadie esperando',
+        },
+        waitingPhysician: {
+          label: 'Esperando médico',
+          context: (over: number) =>
+            over === 0
+              ? 'todos dentro de objetivo'
+              : over === 1
+                ? '1 por encima del objetivo'
+                : `${over} por encima del objetivo`,
+        },
+        boarding: {
+          label: 'Pendientes de ingreso',
+          context: (withBed: number) =>
+            withBed === 1 ? '1 con cama reservada' : `${withBed} con cama reservada`,
+        },
+        longestBoarding: {
+          label: 'Mayor espera de cama',
+          context: (over: number) =>
+            over === 0
+              ? 'ninguno por encima de 4 h'
+              : over === 1
+                ? '1 paciente > 4 h'
+                : `${over} pacientes > 4 h`,
+        },
+        withinTarget: {
+          label: 'Atendidos en objetivo',
+          context: (within: number, seen: number) => `${within} de ${seen} atendidos en 24 h`,
+          none: 'sin datos todavía',
+          target: (pct: number) => `objetivo ≥ ${pct} %`,
+        },
+      },
+      exceptions: {
+        triageBreach: (initials: string, level: number, wait: string) =>
+          `${initials} (triaje ${level}) espera médico desde hace ${wait}`,
+        triageDetail: (targetMin: number) =>
+          targetMin === 0 ? 'Debe ser atendido de inmediato' : `Objetivo: ${targetMin} min`,
+        boardingLong: (initials: string, since: string) =>
+          `${initials} pendiente de cama desde hace ${since}`,
+      },
+      board: {
+        title: 'Tablero de Urgencias',
+        columns: {
+          ARRIVED: 'Llegada',
+          TRIAGED: 'Triado',
+          IN_ASSESSMENT: 'En atención',
+          ADMIT_DECISION: 'Pendiente de ingreso',
+        },
+        empty: 'Sin pacientes',
+        noTriage: 'Sin triar',
+        areas: {
+          BOXES: 'Boxes',
+          OBSERVATION: 'Observación',
+          RESUS: 'Reanimación',
+          WAITING_ROOM: 'Sala de espera',
+        },
+        target: (minutes: number) => (minutes === 0 ? 'inmediato' : `objetivo ${minutes} min`),
+        detail: { patient: 'Paciente', mrn: 'NHC', complaint: 'Motivo', area: 'Ubicación' },
+      },
+      boarding: {
+        title: 'Pendientes de ingreso',
+        description:
+          'Pacientes con decisión de ingreso que esperan cama, los de más espera primero.',
+        columns: {
+          patient: 'Paciente',
+          service: 'Servicio',
+          since: 'Espera de cama',
+          bed: 'Estado de la cama',
+        },
+        isolation: 'Aislamiento',
+        states: {
+          noBed: 'Sin cama asignada',
+          reserved: (bed: string, unit: string) => `Cama ${bed} reservada (${unit})`,
+          inTransfer: (bed: string) => `En traslado a ${bed}`,
+        },
+        manage: 'Gestionar en Camas',
+        empty: 'No hay pacientes pendientes de ingreso.',
+      },
+      chart: {
+        title: 'Atendidos en objetivo por hora (últimas 24 h)',
+        description:
+          'Porcentaje de pacientes de triaje 2–5 vistos por un médico dentro de su objetivo Manchester.',
+        objective: (pct: number) => `Objetivo ${pct} %`,
+        point: (within: number, seen: number) => `${within} de ${seen} dentro de objetivo`,
+        seriesName: '% en objetivo',
+        table: { hour: 'Hora', seen: 'Atendidos', within: 'En objetivo', pct: '% en objetivo' },
+        noData: 'sin datos',
+        partial: 'hora en curso',
+      },
     },
     admissions: {
       title: 'Ingresos y altas',
@@ -517,6 +617,8 @@ export const es = {
       daysHours: (d: number, h: number) => (h === 0 ? `${d} d` : `${d} d ${h} h`),
     },
     day: { today: 'hoy', tomorrow: 'mañana', yesterday: 'ayer' },
+    triage: (level: number) => `Triaje ${level}`,
+    late: { warn: 'Por encima del objetivo', critical: 'Muy por encima del objetivo' },
   },
   roles: {
     ADMISSIONS_HEAD: 'Jefe/a de Admisión',

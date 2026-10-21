@@ -1,3 +1,5 @@
+import { OctagonAlert, TriangleAlert } from 'lucide-react'
+import { es } from '@/i18n/es'
 import { formatDuration } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +31,10 @@ export function DurationText({ from, now, target, className }: DurationTextProps
         className,
       )}
     >
+      {/* Colour is never the only signal: late waits also carry an icon and a text alternative. */}
+      {level === 'warn' && <TriangleAlert className="mr-0.5 inline size-3" aria-hidden="true" />}
+      {level === 'critical' && <OctagonAlert className="mr-0.5 inline size-3" aria-hidden="true" />}
+      {level !== 'ok' && <span className="sr-only">{es.dashboard.late[level]}: </span>}
       {formatDuration(ms)}
     </span>
   )

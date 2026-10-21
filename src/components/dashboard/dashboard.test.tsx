@@ -9,6 +9,7 @@ import { ExceptionList, type ExceptionItem } from './ExceptionList'
 import { KpiStrip } from './KpiStrip'
 import { KpiTile } from './KpiTile'
 import { StatusBadge } from './StatusBadge'
+import { TriageBadge } from './TriageBadge'
 
 const withRouter = (ui: React.ReactNode) => render(<MemoryRouter>{ui}</MemoryRouter>)
 
@@ -92,6 +93,26 @@ describe('StatusBadge', () => {
   })
 })
 
+describe('TriageBadge', () => {
+  it.each([1, 2, 3, 4, 5] as const)(
+    'level %i: its own colour, the number and accessible text',
+    (level) => {
+      render(<TriageBadge level={level} />)
+      const badge = document.querySelector(`[data-level="${level}"]`)!
+      expect(badge).toHaveClass(`bg-triage-${level}`, `text-triage-${level}-foreground`)
+      expect(badge).toHaveTextContent(String(level))
+      expect(
+        within(badge as HTMLElement).getByText(`${es.dashboard.triage(level)}:`, { exact: false }),
+      ).toHaveClass('sr-only')
+    },
+  )
+
+  it('never relies on colour alone: the visible content is the number', () => {
+    render(<TriageBadge level={3} />)
+    expect(document.querySelector('[aria-hidden="true"]')).toHaveTextContent('3')
+  })
+})
+
 describe('DurationText', () => {
   const FROM = '2026-10-21T08:00:00.000Z'
   const at = (minutes: number) => new Date(Date.parse(FROM) + minutes * 60_000).toISOString()
@@ -102,6 +123,23 @@ describe('DurationText', () => {
     expect(screen.getByText('2 h 15 min')).toBeInTheDocument()
     rerender(<DurationText from={at(10)} now={FROM} />)
     expect(screen.getByText('<1 min')).toBeInTheDocument()
+  })
+
+  it('late waits also carry an icon and a text alternative; fine ones do not', () => {
+    const { rerender } = render(<DurationText from={FROM} now={at(30)} target={target} />)
+    expect(document.querySelector('[data-level="ok"] svg')).toBeNull()
+    expect(screen.queryByText(es.dashboard.late.warn, { exact: false })).not.toBeInTheDocument()
+
+    rerender(<DurationText from={FROM} now={at(90)} target={target} />)
+    expect(document.querySelector('[data-level="warn"] svg')).not.toBeNull()
+    expect(screen.getByText(`${es.dashboard.late.warn}:`, { exact: false })).toHaveClass('sr-only')
+
+    rerender(<DurationText from={FROM} now={at(150)} target={target} />)
+    expect(document.querySelector('[data-level="critical"] svg')).not.toBeNull()
+    expect(screen.getByText(`${es.dashboard.late.critical}:`, { exact: false })).toHaveClass(
+      'sr-only',
+    )
+    expect(screen.getByText('2 h 30 min', { exact: false })).toBeInTheDocument()
   })
 
   it.each([
@@ -133,6 +171,13 @@ describe('ExceptionList', () => {
     withRouter(<ExceptionList items={[]} />)
     expect(screen.getByText(es.dashboard.exceptions.empty)).toBeInTheDocument()
     expect(screen.getByText(es.dashboard.exceptions.title)).toBeInTheDocument()
+  })
+
+  it('has a real section heading', () => {
+    withRouter(<ExceptionList items={[]} />)
+    expect(
+      screen.getByRole('heading', { level: 2, name: es.dashboard.exceptions.title }),
+    ).toBeInTheDocument()
   })
 
   it('orders by severity, then oldest first, with severity text for screen readers', () => {
