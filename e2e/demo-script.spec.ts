@@ -21,7 +21,8 @@ test('the guided demo script works end to end', async ({ page }) => {
       'Lunes de alta presión',
     )
     await page.getByRole('group', { name: 'Atajos' }).getByRole('button', { name: '14:00' }).click()
-    await expect(page.getByText('14:00', { exact: true }).first()).toBeVisible({ timeout: 150_000 })
+    await expect(page.getByRole('status')).toBeVisible()
+    await expect(page.getByRole('status')).toBeHidden({ timeout: 150_000 }) // the jump is over
     await expect(page.locator('header time')).toHaveText('14:00', { timeout: 150_000 })
   })
 
@@ -83,6 +84,16 @@ test('the guided demo script works end to end', async ({ page }) => {
     await expect(page.getByRole('list', { name: 'Celadores' })).toBeVisible()
   })
 
+  await test.step('5b. a porter sees Mi cola', async () => {
+    await page.evaluate(() => localStorage.removeItem('torre-control.session'))
+    await loginAs(page, 'Celador/a')
+    await page.goto('/traslados')
+    await expect(page.getByRole('heading', { level: 1, name: 'Mi cola' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2, name: 'Cola abierta' })).toBeVisible()
+    await page.evaluate(() => localStorage.removeItem('torre-control.session'))
+    await loginAs(page, 'Jefe/a de Admisión')
+  })
+
   await test.step('6. wall mode rotates and exits with Escape', async () => {
     await page.goto('/pantalla')
     await expect(page.getByRole('main')).toHaveAttribute(
@@ -98,6 +109,7 @@ test('the guided demo script works end to end', async ({ page }) => {
   await test.step('7. jump to 20:00 and see the day evolve', async () => {
     await page.goto('/ajustes')
     await page.getByRole('group', { name: 'Atajos' }).getByRole('button', { name: '20:00' }).click()
+    await expect(page.getByRole('status')).toBeHidden({ timeout: 150_000 })
     await expect(page.locator('header time')).toHaveText('20:00', { timeout: 150_000 })
   })
 })

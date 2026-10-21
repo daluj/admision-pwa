@@ -7,7 +7,9 @@ import { advanceSimulationTo, SimulationNotSeededError } from './advance'
 export function nextTimeOfDay(from: IsoDateTime, hour: number, minute = 0): IsoDateTime {
   const today = zonedDayAt(from, HOSPITAL_TIME_ZONE, hour, minute)
   if (Date.parse(today) > Date.parse(from)) return today
-  return zonedDayAt(addMinutes(today, 1440 + 120), HOSPITAL_TIME_ZONE, hour, minute)
+  // Tomorrow's local day, found from today's noon so a 23 h / 25 h day cannot skip or repeat a date.
+  const tomorrowNoon = addMinutes(zonedDayAt(from, HOSPITAL_TIME_ZONE, 12), 1440)
+  return zonedDayAt(tomorrowNoon, HOSPITAL_TIME_ZONE, hour, minute)
 }
 
 export type JumpOptions = {

@@ -25,6 +25,13 @@ describe('nextTimeOfDay', () => {
     expect(nextTimeOfDay('2026-10-21T06:00:00.000Z', 8)).toBe('2026-10-22T06:00:00.000Z')
     expect(nextTimeOfDay('2026-10-21T13:00:00.000Z', 10)).toBe('2026-10-22T08:00:00.000Z')
   })
+  it('works for the late evening hours (22:00, 23:00) from late evening too', () => {
+    // 23:30 Madrid on the 21st (CEST) → next 23:00 is the 22nd, not two days later.
+    expect(nextTimeOfDay('2026-10-21T21:30:00.000Z', 23)).toBe('2026-10-22T21:00:00.000Z')
+    expect(nextTimeOfDay('2026-10-21T20:00:00.000Z', 22)).toBe('2026-10-22T20:00:00.000Z')
+    expect(nextTimeOfDay('2026-10-21T20:30:00.000Z', 22)).toBe('2026-10-22T20:00:00.000Z')
+    expect(nextTimeOfDay('2026-10-21T21:30:00.000Z', 0)).toBe('2026-10-21T22:00:00.000Z')
+  })
   it('follows the clock change at the end of October (CET from 2026-10-25)', () => {
     expect(nextTimeOfDay('2026-10-24T20:00:00.000Z', 8)).toBe('2026-10-25T07:00:00.000Z')
     expect(nextTimeOfDay('2026-10-25T08:00:00.000Z', 8)).toBe('2026-10-26T07:00:00.000Z')
