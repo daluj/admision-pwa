@@ -28,8 +28,10 @@ test('the head assigns the most urgent request to a suggested bed', async ({ pag
   // The event log shows who did it and what.
   await page.goto('/ajustes')
   const log = page.getByRole('table', { name: 'Registro de eventos' })
-  await expect(log.locator('tbody tr').first()).toContainText('Cama reservada')
-  await expect(log.locator('tbody tr').first()).toContainText('Sergio Medina Reyes')
+  // Reserving a bed also creates the transfer, by the same person.
+  await expect(log.locator('tbody tr').first()).toContainText('Traslado solicitado')
+  await expect(log.locator('tbody tr').nth(1)).toContainText('Cama reservada')
+  await expect(log.locator('tbody tr').nth(1)).toContainText('Sergio Medina Reyes')
 })
 
 test('a free bed can be blocked with a reason and unblocked again', async ({ page }) => {

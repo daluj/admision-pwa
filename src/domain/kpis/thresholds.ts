@@ -63,3 +63,13 @@ export const ADMISSION_THRESHOLDS = {
   /** An expected discharge can be set at most this many days ahead. */
   maxDaysAhead: 7,
 } as const
+
+/** Transfers / dispatch thresholds (defaults; configurable in Settings from Phase 12). */
+export const TRANSFER_THRESHOLDS = {
+  /** Share of transfers picked up within their SLA: objective / warning floor. */
+  slaObjective: 0.9,
+  slaWarn: 0.75,
+  /** Oldest unassigned request: amber / red past these minutes. */
+  unassignedWarnMin: 5,
+  unassignedCriticalMin: 15,
+} as const

@@ -12,8 +12,9 @@ import {
   transferBetweenBeds,
   unblockBed,
 } from './beds'
+import { createScheduledAdmission, requestBedForScheduled } from './admissions'
 import { decideAdmission, registerEdArrival, startEdAssessment, triageEdPatient } from './ed'
-import { assignTransfer, requestTransfer } from './transfers'
+import { assignTransfer } from './transfers'
 import { InvalidCommandError } from './types'
 
 let h: CommandHarness
@@ -154,23 +155,80 @@ describe('releaseBedReservation', () => {
   })
 
   it('cancels the pending transfer and frees its porter', async () => {
-    const b = await reserved()
-    const admissionRow = (await admission(b.admissionId))!
-    const [requested] = await h.run(requestTransfer, {
-      patientId: admissionRow.patientId,
-      fromLocation: { kind: 'ED', label: 'Urgencias' },
-      toLocation: { kind: 'BED', refId: 'bed-1', label: 'bed-1' },
-      reason: 'ADMISSION',
-      priority: 'URGENT',
-    })
-    await h.run(assignTransfer, { transferId: requested!.entityId, porterId: 'por-1' })
+    const b = await boarding()
+    const reservedEvents = await h.run(reserveBed, { bedRequestId: b.requestId, bedId: 'bed-1' })
+    const transferId = reservedEvents.find((e) => e.type === 'TransferRequested')!.entityId
+    await h.run(assignTransfer, { transferId, porterId: 'por-1' })
 
     const events = await h.run(releaseBedReservation, { bedId: 'bed-1' })
     expect(events.map((e) => e.type)).toEqual(['BedReservationReleased', 'TransferCancelled'])
-    expect(await h.backend.repositories.transferRequest.get(requested!.entityId)).toMatchObject({
+    expect(await h.backend.repositories.transferRequest.get(transferId)).toMatchObject({
       status: 'CANCELLED',
     })
     expect(await h.backend.repositories.porter.get('por-1')).toMatchObject({ status: 'AVAILABLE' })
+  })
+
+  it('reserving also creates the transfer: reason, route, priority and SLA', async () => {
+    const b = await boarding()
+    const events = await h.run(reserveBed, { bedRequestId: b.requestId, bedId: 'bed-1' })
+    expect(events.map((e) => e.type)).toEqual(['BedReserved', 'TransferRequested'])
+    const transfer = (await h.backend.repositories.transferRequest.get(events[1]!.entityId))!
+    expect(transfer).toMatchObject({
+      status: 'REQUESTED',
+      reason: 'ADMISSION',
+      fromLocation: { kind: 'ED', label: 'Urgencias' },
+      toLocation: { kind: 'BED', refId: 'bed-1', label: 'Planta 1 bed-1' },
+      priority: 'NORMAL', // triage 3 ⇒ P2
+      requestedAt: '2026-10-21T08:00:00.000Z',
+    })
+    expect(Date.parse(transfer.slaDueAt) - Date.parse(transfer.requestedAt)).toBe(30 * 60_000)
+    expect(events[1]).toMatchObject({
+      entityType: 'TransferRequest',
+      payload: { patientId: transfer.patientId },
+    })
+  })
+
+  it('a P1 bed request makes an urgent transfer (10 min SLA); a scheduled patient starts from Admisión', async () => {
+    const urgent = await boarding()
+    const request = (await h.backend.repositories.bedRequest.get(urgent.requestId))!
+    await h.backend.events.append(
+      [],
+      [{ entity: 'bedRequest', op: 'put', record: { ...request, priority: 'P1' } }],
+    )
+    const [, transferEvent] = await h.run(reserveBed, {
+      bedRequestId: urgent.requestId,
+      bedId: 'bed-1',
+    })
+    const urgentTransfer = (await h.backend.repositories.transferRequest.get(
+      transferEvent!.entityId,
+    ))!
+    expect(urgentTransfer.priority).toBe('URGENT')
+    expect(Date.parse(urgentTransfer.slaDueAt) - Date.parse(urgentTransfer.requestedAt)).toBe(
+      10 * 60_000,
+    )
+
+    const [created] = await h.run(createScheduledAdmission, {
+      patient: {
+        data: {
+          mrn: 'SIM-SCHED',
+          firstName: 'Eva',
+          lastName: 'Ficticia Prueba',
+          sex: 'F',
+          birthYear: 1980,
+        },
+      },
+      specialtyCode: 'CAR',
+      scheduledFor: '2026-10-21T10:00:00.000Z',
+    })
+    const [asked] = await h.run(requestBedForScheduled, { admissionId: created!.entityId })
+    const reserved = await h.run(reserveBed, { bedRequestId: asked!.entityId, bedId: 'bed-2' })
+    const scheduledTransfer = (await h.backend.repositories.transferRequest.get(
+      reserved[1]!.entityId,
+    ))!
+    expect(scheduledTransfer).toMatchObject({
+      fromLocation: { kind: 'OTHER', label: 'Admisión' },
+      priority: 'NORMAL',
+    })
   })
 
   it('rejects a release meant for a reservation the bed no longer holds', async () => {

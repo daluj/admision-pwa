@@ -95,14 +95,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] Nurse supervisor can set/edit expected discharge and order discharge
 - [x] Bed balance forecast for today with deficit warning
 
-## Phase 10: Internal Transfers — Dispatch
+## Phase 10: Internal Transfers — Dispatch (Complete)
 
 **Goal:** Porter dispatch like a delivery queue.
 
-- [ ] Transfer request creation (auto-created on bed assignment; manual creation)
-- [ ] Dispatch board: queue by priority/SLA, porters available/busy, assign porter
-- [ ] Porter view: my queue, accept → picked up → delivered
-- [ ] Simulator drives porters; transfer SLA KPIs
+- [x] Transfer request creation (auto-created on bed assignment; manual creation)
+- [x] Dispatch board: queue by priority/SLA, porters available/busy, assign porter
+- [x] Porter view: my queue, accept → picked up → delivered
+- [x] Simulator drives porters; transfer SLA KPIs
 
 ## Phase 11: Patient Journey Tracking ("Track & Trace")
 

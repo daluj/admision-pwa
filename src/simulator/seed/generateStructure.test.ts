@@ -42,6 +42,15 @@ describe('generateStructure', () => {
     expect(new Set(structure.beds.map((b) => b.label)).size).toBe(structure.beds.length)
   })
 
+  it('links the porter login to a porter that is on duty', () => {
+    const porterUser = structure.users.find((u) => u.role === 'PORTER')!
+    const porter = structure.porters.find((p) => p.id === porterUser.porterId)
+    expect(porter).toMatchObject({ shift: 'MORNING', status: 'AVAILABLE' })
+    expect(
+      structure.users.filter((u) => u.role !== 'PORTER').every((u) => u.porterId === undefined),
+    ).toBe(true)
+  })
+
   it('has 20 porters across shifts, only the morning shift available', () => {
     expect(structure.porters).toHaveLength(20)
     expect(

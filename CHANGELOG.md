@@ -1,9 +1,13 @@
 # Changelog
 
-<!-- last-commit: d7ae9f7271d552f3cb0d6af211df4d4e496913d2 -->
+<!-- last-commit: 26d9b1751f564663817366d1babf3dbac7553493 -->
 
 ## 2026-10-21
 
+- Traslados dispatch board: six live indicators (open transfers, unassigned, median time to pickup, % picked up within SLA, free porters, completed today), a "Necesita atención" list for pickups past their SLA (critical when urgent) and the open queue — urgent first, then closest to its SLA — with the time left shown as text and icon
+- Porters panel with who is available or busy and their current job; the head of admissions and bed managers can assign an available porter (suggested: free the longest), cancel a transfer before pickup and request a new transfer for an inpatient. Management sees it read-only
+- "Mi cola" for porters: their own job with the next step (Recoger → Entregar) and the open queue to accept from while available; a porter can only act on their own jobs
+- Reserving a bed now automatically requests the admission transfer (urgent for P1 requests); the Celador/a login is linked to a porter
 - Ingresos y altas page: six live indicators (admissions today, scheduled still pending, discharges done vs expected, % of discharges before 12:00, bed balance, scheduled admissions cancelled for lack of a bed) and a "Necesita atención" list for bed-balance deficits, scheduled patients waiting too long for a bed and discharge orders that were not carried out
 - The day's scheduled admissions with their state (pending, arrived, bed reserved, admitted, cancelled with the reason), discharges per unit, and a bed-balance forecast for today with its breakdown and a deficit warning
 - Discharge worklist (today, ordered, coming days, no date): the head of admissions and nurse supervisors (own unit only) can set or edit the expected discharge and order the discharge; management and bed managers see it read-only. Each action is logged under the name of the person who made it

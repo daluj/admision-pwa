@@ -91,7 +91,7 @@ export function generateStructure(
   }
 
   const usernames = new Set<string>()
-  const user = (role: Role, unitId?: string): User => {
+  const user = (role: Role, unitId?: string, porterId?: string): User => {
     const name = personName(people, people.chance(0.6) ? 'F' : 'M')
     const base = `${slug(name.firstName)}.${slug(name.lastName.split(' ')[0]!)}`
     let username = base
@@ -104,10 +104,15 @@ export function generateStructure(
       displayName: `${name.firstName} ${name.lastName}`,
       role,
       ...(unitId ? { unitId } : {}),
+      ...(porterId ? { porterId } : {}),
     }
   }
+  // The porter login drives a porter that is on duty at the 08:00 anchor.
+  const loginPorter = porters.find((p) => p.status === 'AVAILABLE')
   const users: User[] = [
-    ...SINGLE_ROLES.map((role) => user(role)),
+    ...SINGLE_ROLES.map((role) =>
+      role === 'PORTER' ? user(role, undefined, loginPorter?.id) : user(role),
+    ),
     ...units.filter((u) => u.type !== 'ED').map((u) => user('NURSE_SUPERVISOR', u.id)),
   ]
 

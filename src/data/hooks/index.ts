@@ -10,8 +10,10 @@ import type {
   Id,
   IsoDateTime,
   Patient,
+  Porter,
   SimulationState,
   Specialty,
+  TransferRequest,
   Unit,
   User,
 } from '@/domain/schemas'
@@ -95,4 +97,14 @@ export function useRecentEvents(limit: number): HospitalEvent[] | undefined {
 /** The simulated "now" (`SimulationState.simNow`); `undefined` until the demo is seeded. Dashboards use this, never the wall clock. */
 export function useSimNow(): IsoDateTime | undefined {
   return useSimulationState()?.simNow
+}
+
+export function usePorters(): Porter[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.porter.observeList(), [repositories]))
+}
+
+export function useTransferRequests(): TransferRequest[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.transferRequest.observeList(), [repositories]))
 }
