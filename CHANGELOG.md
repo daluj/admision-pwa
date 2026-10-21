@@ -1,12 +1,17 @@
 # Changelog
 
-<!-- last-commit: 40a6c5e39925acdd3917469e3f035000c2210b7a -->
+<!-- last-commit: 64d866f225c1f044af632e05e84b21323d4edd76 -->
 
 ## 2026-10-21
 
+- Performance: every component now shares one live query per table (before, the top bar, overview, alert engine and each page re-read the same tables independently on every change); measured with ~600 beds and 7 simulated days, every dashboard calculator runs in under 50 ms (`npm run perf`)
+- Resilience: a page that crashes now shows a Spanish message with Reintentar / Volver al inicio inside the layout (sidebar and top bar keep working); a global fallback covers crashes outside pages; every page was checked against an empty database
+- Accessibility pass with axe on every page of every role in light and dark, plus the login page and the alert/bed sheets: zero WCAG A/AA violations (fixed chart focus traps, accessible names of the user menu and the alert bell); keyboard flows (skip link, alert centre, sheets, wall mode) and reduced motion covered by tests; the alert centre returns focus to the bell
+- Offline and install: end-to-end checks that every route opens offline and that the manifest and icons are valid, plus `docs/install-and-offline.md` (desktop and iPad Safari checks still to be done by hand)
+- README with demo instructions and `docs/known-limitations.md`
 - Scenarios for the demo: "Martes normal", "Lunes de alta presión" and "Pico de gripe (plan de invierno)". Each starts the day from its own hospital state (occupancy, ED load, boarders) and bends how fast the hospital drains; same seed and scenario always give the same day
 - Ajustes: scenario selector next to the seed, current scenario shown there and in the clock tooltip
-- Time-lapse: new 1800× speed (a day in about a minute) and "Avance rápido" in Ajustes — jump to 10:00, 14:00, 20:00, 08:00 or any HH:MM; the simulation is played headlessly (cancellable, with progress), ends paused and gives the same result as watching it
+- Time-lapse: new 1800× speed (a ceiling: a laptop plays a simulated day in a few minutes) and "Avance rápido" in Ajustes — jump to 10:00, 14:00, 20:00, 08:00 or any HH:MM; the simulation is played headlessly (cancellable, with progress), ends paused and gives the same result as watching it
 - Guided demo script (docs/demo-script.md, in Spanish) and an end-to-end test that follows it step by step
 - Alert engine: the six rules of the hospital contingency plan (ED triage target breaches, long boarding, beds pending cleaning too long, transfers not picked up in time, full units with open requests, negative bed balance) are evaluated every simulated minute; alerts are raised, escalated and resolved automatically and every change is logged
 - Alert bell and centre: the bell counts unacknowledged alerts, coloured by the worst; the centre lists open alerts (critical first, then oldest) with filters by severity and area, an Reconocer action that records who and when, a link to the area and the recently resolved ones. Each role only sees the alerts of its areas and nurse supervisors only those of their own unit

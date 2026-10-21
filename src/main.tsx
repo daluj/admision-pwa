@@ -1,6 +1,7 @@
 import { StrictMode, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from '@/App'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { StartupError } from '@/components/common/StartupError'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { createBackend } from '@/data/createBackend'
@@ -29,6 +30,8 @@ function boot(): ReactNode {
 
 createRoot(root).render(
   <StrictMode>
-    <ThemeProvider>{boot()}</ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>{boot()}</ThemeProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )

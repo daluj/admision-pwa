@@ -27,7 +27,7 @@ describe('role-based navigation', () => {
     const { router } = renderApp('/camas', undefined, { as: 'NURSE_SUPERVISOR' })
     await screen.findByRole('heading', { level: 1, name: TEST_UNIT.name })
 
-    await user.click(screen.getByRole('button', { name: es.topBar.user.menu }))
+    await user.click(screen.getByRole('button', { name: new RegExp(`^${es.topBar.user.menu}`) }))
     expect(await screen.findByText(es.roles.NURSE_SUPERVISOR)).toBeInTheDocument()
     expect(screen.getByText(`${es.topBar.user.unit}: ${TEST_UNIT.name}`)).toBeInTheDocument()
 

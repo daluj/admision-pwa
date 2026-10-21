@@ -29,7 +29,7 @@ test('the engine raises alerts, the bell counts them and they can be acknowledge
   await expect(bell(page)).toHaveAttribute('aria-label', /alertas? sin reconocer/, {
     timeout: 20_000,
   })
-  const before = Number((await bell(page).innerText()).trim())
+  const before = Number(await bell(page).locator('[data-count]').getAttribute('data-count'))
   expect(before).toBeGreaterThan(0)
 
   await bell(page).click()

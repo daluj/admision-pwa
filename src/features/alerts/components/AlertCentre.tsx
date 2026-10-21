@@ -34,10 +34,12 @@ type AlertCentreProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   summary: AlertSummary
+  /** Where the focus goes when the centre closes (the bell that opened it). */
+  onCloseAutoFocus?: (event: Event) => void
 }
 
 /** Side sheet with the alerts the user may see: filters, acknowledge, link to the area, recently resolved. */
-export function AlertCentre({ open, onOpenChange, summary }: AlertCentreProps) {
+export function AlertCentre({ open, onOpenChange, summary, onCloseAutoFocus }: AlertCentreProps) {
   const [severity, setSeverity] = useState<AlertSeverity | ''>('')
   const [area, setArea] = useState<AlertArea | ''>('')
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +61,11 @@ export function AlertCentre({ open, onOpenChange, summary }: AlertCentreProps) {
   const field = 'border-input bg-background h-8 rounded-md border px-2 text-sm'
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+      <SheetContent
+        side="right"
+        className="w-full overflow-y-auto sm:max-w-lg"
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
         <SheetHeader>
           <SheetTitle>{copy.title}</SheetTitle>
           <SheetDescription>{copy.description}</SheetDescription>
