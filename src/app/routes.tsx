@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import type { RouteObject } from 'react-router'
 import { AppShell } from '@/components/layout/AppShell'
 import { NAV_ITEMS, type AreaId } from '@/components/layout/nav'
+import { RequireArea, RequireSession, SessionRoot } from '@/features/auth/guards'
 
 type PageModule = { default: ComponentType }
 
@@ -22,15 +23,29 @@ function lazyPage(load: () => Promise<PageModule>): RouteObject['lazy'] {
 
 export const routes: RouteObject[] = [
   {
-    path: '/',
-    Component: AppShell,
+    Component: SessionRoot,
     children: [
-      ...NAV_ITEMS.map((item): RouteObject =>
-        item.path === '/'
-          ? { index: true, lazy: lazyPage(PAGE_LOADERS[item.id]) }
-          : { path: item.path.slice(1), lazy: lazyPage(PAGE_LOADERS[item.id]) },
-      ),
-      { path: '*', lazy: lazyPage(() => import('@/features/not-found/NotFoundPage')) },
+      { path: '/login', lazy: lazyPage(() => import('@/features/auth/LoginPage')) },
+      {
+        Component: RequireSession,
+        children: [
+          {
+            path: '/',
+            Component: AppShell,
+            children: [
+              ...NAV_ITEMS.map((item): RouteObject => ({
+                element: <RequireArea area={item.id} />,
+                children: [
+                  item.path === '/'
+                    ? { index: true, lazy: lazyPage(PAGE_LOADERS[item.id]) }
+                    : { path: item.path.slice(1), lazy: lazyPage(PAGE_LOADERS[item.id]) },
+                ],
+              })),
+              { path: '*', lazy: lazyPage(() => import('@/features/not-found/NotFoundPage')) },
+            ],
+          },
+        ],
+      },
     ],
   },
 ]

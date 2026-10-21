@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { loginAs } from './helpers.js'
 
 const PAGES = [
   { label: 'Torre de control', path: '/', title: 'Visión general' },
@@ -11,7 +12,7 @@ const PAGES = [
 ] as const
 
 test('navigates through every sidebar item', async ({ page }) => {
-  await page.goto('/')
+  await loginAs(page, 'Jefe/a de Admisión')
   await expect(page.getByText('Entorno de demostración — datos ficticios')).toBeVisible()
   const nav = page.getByRole('navigation', { name: 'Navegación principal' })
 
@@ -27,12 +28,13 @@ test('navigates through every sidebar item', async ({ page }) => {
 })
 
 test('unknown routes show the 404 page', async ({ page }) => {
+  await loginAs(page, 'Jefe/a de Admisión')
   await page.goto('/no-existe')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Página no encontrada')
 })
 
 test('the chosen theme survives a reload', async ({ page }) => {
-  await page.goto('/')
+  await loginAs(page, 'Jefe/a de Admisión')
   await page.getByRole('button', { name: 'Cambiar tema' }).click()
   await page.getByRole('menuitemradio', { name: 'Oscuro' }).click()
   await expect(page.locator('html')).toHaveClass(/dark/)
@@ -61,7 +63,7 @@ test('serves the web app manifest', async ({ page, request }) => {
 })
 
 test('registers a service worker and works offline', async ({ page, context }) => {
-  await page.goto('/')
+  await loginAs(page, 'Jefe/a de Admisión')
   await expect
     .poll(() =>
       page.evaluate(async () => (await navigator.serviceWorker.ready).active?.state ?? null),
@@ -91,6 +93,7 @@ test('first launch seeds the demo hospital; Ajustes shows the database status', 
   page,
   context,
 }) => {
+  await loginAs(page, 'Jefe/a de Admisión')
   await page.goto('/ajustes')
   await expect(db(page, 'Origen de datos')).toHaveText('IndexedDB')
   await expect(db(page, 'Versión del esquema')).toHaveText('1')
@@ -121,7 +124,11 @@ test('first launch seeds the demo hospital; Ajustes shows the database status', 
   await context.setOffline(false)
 })
 
-test('"Restablecer demo" reseeds and updates every open tab', async ({ page, context }) => {
+test('"Restablecer demo" reseeds, signs out and updates every open tab', async ({
+  page,
+  context,
+}) => {
+  await loginAs(page, 'Jefe/a de Admisión')
   await page.goto('/ajustes')
   await expect(db(page, 'Camas')).toHaveText('600')
 
@@ -135,18 +142,26 @@ test('"Restablecer demo" reseeds and updates every open tab', async ({ page, con
     const dialog = page.getByRole('alertdialog', { name: '¿Restablecer la demo?' })
     await expect(dialog).toContainText(`con la semilla ${seed}`)
     await dialog.getByRole('button', { name: 'Restablecer', exact: true }).click()
-    await expect(page.getByText(`Demo restablecida con la semilla ${seed}`)).toBeVisible()
   }
 
+  // The simulated users are regenerated, so every tab falls back to the login page.
   await reset('7')
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(other).toHaveURL(/\/login$/)
+
+  await loginAs(page, 'Jefe/a de Admisión')
+  await page.goto('/ajustes')
+  await other.goto('/ajustes')
   await expect(cardValue(page, 'Datos de demostración', 'Semilla actual')).toHaveText('7')
-  // The second tab follows live (cross-tab live query).
   await expect(cardValue(other, 'Datos de demostración', 'Semilla actual')).toHaveText('7')
   await expect(db(other, 'Eventos registrados')).toHaveText('1')
   // Counts are fixed by the profile (same for every seed); the content differs.
   await expect(db(other, 'Camas')).toHaveText('600')
 
   await reset('42')
+  await expect(page).toHaveURL(/\/login$/)
+  await loginAs(page, 'Jefe/a de Admisión')
+  await other.goto('/ajustes')
   await expect(db(other, 'Eventos registrados')).toHaveText('1')
   await expect(cardValue(other, 'Datos de demostración', 'Semilla actual')).toHaveText('42')
 })

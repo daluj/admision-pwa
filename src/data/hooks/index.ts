@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useDataBackend } from '@/data/dataContext'
 import type { DataBackendInfo, TableCounts } from '@/data/ports'
-import type { Bed, HospitalEvent, Id, SimulationState, Unit } from '@/domain/schemas'
+import type { Bed, HospitalEvent, Id, SimulationState, Unit, User } from '@/domain/schemas'
 import { useSubscribable } from './useSubscribable'
 
 export { useSubscribable } from './useSubscribable'
@@ -20,6 +20,11 @@ export function useTableCounts(): TableCounts | undefined {
 export function useUnits(): Unit[] | undefined {
   const { repositories } = useDataBackend()
   return useSubscribable(useMemo(() => repositories.unit.observeList(), [repositories]))
+}
+
+export function useUsers(): User[] | undefined {
+  const { repositories } = useDataBackend()
+  return useSubscribable(useMemo(() => repositories.user.observeList(), [repositories]))
 }
 
 export function useBeds(): Bed[] | undefined {

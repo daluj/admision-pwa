@@ -27,7 +27,7 @@ describe('AppShell', () => {
       screen.getByRole('button', { name: `${es.topBar.alerts.label}: ${es.topBar.alerts.empty}` }),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: es.theme.toggle })).toBeInTheDocument()
-    expect(screen.getByText(es.topBar.user.guest)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: es.topBar.user.menu })).toBeInTheDocument()
   })
 
   it('renders the 404 page for unknown routes', async () => {
