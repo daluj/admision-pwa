@@ -1,9 +1,15 @@
 # Changelog
 
-<!-- last-commit: 04cfb7a109dfc43f10543c6bc15916d2249e152e -->
+<!-- last-commit: c25331856632ce74b67d19ba997a7f807a469891 -->
 
 ## 2026-10-21
 
+- Simulated login: pick a fictitious user per role (clearly labelled "Acceso simulado — sin contraseña"); nurse supervisors also choose their unit
+- Each role sees only its areas: Jefe/a de Admisión everything, Dirección everything except Ajustes, Celador/a only Traslados, and so on; opening a forbidden page redirects to the role's home with a notice
+- User menu in the top bar shows name, role and unit, with "Cerrar sesión"; the session survives a reload
+- Nurse supervisors see a "Mostrando solo: <unidad>" notice on Camas; dashboards will use this unit scope
+- Restablecer demo signs everyone out, since the simulated users are regenerated
+- Tests for access rules, session, guards, login and navigation, plus end-to-end login flows
 - Synthetic hospital seed validated and released (Phase 3)
 
 ## 2026-10-20
