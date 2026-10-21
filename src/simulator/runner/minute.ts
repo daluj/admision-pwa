@@ -4,6 +4,7 @@ import type { IsoDateTime } from '@/domain/schemas'
 import { InvalidTransitionError } from '@/domain/state-machines'
 import { createRng } from '@/simulator/random/prng'
 import type { MinuteContext, Scenario, SimulationBackend } from '@/simulator/scenarios/types'
+import { NORMAL_TUNING } from '@/simulator/scenarios/tuning'
 
 export const MINUTE_MS = 60_000
 
@@ -40,6 +41,7 @@ export async function processMinute(
   const ctx: MinuteContext = {
     backend,
     seed,
+    tuning: scenario.tuning ?? NORMAL_TUNING,
     at,
     minuteIndex,
     rng: (label) => root.fork(`${scenario.id}:${minuteIndex}:${label}`),

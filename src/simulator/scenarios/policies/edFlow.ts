@@ -8,13 +8,11 @@ import type { EdVisit, TriageLevel } from '@/domain/schemas'
 import { COMPLAINTS } from '@/simulator/seed/generateEd'
 import {
   ADMIT_DECISION_DELAY,
-  ADMIT_SHARE,
   FALLBACK_SPECIALTY,
   HOME_DEPARTURE_DELAY,
   ICU_SHARE_URGENT,
   ISOLATION_SHARE,
   LWBS_SHARE,
-  MAX_ASSESSMENTS_PER_MINUTE,
   PHYSICIAN_TARGET_MINUTES,
   TRIAGE_DELAY,
   TRIAGE_SHARES,
@@ -65,7 +63,7 @@ export async function edFlow(ctx: MinuteContext, world: World): Promise<void> {
         const leaves = level >= 4 && wait > 30 && entityChance(seed, 'lwbs', visit.id, LWBS_SHARE)
         if (leaves && waited >= Math.round(wait * 0.7)) {
           await ctx.exec(registerEdDeparture, { edVisitId: visit.id, outcome: 'LWBS' })
-        } else if (waited >= wait && assessments < MAX_ASSESSMENTS_PER_MINUTE) {
+        } else if (waited >= wait && assessments < ctx.tuning.assessmentsPerMinute) {
           assessments++
           await ctx.exec(startEdAssessment, { edVisitId: visit.id })
         }
@@ -74,7 +72,7 @@ export async function edFlow(ctx: MinuteContext, world: World): Promise<void> {
       case 'IN_ASSESSMENT': {
         const seenAt = visit.seenAt ?? visit.arrivedAt
         const treated = minutesBetween(seenAt, at)
-        const admit = entityChance(seed, 'admit', visit.id, ADMIT_SHARE)
+        const admit = entityChance(seed, 'admit', visit.id, ctx.tuning.admitShare)
         if (admit) {
           if (treated >= entityInt(seed, 'admit-delay', visit.id, ADMIT_DECISION_DELAY)) {
             const icu = level <= 2 && entityChance(seed, 'icu', visit.id, ICU_SHARE_URGENT)

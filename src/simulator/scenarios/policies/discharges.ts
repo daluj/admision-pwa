@@ -4,7 +4,6 @@ import {
   DISCHARGE_DELAY_AFTER_ORDER,
   DISCHARGE_HOURS,
   DISCHARGE_ORDER_LEAD,
-  DISCHARGE_SLIP_SHARE,
   EXPECTED_DAYS_AHEAD,
   EXPECTED_HOURS,
   EXPECTED_SET_DAILY_SHARE,
@@ -12,6 +11,7 @@ import {
   MAX_DISCHARGE_ACTIONS_PER_MINUTE,
   ORDER_HOURS,
 } from '../normalDay.config'
+import { scaleRange } from '../tuning'
 import { entityChance, entityInt, entitySlot, minutesBetween } from '../entityRandom'
 import { inHours, type LocalTime } from '../localTime'
 import type { MinuteContext } from '../types'
@@ -58,7 +58,7 @@ export async function discharges(
       const lead = entityInt(seed, `order-lead:${expected}`, admission.id, DISCHARGE_ORDER_LEAD)
       if (minutesBetween(at, expected) > lead || !inHours(local, ORDER_HOURS)) continue
       actions++
-      if (entityChance(seed, `slip:${expected}`, admission.id, DISCHARGE_SLIP_SHARE)) {
+      if (entityChance(seed, `slip:${expected}`, admission.id, ctx.tuning.dischargeSlipShare)) {
         // A day later — and still ahead of now, however overdue it already was.
         let next = addMinutes(expected, 1440)
         while (Date.parse(next) <= Date.parse(at)) next = addMinutes(next, 1440)
@@ -70,7 +70,12 @@ export async function discharges(
         await ctx.exec(orderDischarge, { admissionId: admission.id })
       }
     } else if (admission.status === 'DISCHARGE_ORDERED' && admission.dischargeOrderedAt) {
-      const wait = entityInt(seed, 'discharge-delay', admission.id, DISCHARGE_DELAY_AFTER_ORDER)
+      const wait = entityInt(
+        seed,
+        'discharge-delay',
+        admission.id,
+        scaleRange(DISCHARGE_DELAY_AFTER_ORDER, ctx.tuning.dischargeDelayFactor),
+      )
       if (
         minutesBetween(admission.dischargeOrderedAt, at) >= wait &&
         inHours(local, DISCHARGE_HOURS)
