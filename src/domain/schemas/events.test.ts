@@ -94,6 +94,21 @@ describe('event schemas', () => {
     expect(HospitalEvent.safeParse({ ...makeEvent(type), seq: 1 }).success).toBe(true)
   })
 
+  it('AlertRaised accepts string and number params and rejects anything else', () => {
+    const base = {
+      id: '00000000-0000-4000-8000-000000000001',
+      type: 'AlertRaised',
+      occurredAt: '2026-10-21T10:00:00.000Z',
+      actor: 'simulator',
+      entityType: 'Alert',
+      entityId: 'alr-1',
+    }
+    const payload = { ...validPayloads.AlertRaised, params: { initials: 'M. G.', minutes: 12 } }
+    expect(NewHospitalEvent.safeParse({ ...base, payload }).success).toBe(true)
+    const bad = { ...validPayloads.AlertRaised, params: { nested: { a: 1 } } }
+    expect(NewHospitalEvent.safeParse({ ...base, payload: bad }).success).toBe(false)
+  })
+
   it('rejects a payload that belongs to another type', () => {
     const event = makeEvent('PatientDischarged', validPayloads.TransferAssigned)
     expect(NewHospitalEvent.safeParse(event).success).toBe(false)

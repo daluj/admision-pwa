@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { routes } from '@/app/routes'
 import { PwaUpdatePrompt } from '@/components/pwa/PwaUpdatePrompt'
+import { AlertEvaluatorHost } from '@/features/alerts/AlertEvaluatorHost'
 import { SimulationRunnerHost } from '@/features/simulation/SimulationRunnerHost'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -14,6 +15,7 @@ export function App() {
       <Toaster position="bottom-right" />
       <PwaUpdatePrompt />
       <SimulationRunnerHost />
+      <AlertEvaluatorHost />
     </TooltipProvider>
   )
 }

@@ -29,6 +29,8 @@ export const es = {
     statusLevel: {
       label: 'Nivel del hospital',
       normal: 'Normal',
+      alert: 'Alerta',
+      critical: 'Crítico',
     },
     clock: {
       label: 'Hora simulada',
@@ -38,6 +40,8 @@ export const es = {
       label: 'Alertas',
       count: (n: number) => (n === 1 ? '1 alerta activa' : `${n} alertas activas`),
       empty: 'No hay alertas activas',
+      pending: (n: number, worst: string) =>
+        n === 1 ? `1 alerta sin reconocer (${worst})` : `${n} alertas sin reconocer (${worst})`,
     },
     user: {
       label: 'Usuario',
@@ -56,6 +60,83 @@ export const es = {
     dark: 'Oscuro',
     system: 'Sistema',
   },
+  wall: {
+    title: 'Modo pantalla',
+    link: 'Modo pantalla',
+    exit: 'Salir del modo pantalla',
+    pause: 'Pausar la rotación',
+    play: 'Reanudar la rotación',
+    next: 'Pantalla siguiente',
+    previous: 'Pantalla anterior',
+    fullscreen: 'Pantalla completa',
+    exitFullscreen: 'Salir de pantalla completa',
+    slide: (n: number, total: number, label: string) => `${label} (${n} de ${total})`,
+    pending: (n: number) =>
+      n === 0
+        ? 'Sin alertas pendientes'
+        : n === 1
+          ? '1 alerta sin reconocer'
+          : `${n} alertas sin reconocer`,
+    rotating: (seconds: number) => `Cambia cada ${seconds} s`,
+    paused: 'Rotación en pausa',
+    keys: 'Teclas: ← → cambiar · espacio pausar · F pantalla completa · Esc salir',
+    slides: 'Pantallas',
+    loading: 'Cargando pantalla…',
+  },
+  alerts: {
+    centre: {
+      title: 'Centro de alertas',
+      description: 'Alertas abiertas del hospital, de las más graves a las más antiguas.',
+      open: 'Abiertas',
+      resolved: 'Resueltas recientemente',
+      emptyOpen: 'No hay alertas abiertas.',
+      emptyFiltered: 'Ninguna alerta coincide con los filtros.',
+      emptyResolved: 'Todavía no se ha resuelto ninguna alerta.',
+      severity: 'Gravedad',
+      area: 'Área',
+      all: 'Todas',
+      severities: { CRITICAL: 'Crítica', WARNING: 'Aviso', INFO: 'Información' },
+      areas: {
+        emergency: 'Urgencias',
+        beds: 'Camas',
+        admissions: 'Ingresos y altas',
+        transfers: 'Traslados',
+      },
+      since: (time: string) => `desde hace ${time}`,
+      acknowledge: 'Reconocer',
+      acknowledgeFor: (message: string) => `Reconocer alerta: ${message}`,
+      acknowledged: (who: string, when: string) => `Reconocida por ${who} · ${when}`,
+      acknowledgedAnon: (when: string) => `Reconocida · ${when}`,
+      resolvedAt: (when: string) => `Resuelta ${when}`,
+      goTo: (area: string) => `Ir a ${area}`,
+      toast: 'Alerta reconocida',
+      errors: {
+        forbidden: 'No tiene permiso para reconocer alertas.',
+        stale: 'La alerta ya no está abierta o ya fue reconocida. Actualizando…',
+        failed: 'No se pudo reconocer la alerta. Inténtelo de nuevo.',
+      },
+      close: 'Cerrar',
+    },
+    rules: {
+      ED_TRIAGE_TARGET_BREACH: (p: { initials: string; level: number; targetMin: number }) =>
+        `${p.initials} (nivel ${p.level}) espera al médico más allá de su objetivo de ${p.targetMin} min`,
+      BOARDING_LONG: (p: { initials: string }) =>
+        `${p.initials} lleva demasiado tiempo pendiente de ingreso en Urgencias`,
+      BED_PENDING_CLEANING_LONG: (p: { bedLabel: string; unitName: string }) =>
+        `Cama ${p.bedLabel} (${p.unitName}) pendiente de limpieza demasiado tiempo`,
+      TRANSFER_SLA_BREACH: (p: { initials: string; to: string }) =>
+        `Traslado de ${p.initials} a ${p.to} sin recoger fuera de plazo`,
+      UNIT_FULL: (p: { unitName: string; requests: number }) =>
+        `${p.unitName} sin camas libres y ${p.requests} ${p.requests === 1 ? 'solicitud abierta' : 'solicitudes abiertas'}`,
+      BED_BALANCE_NEGATIVE: () => 'Previsión de camas negativa para hoy',
+    },
+    status: {
+      occupancy: (pct: number) => `Ocupación del ${pct} %`,
+      boardingCount: (n: number) => `${n} pacientes pendientes de ingreso en Urgencias`,
+      boardingLong: (hours: string) => `Espera máxima de ingreso: ${hours} h`,
+      none: 'Ningún indicador fuera de rango.',
+    },
+  },
   pages: {
     overview: {
       title: 'Visión general',
@@ -63,6 +144,85 @@ export const es = {
       emptyTitle: 'Aún no hay datos del hospital',
       emptyDescription:
         'Los indicadores principales aparecerán aquí cuando se cargue el hospital simulado.',
+      loading: 'Cargando la torre de control…',
+      wall: 'Modo pantalla',
+      status: {
+        title: 'Nivel del hospital',
+        levels: {
+          NORMAL: 'El hospital funciona con normalidad.',
+          ALERT: 'El hospital está en situación de alerta.',
+          CRITICAL: 'El hospital está en situación crítica.',
+        },
+      },
+      beds: {
+        label: 'Camas e ingresos',
+        occupancy: {
+          label: 'Ocupación',
+          context: (occupied: number, operational: number) =>
+            `${occupied} de ${operational} camas operativas`,
+        },
+        free: {
+          label: 'Camas libres',
+          context: (reserved: number, cleaning: number) =>
+            `${reserved} reservadas · ${cleaning} por limpiar`,
+        },
+        flow: {
+          label: 'Ingresos / altas hoy',
+          context: (expected: number) => `${expected} altas previstas hoy`,
+        },
+        balance: { label: 'Balance de camas', context: 'Previsión de hoy' },
+      },
+      flow: {
+        label: 'Urgencias, traslados y alertas',
+        ed: {
+          label: 'Pacientes en Urgencias',
+          context: (waiting: number) => `${waiting} esperando al médico`,
+        },
+        boarding: {
+          label: 'Pendientes de ingreso',
+          context: (longest: string) => `Espera máxima ${longest}`,
+          none: 'Nadie esperando cama',
+        },
+        transfers: {
+          label: 'Traslados abiertos',
+          context: (unassigned: number) => `${unassigned} sin asignar`,
+        },
+        sla: {
+          label: 'Recogidas dentro de SLA',
+          none: 'Sin recogidas hoy',
+          context: (within: number, total: number) => `${within} de ${total} hoy`,
+        },
+        alerts: {
+          label: 'Alertas sin reconocer',
+          context: (open: number) => `${open} abiertas en total`,
+        },
+      },
+      alertsCard: {
+        title: 'Necesita atención',
+        description:
+          'Las alertas abiertas más graves y antiguas. El centro de alertas está en la campana.',
+        empty: 'No hay alertas abiertas.',
+        more: (n: number) => `y ${n} más en el centro de alertas`,
+        acknowledged: 'Reconocida',
+      },
+      charts: {
+        title: 'Últimas 24 horas',
+        loading: 'Cargando gráficos…',
+        admitted: {
+          title: 'Ingresos por hora',
+          description: 'Pacientes ingresados en planta en cada hora de reloj.',
+          seriesName: 'Ingresos',
+        },
+        discharged: {
+          title: 'Altas por hora',
+          description: 'Altas completadas en cada hora de reloj.',
+          seriesName: 'Altas',
+        },
+        partial: 'hora en curso',
+        count: (n: number) => `${n}`,
+        hour: 'Hora',
+        value: 'Pacientes',
+      },
     },
     beds: {
       status: {
@@ -780,6 +940,48 @@ export const es = {
     settings: {
       title: 'Ajustes',
       description: 'Preferencias de la aplicación, simulador y datos de demostración.',
+      thresholds: {
+        title: 'Umbrales y alertas',
+        description:
+          'Valores con los que se calcula el nivel del hospital y se generan las alertas. Se guardan en este navegador y se aplican en todas las pestañas. Los indicadores de cada panel mantienen sus umbrales por defecto.',
+        groups: {
+          status: 'Nivel del hospital',
+          rules: 'Reglas de alerta',
+          wall: 'Modo pantalla',
+        },
+        fields: {
+          occupancyAlert: 'Ocupación para nivel Alerta',
+          occupancyCritical: 'Ocupación para nivel Crítico',
+          boardingCountAlert: 'Pendientes de ingreso para Alerta (más de)',
+          boardingCountCritical: 'Pendientes de ingreso para Crítico (más de)',
+          boardingStatusAlertHours: 'Espera máxima de ingreso para Alerta (más de)',
+          boardingStatusCriticalHours: 'Espera máxima de ingreso para Crítico (más de)',
+          boardingLongWarnHours: 'Alerta de ingreso largo: aviso (más de)',
+          boardingLongCriticalHours: 'Alerta de ingreso largo: crítica (más de)',
+          pendingCleaningWarnMin: 'Cama pendiente de limpieza: aviso (más de)',
+          pendingCleaningCriticalMin: 'Cama pendiente de limpieza: crítica (más de)',
+          balanceCritical: 'Balance de camas: crítico (por debajo de)',
+          wallRotationSec: 'Segundos en cada pantalla',
+        },
+        units: {
+          percent: '%',
+          hours: 'h',
+          minutes: 'min',
+          patients: 'pacientes',
+          beds: 'camas',
+          seconds: 's',
+        },
+        errors: {
+          range: (min: number, max: number) => `Debe estar entre ${min} y ${max}.`,
+          order: 'Debe ser mayor que el valor anterior.',
+          number: 'Introduzca un número.',
+        },
+        save: 'Guardar umbrales',
+        reset: 'Restablecer valores por defecto',
+        saved: 'Umbrales guardados',
+        restored: 'Umbrales restablecidos',
+        invalid: 'Revise los campos marcados.',
+      },
       demo: {
         title: 'Datos de demostración',
         description:

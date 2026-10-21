@@ -3,6 +3,7 @@ import { es } from '@/i18n/es'
 import { DatabaseStatusSection } from './components/DatabaseStatusSection'
 import { EventLogSection } from './components/EventLogSection'
 import { DemoDataSection } from './components/DemoDataSection'
+import { ThresholdsCard } from './components/ThresholdsCard'
 import { StatusTokenSwatches } from './components/StatusTokenSwatches'
 
 const copy = es.pages.settings
@@ -12,6 +13,7 @@ export default function SettingsPage() {
     <>
       <PageHeader title={copy.title} description={copy.description} />
       <div className="flex flex-col gap-6">
+        <ThresholdsCard />
         <DemoDataSection />
         <EventLogSection />
         <DatabaseStatusSection />

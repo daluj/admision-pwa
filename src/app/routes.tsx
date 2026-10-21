@@ -56,6 +56,13 @@ export const routes: RouteObject[] = [
               { path: '*', lazy: lazyPage(() => import('@/features/not-found/NotFoundPage')) },
             ],
           },
+          // The wall display has its own full-screen layout (no sidebar, no top bar).
+          {
+            element: <RequireArea area="overview" />,
+            children: [
+              { path: '/pantalla', lazy: lazyPage(() => import('@/features/wall/WallPage')) },
+            ],
+          },
         ],
       },
     ],

@@ -45,7 +45,7 @@ All entities have `id: string`, `createdAt`, `updatedAt` (ISO UTC). Patient data
 | **Porter** | `name`, `shift` (`MORNING` \| `AFTERNOON` \| `NIGHT`), `status` (`AVAILABLE` \| `BUSY` \| `OFF_SHIFT`) |
 | **User** (simulated) | `username`, `displayName`, `role`, `unitId?` (for nurse supervisors), `porterId?` (links a porter login to its `Porter`) |
 | **HospitalEvent** | `id` (UUID), `seq` (monotonic, gap-free, assigned by the event store), `type`, `occurredAt`, `actor` (`userId` \| `"simulator"`), `entityType`, `entityId`, `payload` (typed per event, see Event payloads) |
-| **Alert** | `ruleId`, `severity` (`INFO` \| `WARNING` \| `CRITICAL`), `entityType`, `entityId`, `message`, `raisedAt`, `acknowledgedAt?`, `acknowledgedBy?`, `resolvedAt?` |
+| **Alert** | `ruleId`, `severity` (`INFO` \| `WARNING` \| `CRITICAL`), `entityType`, `entityId`, `message`, `params?` (what the Spanish text needs; `unitId` scopes an alert to a unit), `raisedAt`, `acknowledgedAt?`, `acknowledgedBy?`, `resolvedAt?` |
 | **SimulationState** | singleton (`id: "current"`): `seed`, `scenarioId`, `speed`, `running`, `simNow` (simulated clock), `startedAt` |
 
 **Unique fields** (enforced by every adapter): `Specialty.code`, `Unit.code`, `Patient.mrn`, `User.username`. `Alert.entityType` and `HospitalEvent.entityType` use the same entity-type enum (`Specialty`, `Unit`, `Bed`, …, `SimulationState`).
@@ -147,7 +147,7 @@ Event `type` is `PascalCase` past tense. Each has a Zod payload schema in `src/d
 | `TransferPickedUp` / `TransferDelivered` | TransferRequest | — |
 | `TransferCancelled` | TransferRequest | `reason?` |
 | `AdmissionCancelled` | Admission | `reason` (`NO_BED` \| `PATIENT` \| `CLINICAL` \| `OTHER`) |
-| `AlertRaised` | Alert | `ruleId`, `severity`, `entityType`, `entityId`, `message` |
+| `AlertRaised` | Alert | `ruleId`, `severity`, `entityType`, `entityId`, `message`, `params?` |
 | `AlertAcknowledged` | Alert | `acknowledgedBy` |
 | `AlertResolved` | Alert | — |
 | `DemoSeeded` | SimulationState (`current`) | `seed`, `profileId`, `anchorAt`, `counts` (rows per entity) |
