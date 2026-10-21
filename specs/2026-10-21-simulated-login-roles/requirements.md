@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 4 — Simulated Login & Roles
 **Branch:** `phase-4-simulated-login-roles`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 ## Scope
 

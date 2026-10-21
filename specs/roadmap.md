@@ -40,14 +40,14 @@ Status markers: items are `[ ]` until implemented and validated; the `ship-featu
 - [x] "Restablecer demo" action in Ajustes (wipe + reseed with chosen seed)
 - [x] Seed is idempotent and runs on first launch
 
-## Phase 4: Simulated Login & Roles
+## Phase 4: Simulated Login & Roles (Complete)
 
 **Goal:** Show how each role sees the hospital.
 
-- [ ] Login page with fictitious user cards per role (clearly labelled "acceso simulado")
-- [ ] Session context persisted in localStorage; logout
-- [ ] Role-based navigation and route guards (`specs/domain.md` → Roles)
-- [ ] Nurse supervisor scoped to their unit
+- [x] Login page with fictitious user cards per role (clearly labelled "acceso simulado")
+- [x] Session context persisted in localStorage; logout
+- [x] Role-based navigation and route guards (`specs/domain.md` → Roles)
+- [x] Nurse supervisor scoped to their unit
 
 ## Phase 5: Event Store & Simulator Engine
 
