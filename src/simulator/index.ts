@@ -9,3 +9,4 @@ export {
   resetDemo,
   type EnsureResult,
 } from './seed/seedDemo'
+export { createSimulationClock, type SimulationClock } from './clock/simulationClock'
