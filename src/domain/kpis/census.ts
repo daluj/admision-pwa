@@ -46,7 +46,7 @@ export type CensusKpis = {
 export type BedView = {
   bed: Bed
   unit: Unit
-  patient?: { initials: string; fullName: string; mrn: string }
+  patient?: { id: string; initials: string; fullName: string; mrn: string }
   admittedAt?: IsoDateTime
   /** Length of stay of an occupying patient, ms. */
   losMs?: number
@@ -157,6 +157,7 @@ export function computeCensus({ beds, units, admissions, patients, now }: Census
       ...(patient
         ? {
             patient: {
+              id: patient.id,
               initials: patientInitials(patient),
               fullName: `${patient.firstName} ${patient.lastName}`,
               mrn: patient.mrn,

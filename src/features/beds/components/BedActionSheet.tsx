@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { StatusBadge } from '@/components/dashboard'
+import { JourneyLink } from '@/components/dashboard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -98,7 +99,12 @@ function Body({
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4">
         <div className="flex flex-col gap-1 text-sm">
           <StatusBadge kind="bed" status={bed.status} className="self-start" />
-          {view.patient && <p className="font-medium">{copy.patient(view.patient.initials)}</p>}
+          {view.patient && (
+            <p className="flex items-center gap-1 font-medium">
+              {copy.patient(view.patient.initials)}
+              <JourneyLink patientId={view.patient.id} initials={view.patient.initials} />
+            </p>
+          )}
           {view.losMs !== undefined && (
             <p className="text-muted-foreground">{unitCopy.stay(formatDuration(view.losMs))}</p>
           )}

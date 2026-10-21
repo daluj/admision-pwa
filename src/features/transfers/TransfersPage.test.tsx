@@ -48,6 +48,19 @@ describe('Traslados: dispatch board', () => {
     expect(tile(copy.kpis.done.label)).toHaveTextContent('3')
   })
 
+  it('links every queue row to the patient journey', async () => {
+    await open()
+    const table = await screen.findByRole('table', { name: copy.queue.title })
+    const links = within(table).getAllByRole('link', { name: /^Ver recorrido del paciente/ })
+    expect(links).toHaveLength(4)
+    expect(links.map((l) => l.getAttribute('href')).sort()).toEqual([
+      '/seguimiento/p-t1',
+      '/seguimiento/p-t2',
+      '/seguimiento/p-t3',
+      '/seguimiento/p-t4',
+    ])
+  })
+
   it('lists the queue urgent first, with the SLA as text and the overdue one flagged', async () => {
     await open()
     const table = await screen.findByRole('table', { name: copy.queue.title })

@@ -74,7 +74,7 @@ describe('BedActionSheet: actions by status', () => {
   it('shows state details: patient initials, stay, discharge, block reason, time waiting', () => {
     open('OCCUPIED', {
       view: view('OCCUPIED', {
-        patient: { initials: 'M. G. R.', fullName: 'María García Ruiz', mrn: 'SIM-1' },
+        patient: { id: 'p1', initials: 'M. G. R.', fullName: 'María García Ruiz', mrn: 'SIM-1' },
         losMs: 50 * 3_600_000,
         expectedDischargeAt: '2026-10-21T12:00:00.000Z',
       }),

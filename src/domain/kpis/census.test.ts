@@ -169,6 +169,7 @@ describe('computeCensus', () => {
     expect(wardBeds.map((v) => v.bed.label)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7'])
     const a1 = wardBeds[0]!
     expect(a1.patient).toEqual({
+      id: 'p1',
       initials: 'M. G. R.',
       fullName: 'María García Ruiz',
       mrn: 'SIM-p1',
