@@ -40,7 +40,6 @@ export const es = {
     },
     user: {
       label: 'Usuario',
-      guest: 'Invitado',
       role: 'Acceso de demostración',
       menu: 'Menú de usuario',
       unit: 'Unidad',

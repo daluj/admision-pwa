@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router'
+import { useSession } from '@/features/auth/useSession'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { es } from '@/i18n/es'
 import { cn } from '@/lib/utils'
@@ -10,9 +11,12 @@ type NavListProps = {
 }
 
 export function NavList({ showLabels, onNavigate }: NavListProps) {
+  const session = useSession()
+  if (session.status !== 'authenticated') return null
+  const items = NAV_ITEMS.filter((item) => session.can(item.id))
   return (
     <ul className="flex flex-col gap-1">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const label = es.nav.items[item.labelKey]
         const Icon = item.icon
         const link = (
