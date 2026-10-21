@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { AdmissionCancelReason } from './admission'
-import { AlertSeverity } from './alert'
+import { AlertParams, AlertSeverity } from './alert'
 import { BedRequestPriority } from './bedRequest'
 import { Actor, Code, EntityType, EventId, Id, IsoDateTime, Location, TriageLevel } from './common'
 import { EdArea, EdOutcome } from './edVisit'
@@ -96,6 +96,7 @@ const EVENT_DEFINITIONS = {
       entityType: EntityType,
       entityId: Id,
       message: z.string().min(1),
+      params: AlertParams.optional(),
     }),
   },
   AlertAcknowledged: { entityType: 'Alert', payload: z.object({ acknowledgedBy: Id }) },

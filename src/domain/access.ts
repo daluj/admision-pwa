@@ -138,3 +138,8 @@ export function canActOnTransfer(
   }
   return false
 }
+
+/** Who may acknowledge an alert: every role that watches the hospital; porters only run their own jobs. */
+export function canAcknowledgeAlert(role: Role): boolean {
+  return role !== 'PORTER'
+}

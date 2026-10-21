@@ -4,6 +4,7 @@ import {
   BED_ACTIONS,
   BED_STATUS_ACTIONS,
   canAccess,
+  canAcknowledgeAlert,
   canActOnBed,
   canActOnDischarge,
   canActOnTransfer,
@@ -174,4 +175,10 @@ describe('canActOnTransfer', () => {
         )
     },
   )
+})
+
+describe('canAcknowledgeAlert', () => {
+  it('everyone but porters', () => {
+    for (const role of ROLES) expect(canAcknowledgeAlert(role)).toBe(role !== 'PORTER')
+  })
 })
