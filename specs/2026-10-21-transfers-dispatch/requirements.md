@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 10 — Internal Transfers — Dispatch
 **Branch:** `phase-10-transfers-dispatch`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 > Autonomous run (phases 9–12): no interview; the "Recommended" options of earlier interviews were applied. Choices are listed under **Decisions**.
 
@@ -21,7 +21,7 @@ Porter dispatch like a delivery queue. `/traslados` shows two views depending on
 - "Necesita atención": not picked up past `slaDueAt` → `WARNING` (normal) / `CRITICAL` (urgent) — mirrors `TRANSFER_SLA_BREACH`.
 - **Queue** table (open transfers): priority, patient initials, from → to, reason, status, **time to SLA** ("recogida en 4 min" / "vencido hace 3 min", with icon and text), assigned porter, actions. Sorted: urgent first, then closest SLA.
 - **Porters panel**: every on-duty porter with status (Disponible / Ocupado) and current job; off-shift ones collapsed in a count.
-- Actions (side sheets, toasts, events with the user as actor): *Asignar celador* (list of available porters, suggested = the one free longest), *Cancelar traslado* (optional reason; only before pickup), *Nuevo traslado*.
+- Actions (side sheets, toasts, events with the user as actor): *Asignar celador* (list of available porters, suggested = the one free longest), *Cancelar traslado* (optional reason; only before pickup; not offered for `ADMISSION` transfers — release the bed reservation instead, which cancels it, because the simulator would re-request a cancelled admission transfer for a reserved bed), *Nuevo traslado*.
 
 **3. Porter view — "Mi cola"** (`PORTER`)
 - Linked to a porter through `User.porterId` (new optional field; seed links the Celador/a user to a morning porter). Header: porter name and status.

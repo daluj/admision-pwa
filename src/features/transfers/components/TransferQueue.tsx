@@ -111,16 +111,18 @@ export function TransferQueue({
                                 {copy.assign}
                               </Button>
                             )}
-                            {canCancel && row.status !== 'PICKED_UP' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => onCancel(row)}
-                                aria-label={`${copy.cancel}: ${label}`}
-                              >
-                                {copy.cancel}
-                              </Button>
-                            )}
+                            {canCancel &&
+                              row.status !== 'PICKED_UP' &&
+                              row.transfer.reason !== 'ADMISSION' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => onCancel(row)}
+                                  aria-label={`${copy.cancel}: ${label}`}
+                                >
+                                  {copy.cancel}
+                                </Button>
+                              )}
                           </span>
                         ) : (
                           <span className="text-muted-foreground text-xs">{copy.readOnly}</span>

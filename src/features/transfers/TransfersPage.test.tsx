@@ -115,6 +115,22 @@ describe('Traslados: dispatch board', () => {
     })
   })
 
+  it('offers no cancel for admission transfers (release the reservation instead)', async () => {
+    const { backend } = await open()
+    const t3 = (await backend.repositories.transferRequest.get('t3'))!
+    await backend.events.append(
+      [],
+      [{ entity: 'transferRequest', op: 'put', record: { ...t3, reason: 'ADMISSION' } }],
+    )
+    await screen.findByRole('table', { name: copy.queue.title })
+    await waitFor(() =>
+      expect(
+        within(queueRow('t3')).queryByRole('button', { name: /^Cancelar/ }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(within(queueRow('t2')).getByRole('button', { name: /^Cancelar/ })).toBeInTheDocument()
+  })
+
   it('has no cancel action once the patient is on the way', async () => {
     await open()
     await screen.findByRole('table', { name: copy.queue.title })

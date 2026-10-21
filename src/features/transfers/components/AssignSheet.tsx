@@ -46,7 +46,10 @@ function Body({
 }: Omit<AssignSheetProps, 'row' | 'onCloseAutoFocus'> & { row: QueueRow }) {
   const [choice, setChoice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const selected = choice ?? porters[0]?.porter.id ?? null
+  const selected =
+    (choice && porters.some((p) => p.porter.id === choice) ? choice : null) ??
+    porters[0]?.porter.id ??
+    null
   const confirm = async () => {
     if (!selected) return
     setError(null)

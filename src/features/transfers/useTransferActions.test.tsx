@@ -168,4 +168,15 @@ describe('useTransferActions', () => {
     ).toMatchObject({ reason: 'stale' }) // already assigned
     expect(await newEvents(s)).toEqual([])
   })
+
+  it('tells a busy porter to finish their job before accepting another', async () => {
+    const s = await setup(USERS.porterC) // por-c is BUSY
+    expect(await perform(s.hook, { action: 'accept', transferId: 't2', label: 'A' })).toMatchObject(
+      {
+        ok: false,
+        reason: 'busy',
+      },
+    )
+    expect(await newEvents(s)).toEqual([])
+  })
 })

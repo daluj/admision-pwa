@@ -672,6 +672,7 @@ export const es = {
         errors: {
           forbidden: 'No tiene permiso para esta acción.',
           stale: 'El traslado ya no está en esa situación. Actualizando…',
+          busy: 'Termine su traslado actual antes de aceptar otro.',
           failed: 'No se pudo completar la acción. Inténtelo de nuevo.',
         },
       },

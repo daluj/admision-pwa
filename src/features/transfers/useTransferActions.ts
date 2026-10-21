@@ -28,9 +28,9 @@ export type TransferRequestAction =
   | { action: 'accept' | 'pickUp' | 'deliver'; transferId: Id; label: string }
 
 export type TransferActionResult =
-  { ok: true } | { ok: false; reason: 'forbidden' | 'stale' | 'failed'; message: string }
+  { ok: true } | { ok: false; reason: 'forbidden' | 'stale' | 'busy' | 'failed'; message: string }
 
-const failure = (reason: 'forbidden' | 'stale' | 'failed'): TransferActionResult => ({
+const failure = (reason: 'forbidden' | 'stale' | 'busy' | 'failed'): TransferActionResult => ({
   ok: false,
   reason,
   message: copy.errors[reason],
@@ -64,6 +64,11 @@ export function useTransferActions() {
       }
       if (!canActOnTransfer(role, request.action, { jobPorterId, userPorterId })) {
         return failure('forbidden')
+      }
+
+      if (request.action === 'accept') {
+        const porter = await backend.repositories.porter.get(userPorterId!)
+        if (porter && porter.status !== 'AVAILABLE') return failure('busy')
       }
 
       const deps = { backend, clock, newId: () => crypto.randomUUID(), actor: userId }
