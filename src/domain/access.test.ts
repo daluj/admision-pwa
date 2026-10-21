@@ -6,6 +6,8 @@ import {
   canAccess,
   canActOnBed,
   canActOnDischarge,
+  canActOnTransfer,
+  TRANSFER_ACTIONS,
   DISCHARGE_ACTIONS,
   homeFor,
   ROLE_AREAS,
@@ -126,6 +128,50 @@ describe('canActOnDischarge', () => {
     (role) => {
       for (const action of DISCHARGE_ACTIONS)
         expect(canActOnDischarge(role, action, own)).toBe(false)
+    },
+  )
+})
+
+describe('canActOnTransfer', () => {
+  it.each(['ADMISSIONS_HEAD', 'BED_MANAGER'] as const)(
+    '%s dispatches: create, assign, cancel — not the porter steps',
+    (role) => {
+      for (const action of TRANSFER_ACTIONS) {
+        expect(canActOnTransfer(role, action)).toBe(
+          action === 'create' || action === 'assign' || action === 'cancel',
+        )
+      }
+    },
+  )
+
+  it('a porter accepts for themselves and moves only their own jobs', () => {
+    const mine = { userPorterId: 'p1', jobPorterId: 'p1' }
+    const theirs = { userPorterId: 'p1', jobPorterId: 'p2' }
+    expect(canActOnTransfer('PORTER', 'accept', mine)).toBe(true)
+    expect(canActOnTransfer('PORTER', 'pickUp', mine)).toBe(true)
+    expect(canActOnTransfer('PORTER', 'deliver', mine)).toBe(true)
+    expect(canActOnTransfer('PORTER', 'pickUp', theirs)).toBe(false)
+    expect(canActOnTransfer('PORTER', 'deliver', { userPorterId: 'p1' })).toBe(false) // unassigned job
+    for (const action of ['create', 'assign', 'cancel'] as const)
+      expect(canActOnTransfer('PORTER', action, mine)).toBe(false)
+  })
+
+  it('a porter without a linked porter can do nothing (fails closed)', () => {
+    for (const action of TRANSFER_ACTIONS) {
+      expect(canActOnTransfer('PORTER', action, { jobPorterId: 'p1' })).toBe(false)
+      expect(canActOnTransfer('PORTER', action, { userPorterId: null, jobPorterId: null })).toBe(
+        false,
+      )
+    }
+  })
+
+  it.each(['MANAGEMENT', 'NURSE_SUPERVISOR', 'ED_COORDINATOR'] as const)(
+    '%s is read-only',
+    (role) => {
+      for (const action of TRANSFER_ACTIONS)
+        expect(canActOnTransfer(role, action, { userPorterId: 'p1', jobPorterId: 'p1' })).toBe(
+          false,
+        )
     },
   )
 })

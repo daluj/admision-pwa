@@ -184,7 +184,8 @@ Calculators are pure functions in `src/domain/kpis/`, taking entities + `now` an
 - **Expected-discharge rules**: only `ADMITTED` patients can have their expected discharge set or edited (future time, at most 7 days ahead); `ordering` the discharge moves them to `DISCHARGE_ORDERED`.
 
 ### Transfers
-- **Open requests** by status; **median time to pickup**; **% within SLA** (default SLA: URGENT 10 min, NORMAL 30 min to pickup); **porters available / busy**.
+- **Open requests** by status (`REQUESTED`, `ASSIGNED`, `PICKED_UP`); **median time to pickup** (requested → picked up) of the transfers picked up today (local day); **% within SLA** = share of those picked up on or before `slaDueAt` (default SLA: URGENT 10 min, NORMAL 30 min to pickup; objective ≥ 90 %); **porters available / busy / off shift**; delivered today.
+- Transfers are created automatically when a bed is reserved (`reserveBed` emits `BedReserved` + `TransferRequested`) or by hand from the dispatch board. Dispatch assigns an available porter; the porter picks up and delivers. Dashboard exception = `TRANSFER_SLA_BREACH`.
 
 ### Hospital status level
 - `NORMAL`, `ALERT`, `CRITICAL` computed from configurable thresholds (defaults: occupancy ≥ 92% → ALERT, ≥ 97% → CRITICAL; boarding > 10 patients or longest boarding > 6 h → ALERT; > 20 or > 12 h → CRITICAL). Highest triggered level wins.
@@ -207,10 +208,10 @@ Alerts are raised and resolved automatically by an evaluator that runs on every 
 | Role | UI label | Sees / can do |
 |---|---|---|
 | `ADMISSIONS_HEAD` | Jefe/a de Admisión | Everything; settings; simulator controls |
-| `BED_MANAGER` | Gestor/a de camas | Beds, admissions, transfers; reserve/assign/release/block/unblock beds and cleaning |
+| `BED_MANAGER` | Gestor/a de camas | Beds, admissions, transfers; reserve/assign/release/block/unblock beds and cleaning; create, assign and cancel transfers |
 | `NURSE_SUPERVISOR` | Supervisor/a de enfermería | Own unit's beds and incoming patients; set expected discharges and order discharges for their own unit; start/finish cleaning on their own unit (no reserve/block) |
 | `ED_COORDINATOR` | Coordinación de Urgencias | ED dashboard, boarding, bed requests |
-| `PORTER` | Celador/a | Own transfer queue: accept, pick up, deliver |
+| `PORTER` | Celador/a | Own transfer queue: accept (self-assign while available), pick up, deliver — only their own jobs |
 | `MANAGEMENT` | Dirección | Overview and all dashboards, read-only |
 
 ## Synthetic Hospital (seed)

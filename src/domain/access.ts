@@ -105,3 +105,36 @@ export function canActOnDischarge(
     return scope.userUnitId != null && scope.userUnitId === scope.unitId
   return false
 }
+
+/** What a person can do about a transfer (each maps to a domain command). */
+export const TRANSFER_ACTIONS = [
+  'create',
+  'assign',
+  'cancel',
+  'accept',
+  'pickUp',
+  'deliver',
+] as const
+export type TransferAction = (typeof TRANSFER_ACTIONS)[number]
+
+/**
+ * Who may act on transfers (`specs/domain.md` → Roles). Dispatch (head, bed managers): create,
+ * assign and cancel. Porters: accept (self-assign) and, on their OWN jobs, pick up and deliver.
+ * Everyone else is read-only. Porter actions fail closed without a linked porter.
+ * `jobPorterId` is the porter currently assigned to the transfer; `userPorterId` the login's porter.
+ */
+export function canActOnTransfer(
+  role: Role,
+  action: TransferAction,
+  scope: { jobPorterId?: string | null | undefined; userPorterId?: string | null | undefined } = {},
+): boolean {
+  if (role === 'ADMISSIONS_HEAD' || role === 'BED_MANAGER') {
+    return action === 'create' || action === 'assign' || action === 'cancel'
+  }
+  if (role === 'PORTER') {
+    if (scope.userPorterId == null) return false
+    if (action === 'accept') return true
+    if (action === 'pickUp' || action === 'deliver') return scope.jobPorterId === scope.userPorterId
+  }
+  return false
+}
