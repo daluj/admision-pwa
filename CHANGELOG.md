@@ -1,9 +1,15 @@
 # Changelog
 
-<!-- last-commit: cd0b2d7448e5f2f4e1682edb1f526dbe21e55474 -->
+<!-- last-commit: 785a45b2674d4b951e51474ce6204ca1374cc0b7 -->
 
 ## 2026-10-21
 
+- Bed census dashboard on Camas: six live KPIs (occupancy, free beds, pending cleaning, blocked, expected discharges today, outlier patients), a "Necesita atención" list (beds blocked > 72 h, units at 92 % or more, outliers) and a card per unit with its status breakdown
+- Filters by building, unit type and specialty apply to everything on the page and are remembered per user
+- Bed map per unit (`/camas/<unidad>`): every bed by room with its status, patient initials, length of stay and expected discharge; full name and NHC only in the tooltip
+- Everything updates live while the simulation runs
+- Nurse supervisors go straight to their own unit and cannot open another; a supervisor without a unit sees nothing instead of the whole hospital
+- Reusable dashboard components (KPI tiles, exception list, status badges) and duration/date formatting for the next dashboards
 - The hospital comes alive: a simulated clock with play/pause and speeds 1×, 10×, 60× and 300× in the top bar (Jefe/a de Admisión only; every role sees the live time, also on phones)
 - "Normal day" scenario: ED arrivals by hour of day, triage and assessment against Manchester targets, admission decisions, bed reservations, porter transfers, scheduled admissions, expected discharges, cleaning and occasional bed blocks — all through the same validated commands a real system would use
 - Every change is recorded as an event together with the state it causes; the simulated time survives reloads and a second tab follows it live; only one tab runs the simulation
