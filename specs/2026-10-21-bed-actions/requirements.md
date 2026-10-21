@@ -2,7 +2,7 @@
 
 **Roadmap phase:** 7 — Bed Management — Actions & Turnaround
 **Branch:** `phase-7-bed-actions`
-**Status:** Draft — 2026-10-21
+**Status:** Complete — 2026-10-21
 
 ## Scope
 
