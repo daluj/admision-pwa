@@ -22,7 +22,7 @@ export function AppShell() {
           <main
             id="main"
             tabIndex={-1}
-            className="flex-1 overflow-y-auto p-4 focus:outline-none md:p-6"
+            className="flex-1 overflow-y-auto overscroll-contain p-4 focus:outline-none md:p-6"
           >
             <Suspense fallback={<p className="text-muted-foreground text-sm">{es.loading}</p>}>
               <Outlet />

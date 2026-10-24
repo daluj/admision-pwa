@@ -175,6 +175,8 @@
   }
   html {
     color-scheme: light;
+    /* The app shell scrolls inside <main>; stop the page behind it from scrolling or bouncing. */
+    overscroll-behavior: none;
   }
   html.dark {
     color-scheme: dark;
